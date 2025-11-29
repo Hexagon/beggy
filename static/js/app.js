@@ -16,6 +16,7 @@ let includeAdjacent = false
 let currentSearch = ""
 let currentSort = DEFAULT_SORT
 let viewMode = localStorage.getItem("viewMode") || DEFAULT_VIEW_MODE
+let isBrowseMode = false
 
 // DOM Elements
 const adsGrid = document.getElementById("adsGrid")
@@ -26,6 +27,9 @@ const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox
 const searchInput = document.getElementById("searchInput")
 const pagination = document.getElementById("pagination")
 const sortSelect = document.getElementById("sortSelect")
+const landingSection = document.getElementById("landingSection")
+const categoriesSection = document.getElementById("categoriesSection")
+const adsSection = document.getElementById("adsSection")
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
@@ -35,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadStateFromUrl()
   setupEventListeners()
   updateViewModeButtons()
+  updateViewMode()
 })
 
 // Event Listeners
@@ -96,10 +101,19 @@ function setupEventListeners() {
   // Report ad
   document.getElementById("reportForm").addEventListener("submit", handleReportAd)
 
+  // Browse ads button (landing page)
+  const browseAdsBtn = document.getElementById("browseAdsBtn")
+  if (browseAdsBtn) {
+    browseAdsBtn.addEventListener("click", () => {
+      showBrowseView()
+    })
+  }
+
   // Search
   document.getElementById("searchBtn").addEventListener("click", () => {
     currentSearch = searchInput.value
     currentPage = 1
+    showBrowseView()
     loadAdsAndUpdateUrl()
   })
 
@@ -107,6 +121,7 @@ function setupEventListeners() {
     if (e.key === "Enter") {
       currentSearch = searchInput.value
       currentPage = 1
+      showBrowseView()
       loadAdsAndUpdateUrl()
     }
   })
@@ -115,6 +130,7 @@ function setupEventListeners() {
   countySelect.addEventListener("change", () => {
     currentCounty = countySelect.value
     currentPage = 1
+    showBrowseView()
     loadAdsAndUpdateUrl()
   })
 
@@ -317,6 +333,7 @@ function filterByCategory(category) {
   currentCategory = category
   categorySelect.value = category
   currentPage = 1
+  showBrowseView()
   loadAdsAndUpdateUrl()
   document.getElementById("adsTitle").textContent = category
 }
@@ -347,7 +364,7 @@ function loadStateFromUrl() {
   includeAdjacentCheckbox.checked = includeAdjacent
   sortSelect.value = currentSort
   
-  loadAds()
+  updateViewMode()
 }
 
 function updateUrl() {
@@ -775,6 +792,34 @@ function updateViewModeButtons() {
   }
 }
 
+// Landing/Browse view management
+function updateViewMode() {
+  // Check if any filters are active or URL has parameters
+  const params = new URLSearchParams(window.location.search)
+  const hasFilters = currentSearch || currentCategory || currentCounty || params.toString()
+  
+  if (hasFilters || isBrowseMode) {
+    showBrowseView()
+  } else {
+    showLandingView()
+  }
+}
+
+function showLandingView() {
+  isBrowseMode = false
+  if (landingSection) landingSection.classList.remove("hidden")
+  if (categoriesSection) categoriesSection.classList.add("hidden")
+  if (adsSection) adsSection.classList.add("hidden")
+}
+
+function showBrowseView() {
+  isBrowseMode = true
+  if (landingSection) landingSection.classList.add("hidden")
+  if (categoriesSection) categoriesSection.classList.remove("hidden")
+  if (adsSection) adsSection.classList.remove("hidden")
+  loadAds()
+}
+
 function showAlert(message, type) {
   // Remove existing alerts
   document.querySelectorAll(".alert").forEach((el) => el.remove())
@@ -805,6 +850,7 @@ window.deleteMyAccount = deleteMyAccount
 window.startConversation = startConversation
 window.openChat = openChat
 window.setViewMode = setViewMode
+window.showBrowseView = showBrowseView
 
 // Conversation/Chat functions
 let currentConversationId = null
