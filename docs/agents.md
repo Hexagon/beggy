@@ -26,6 +26,7 @@ beggy/
 ├── src/
 │   ├── routes/          # API and page routes
 │   ├── db/              # Supabase client and schema
+│   │   └── migrations/  # Database migration SQL files
 │   ├── models/          # Type definitions
 │   ├── middleware/      # Oak middleware
 │   └── utils/           # Utility functions
@@ -152,7 +153,25 @@ Tables:
 - `ads`: Advertisements (id, user_id, title, description, price, category, city, status)
 - `images`: Ad images (id, ad_id, filename, storage_path)
 
-Full schema SQL is in `src/db/database.ts` comments.
+### Database Migrations
+
+Database schema files are located in `src/db/migrations/`:
+
+- `001_initial_schema.sql` - The original schema that created the production database
+
+**IMPORTANT: Database Change Policy**
+
+1. **DO NOT modify `001_initial_schema.sql`** - This file represents the initial production database
+   state and must remain unchanged for historical reference
+2. **Create new migration files** for any database changes using sequential numbering:
+   - `002_add_new_feature.sql`
+   - `003_update_existing_table.sql`
+   - etc.
+3. Each migration file should:
+   - Have a clear descriptive name
+   - Include a comment header explaining the purpose
+   - Be idempotent when possible (use `IF NOT EXISTS`, `IF EXISTS`, etc.)
+   - Be applied in order to the production database via Supabase SQL Editor
 
 ## Supabase Storage
 
