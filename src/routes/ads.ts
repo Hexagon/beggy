@@ -477,20 +477,31 @@ router.post("/api/ads/:id/report", async (ctx) => {
     return
   }
 
+  // Hash IP for privacy (GDPR compliance) while still allowing abuse detection
+  const hashIp = async (ip: string): Promise<string> => {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(ip + "beggy-salt")
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 16)
+  }
+
+  const hashedIp = await hashIp(ctx.request.ip)
+
   // Store report in database (creates table if not exists via Supabase)
   // Note: The reports table needs to be created in Supabase SQL Editor
   const { error: reportError } = await supabase.from("reports").insert({
     ad_id: id,
     reason,
     details: details || null,
-    reporter_ip: ctx.request.ip,
+    reporter_ip_hash: hashedIp, // SHA-256 hash for privacy (GDPR)
     status: "pending",
   })
 
   if (reportError) {
-    // If reports table doesn't exist, log the report and return success anyway
+    // If reports table doesn't exist, log the report (without sensitive details)
     // This ensures the API works even without the table
-    console.log(`Report for ad ${id}: ${reason} - ${details || "No details"}`)
+    console.log(`Report received for ad ${id}: ${reason}`)
   }
 
   ctx.response.status = 201

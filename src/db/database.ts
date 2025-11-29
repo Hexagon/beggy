@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS reports (
   ad_id INTEGER NOT NULL REFERENCES ads(id) ON DELETE CASCADE,
   reason TEXT NOT NULL,
   details TEXT,
-  reporter_ip TEXT,
+  reporter_ip_hash TEXT,  -- SHA-256 hash of IP for privacy (GDPR)
   status TEXT DEFAULT 'pending',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   resolved_at TIMESTAMPTZ
