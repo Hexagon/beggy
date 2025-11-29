@@ -1,172 +1,232 @@
 <!DOCTYPE html>
 <html lang="sv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beggy - Köp och sälj begagnat</title>
-  <meta name="description" content="Beggy - En enkel svensk begagnatmarknad. Köp och sälj begagnat lokalt.">
-  <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-  <header class="header">
-    <div class="container">
-      <a href="/" class="logo">🛒 Beggy</a>
-      <nav class="nav">
-        <a href="#" id="sellBtn" class="btn btn-primary">Sälj</a>
-        <a href="#" id="loginBtn" class="nav-link">Logga in</a>
-      </nav>
-      <nav class="nav nav-logged-in" style="display:none;">
-        <a href="#" id="sellBtn2" class="btn btn-primary">Sälj</a>
-        <a href="#" id="myAdsBtn" class="nav-link">Mina annonser</a>
-        <a href="#" id="logoutBtn" class="nav-link">Logga ut</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="main">
-    <div class="container">
-      <!-- Search section -->
-      <section class="search-section">
-        <h1>Köp och sälj begagnat</h1>
-        <div class="search-bar">
-          <input type="text" id="searchInput" placeholder="Sök bland annonser..." class="search-input">
-          <select id="categorySelect" class="search-select">
-            <option value="">Alla kategorier</option>
-          </select>
-          <button id="searchBtn" class="btn btn-primary">Sök</button>
-        </div>
-      </section>
-
-      <!-- Categories -->
-      <section class="categories" id="categoriesSection">
-        <h2>Kategorier</h2>
-        <div class="category-grid" id="categoryGrid"></div>
-      </section>
-
-      <!-- Ads listing -->
-      <section class="ads-section">
-        <h2 id="adsTitle">Senaste annonser</h2>
-        <div class="ads-grid" id="adsGrid"></div>
-        <div class="pagination" id="pagination"></div>
-      </section>
-    </div>
-  </main>
-
-  <!-- Login Modal -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('loginModal')">&times;</span>
-      <h2>Logga in</h2>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="loginEmail">E-post</label>
-          <input type="email" id="loginEmail" required>
-        </div>
-        <div class="form-group">
-          <label for="loginPassword">Lösenord</label>
-          <input type="password" id="loginPassword" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Logga in</button>
-        <p class="form-footer">
-          Har du inget konto? <a href="#" id="showRegister">Registrera dig</a>
-        </p>
-      </form>
-    </div>
-  </div>
-
-  <!-- Register Modal -->
-  <div class="modal" id="registerModal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('registerModal')">&times;</span>
-      <h2>Registrera dig</h2>
-      <form id="registerForm">
-        <div class="form-group">
-          <label for="regName">Namn *</label>
-          <input type="text" id="regName" required>
-        </div>
-        <div class="form-group">
-          <label for="regEmail">E-post *</label>
-          <input type="email" id="regEmail" required>
-        </div>
-        <div class="form-group">
-          <label for="regPassword">Lösenord * (minst 8 tecken)</label>
-          <input type="password" id="regPassword" required minlength="8">
-        </div>
-        <div class="form-group">
-          <label for="regPhone">Telefon</label>
-          <input type="tel" id="regPhone">
-        </div>
-        <div class="form-group">
-          <label for="regCity">Ort</label>
-          <input type="text" id="regCity">
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Registrera</button>
-        <p class="form-footer">
-          Har du redan ett konto? <a href="#" id="showLogin">Logga in</a>
-        </p>
-      </form>
-    </div>
-  </div>
-
-  <!-- Create Ad Modal -->
-  <div class="modal" id="createAdModal">
-    <div class="modal-content modal-large">
-      <span class="close" onclick="closeModal('createAdModal')">&times;</span>
-      <h2>Skapa annons</h2>
-      <form id="createAdForm">
-        <div class="form-group">
-          <label for="adTitle">Rubrik *</label>
-          <input type="text" id="adTitle" required maxlength="100">
-        </div>
-        <div class="form-group">
-          <label for="adCategory">Kategori *</label>
-          <select id="adCategory" required></select>
-        </div>
-        <div class="form-group">
-          <label for="adPrice">Pris (kr) *</label>
-          <input type="number" id="adPrice" required min="0">
-        </div>
-        <div class="form-group">
-          <label for="adCity">Ort</label>
-          <input type="text" id="adCity">
-        </div>
-        <div class="form-group">
-          <label for="adDescription">Beskrivning *</label>
-          <textarea id="adDescription" required rows="5"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Skapa annons</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Ad Detail Modal -->
-  <div class="modal" id="adDetailModal">
-    <div class="modal-content modal-large">
-      <span class="close" onclick="closeModal('adDetailModal')">&times;</span>
-      <div id="adDetailContent"></div>
-    </div>
-  </div>
-
-  <!-- My Ads Modal -->
-  <div class="modal" id="myAdsModal">
-    <div class="modal-content modal-large">
-      <span class="close" onclick="closeModal('myAdsModal')">&times;</span>
-      <h2>Mina annonser</h2>
-      <div id="myAdsList"></div>
-    </div>
-  </div>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-links">
-        <a href="/om">Om Beggy</a>
-        <a href="/villkor">Användarvillkor</a>
-        <a href="/integritetspolicy">Integritetspolicy</a>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beggy - Köp och sälj begagnat</title>
+    <meta
+      name="description"
+      content="Beggy - En enkel svensk begagnatmarknad. Köp och sälj begagnat lokalt."
+    >
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <a href="/" class="logo">🛒 Beggy</a>
+        <nav class="nav">
+          <a href="#" id="sellBtn" class="btn btn-primary">Sälj</a>
+          <a href="#" id="loginBtn" class="nav-link">Logga in</a>
+        </nav>
+        <nav class="nav nav-logged-in" style="display: none">
+          <a href="#" id="sellBtn2" class="btn btn-primary">Sälj</a>
+          <a href="#" id="myAdsBtn" class="nav-link">Mina annonser</a>
+          <a href="#" id="logoutBtn" class="nav-link">Logga ut</a>
+        </nav>
       </div>
-      <p>&copy; 2025 Beggy - Öppen källkod på <a href="https://github.com/Hexagon/beggy" target="_blank">GitHub</a></p>
-    </div>
-  </footer>
+    </header>
 
-  <script src="/js/app.js"></script>
-</body>
+    <main class="main">
+      <div class="container">
+        <!-- Search section -->
+        <section class="search-section">
+          <h1>Köp och sälj begagnat</h1>
+          <div class="search-bar">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Sök bland annonser..."
+              class="search-input"
+            >
+            <select id="categorySelect" class="search-select">
+              <option value="">Alla kategorier</option>
+            </select>
+            <button id="searchBtn" class="btn btn-primary">Sök</button>
+          </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="categories" id="categoriesSection">
+          <h2>Kategorier</h2>
+          <div class="category-grid" id="categoryGrid"></div>
+        </section>
+
+        <!-- Ads listing -->
+        <section class="ads-section">
+          <h2 id="adsTitle">Senaste annonser</h2>
+          <div class="ads-grid" id="adsGrid"></div>
+          <div class="pagination" id="pagination"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('loginModal')">&times;</span>
+        <h2>Logga in</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">E-post</label>
+            <input type="email" id="loginEmail" required>
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Lösenord</label>
+            <input type="password" id="loginPassword" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Logga in</button>
+          <p class="form-footer">
+            Har du inget konto? <a href="#" id="showRegister">Registrera dig</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('registerModal')">&times;</span>
+        <h2>Registrera dig</h2>
+        <form id="registerForm">
+          <div class="form-group">
+            <label for="regName">Namn *</label>
+            <input type="text" id="regName" required>
+          </div>
+          <div class="form-group">
+            <label for="regEmail">E-post *</label>
+            <input type="email" id="regEmail" required>
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Lösenord * (minst 8 tecken)</label>
+            <input type="password" id="regPassword" required minlength="8">
+          </div>
+          <div class="form-group">
+            <label for="regPhone">Telefon</label>
+            <input type="tel" id="regPhone">
+          </div>
+          <div class="form-group">
+            <label for="regCity">Ort</label>
+            <input type="text" id="regCity">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Registrera</button>
+          <p class="form-footer">
+            Har du redan ett konto? <a href="#" id="showLogin">Logga in</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Create Ad Modal -->
+    <div class="modal" id="createAdModal">
+      <div class="modal-content modal-large">
+        <span class="close" onclick="closeModal('createAdModal')">&times;</span>
+        <h2>Skapa annons</h2>
+        <form id="createAdForm">
+          <div class="form-group">
+            <label for="adTitle">Rubrik *</label>
+            <input type="text" id="adTitle" required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="adCategory">Kategori *</label>
+            <select id="adCategory" required></select>
+          </div>
+          <div class="form-group">
+            <label for="adPrice">Pris (kr) *</label>
+            <input type="number" id="adPrice" required min="0">
+          </div>
+          <div class="form-group">
+            <label for="adCity">Ort</label>
+            <input type="text" id="adCity">
+          </div>
+          <div class="form-group">
+            <label for="adDescription">Beskrivning *</label>
+            <textarea id="adDescription" required rows="5"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Skapa annons</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Ad Detail Modal -->
+    <div class="modal" id="adDetailModal">
+      <div class="modal-content modal-large">
+        <span class="close" onclick="closeModal('adDetailModal')">&times;</span>
+        <div id="adDetailContent"></div>
+      </div>
+    </div>
+
+    <!-- My Ads Modal -->
+    <div class="modal" id="myAdsModal">
+      <div class="modal-content modal-large">
+        <span class="close" onclick="closeModal('myAdsModal')">&times;</span>
+        <h2>Mina annonser</h2>
+        <div id="myAdsList"></div>
+        <hr style="margin: 20px 0" />
+        <h3>Kontoinställningar</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px">
+          <button class="btn btn-outline" onclick="exportMyData()">
+            📥 Exportera mina data (GDPR)
+          </button>
+          <button class="btn btn-danger" onclick="deleteMyAccount()">
+            🗑️ Radera mitt konto
+          </button>
+        </div>
+        <p style="color: #666; font-size: 0.85rem; margin-top: 10px">
+          Du har rätt att exportera eller radera all din personliga data enligt GDPR.
+        </p>
+      </div>
+    </div>
+
+    <!-- Report Modal (BBS law compliance) -->
+    <div class="modal" id="reportModal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('reportModal')">&times;</span>
+        <h2>⚠️ Rapportera annons</h2>
+        <p style="color: #666; margin-bottom: 15px">
+          Hjälp oss hålla Beggy säkert. Rapporter hanteras konfidentiellt.
+        </p>
+        <form id="reportForm">
+          <div class="form-group">
+            <label for="reportReason">Anledning *</label>
+            <select id="reportReason" required>
+              <option value="">Välj anledning...</option>
+              <option value="illegal_content">Olagligt innehåll</option>
+              <option value="fraud">Bedrägeri/Bluff</option>
+              <option value="spam">Spam/Reklam</option>
+              <option value="offensive">Stötande innehåll</option>
+              <option value="wrong_category">Fel kategori</option>
+              <option value="other">Annat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reportDetails">Detaljer (valfritt)</label>
+            <textarea
+              id="reportDetails"
+              rows="3"
+              placeholder="Beskriv problemet..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Skicka rapport</button>
+        </form>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-links">
+          <a href="/om">Om Beggy</a>
+          <a href="/villkor">Användarvillkor</a>
+          <a href="/integritetspolicy">Integritetspolicy</a>
+        </div>
+        <p>
+          &copy; 2025 Beggy - Öppen källkod på <a
+            href="https://github.com/Hexagon/beggy"
+            target="_blank"
+          >GitHub</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+  </body>
 </html>
