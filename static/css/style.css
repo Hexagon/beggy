@@ -1,0 +1,522 @@
+/* Beggy - Simple Swedish Secondhand Marketplace */
+
+:root {
+  --primary: #0066cc;
+  --primary-dark: #0052a3;
+  --secondary: #28a745;
+  --danger: #dc3545;
+  --text: #333;
+  --text-light: #666;
+  --bg: #f5f5f5;
+  --white: #fff;
+  --border: #ddd;
+  --shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.header {
+  background: var(--white);
+  box-shadow: var(--shadow);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  padding: 8px 12px;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--white);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: var(--white);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Main content */
+.main {
+  min-height: calc(100vh - 200px);
+  padding: 30px 0;
+}
+
+/* Search section */
+.search-section {
+  background: var(--white);
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.search-section h1 {
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  max-width: 800px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.search-select {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1rem;
+  min-width: 180px;
+}
+
+/* Categories */
+.categories {
+  margin-bottom: 30px;
+}
+
+.categories h2 {
+  margin-bottom: 15px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.category-item {
+  background: var(--white);
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.category-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+/* Ads grid */
+.ads-section h2 {
+  margin-bottom: 15px;
+}
+
+.ads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.ad-card {
+  background: var(--white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.ad-card:hover {
+  transform: translateY(-4px);
+}
+
+.ad-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--border);
+}
+
+.ad-no-image {
+  width: 100%;
+  height: 180px;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-size: 3rem;
+}
+
+.ad-image-placeholder {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(135deg, #e0f0ff 0%, #f0f5ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 1rem;
+  font-size: 3rem;
+}
+
+.ad-info {
+  padding: 15px;
+}
+
+.ad-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-price {
+  font-size: 1.2rem;
+  color: var(--primary);
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.ad-meta {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.pagination button {
+  padding: 10px 15px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button:hover {
+  background: var(--bg);
+}
+
+.pagination button.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+/* Modals */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--white);
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.modal-large {
+  max-width: 600px;
+}
+
+.close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-light);
+}
+
+.close:hover {
+  color: var(--text);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-footer {
+  margin-top: 15px;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.form-footer a {
+  color: var(--primary);
+}
+
+/* Ad Detail */
+.ad-detail-images {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.ad-detail-images img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+}
+
+.ad-detail-price {
+  font-size: 1.5rem;
+  color: var(--primary);
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.ad-detail-meta {
+  color: var(--text-light);
+  margin-bottom: 15px;
+}
+
+.ad-detail-description {
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.seller-info {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+/* My Ads */
+.my-ad-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.my-ad-item:last-child {
+  border-bottom: none;
+}
+
+.my-ad-info {
+  flex: 1;
+}
+
+.my-ad-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.my-ad-actions button {
+  padding: 5px 10px;
+  font-size: 0.9rem;
+}
+
+.status-sold {
+  color: var(--secondary);
+  font-weight: bold;
+}
+
+.status-active {
+  color: var(--primary);
+}
+
+/* Footer */
+.footer {
+  background: var(--white);
+  padding: 30px 0;
+  margin-top: 30px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.footer-links a {
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--primary);
+}
+
+.footer p {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.footer a {
+  color: var(--primary);
+}
+
+/* Alert messages */
+.alert {
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header .container {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .search-input,
+  .search-select {
+    width: 100%;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ads-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+}

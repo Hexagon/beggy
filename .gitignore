@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Database
+data/
+*.db
+
+# Uploaded files
+static/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deno
+deno.lock
+
+# Logs
+*.log
+
+# Coverage
+coverage/
