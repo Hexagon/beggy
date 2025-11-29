@@ -1,5 +1,5 @@
 import { Router } from "@oak/oak"
-import { getSupabase } from "../db/database.ts"
+import { getAuthenticatedSupabase } from "../db/database.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { decryptMessage, deriveConversationKey, encryptMessage } from "../utils/encryption.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
@@ -19,7 +19,7 @@ router.get("/api/conversations", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Get conversations where user is buyer or seller
   const { data: conversations, error } = await supabase
@@ -69,7 +69,7 @@ router.get("/api/conversations/:id/messages", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Check if user is participant
   const { data: conversation, error: convError } = await supabase
@@ -153,7 +153,7 @@ router.post("/api/ads/:id/conversation", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Get ad and check it's visible
   const { data: ad, error: adError } = await supabase
@@ -255,7 +255,7 @@ router.post("/api/conversations/:id/messages", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Check if user is participant
   const { data: conversation, error: convError } = await supabase

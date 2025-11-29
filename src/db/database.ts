@@ -1,6 +1,8 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 
 let supabase: SupabaseClient | null = null
+let supabaseUrl: string | null = null
+let supabaseKey: string | null = null
 
 export function getSupabase(): SupabaseClient {
   if (!supabase) {
@@ -9,9 +11,25 @@ export function getSupabase(): SupabaseClient {
   return supabase
 }
 
+export function getAuthenticatedSupabase(accessToken: string): SupabaseClient {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase not initialized")
+  }
+  if (!accessToken) {
+    throw new Error("Access token is required")
+  }
+  return createClient(supabaseUrl, supabaseKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  })
+}
+
 export function initDatabase(): void {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")
-  const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")
+  supabaseUrl = Deno.env.get("SUPABASE_URL") || null
+  supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || null
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(

@@ -1,5 +1,5 @@
 import { Router } from "@oak/oak"
-import { getSupabase } from "../db/database.ts"
+import { getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 
 const router = new Router()
@@ -48,9 +48,10 @@ router.post("/api/auth/register", async (ctx) => {
     return
   }
 
-  // Update profile with additional info
-  if (authData.user) {
-    const { error: profileError } = await supabase.from("profiles").upsert({
+  // Update profile with additional info using the new session
+  if (authData.user && authData.session) {
+    const authSupabase = getAuthenticatedSupabase(authData.session.access_token)
+    const { error: profileError } = await authSupabase.from("profiles").upsert({
       id: authData.user.id,
       email,
       username,
@@ -183,23 +184,24 @@ router.get("/api/auth/my-data", async (ctx) => {
   }
 
   const userId = userData.user.id
+  const authSupabase = getAuthenticatedSupabase(accessToken)
 
   // Get profile data
-  const { data: profile } = await supabase
+  const { data: profile } = await authSupabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
     .single()
 
   // Get all ads with images
-  const { data: ads } = await supabase
+  const { data: ads } = await authSupabase
     .from("ads")
     .select("*, images(id, filename, storage_path, created_at)")
     .eq("user_id", userId)
     .neq("state", "deleted")
 
   // Get all conversations (as buyer or seller)
-  const { data: conversations } = await supabase
+  const { data: conversations } = await authSupabase
     .from("conversations")
     .select("*, messages(id, sender_id, created_at)")
     .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
@@ -220,7 +222,7 @@ router.get("/api/auth/my-data", async (ctx) => {
     images: (ad.images || []).map((img: any) => ({
       id: img.id,
       filename: img.filename,
-      url: supabase.storage.from("ad-images").getPublicUrl(img.storage_path).data.publicUrl,
+      url: authSupabase.storage.from("ad-images").getPublicUrl(img.storage_path).data.publicUrl,
       created_at: img.created_at,
     })),
   }))
@@ -269,14 +271,15 @@ router.delete("/api/auth/account", async (ctx) => {
   }
 
   const userId = userData.user.id
+  const authSupabase = getAuthenticatedSupabase(accessToken)
 
   // Delete user's images
-  const { data: userAds } = await supabase.from("ads").select("id").eq("user_id", userId)
+  const { data: userAds } = await authSupabase.from("ads").select("id").eq("user_id", userId)
 
   if (userAds) {
     for (const ad of userAds) {
       // Get images for this ad
-      const { data: images } = await supabase.from("images").select("storage_path").eq(
+      const { data: images } = await authSupabase.from("images").select("storage_path").eq(
         "ad_id",
         ad.id,
       )
@@ -284,16 +287,16 @@ router.delete("/api/auth/account", async (ctx) => {
       // Delete from storage
       if (images && images.length > 0) {
         const paths = images.map((img) => img.storage_path)
-        await supabase.storage.from("ad-images").remove(paths)
+        await authSupabase.storage.from("ad-images").remove(paths)
       }
     }
   }
 
   // Delete ads (cascade will delete images records)
-  await supabase.from("ads").delete().eq("user_id", userId)
+  await authSupabase.from("ads").delete().eq("user_id", userId)
 
   // Delete profile
-  await supabase.from("profiles").delete().eq("id", userId)
+  await authSupabase.from("profiles").delete().eq("id", userId)
 
   // Note: Deleting from auth.users requires admin privileges
   // The user should be deleted via Supabase dashboard or a server-side admin function
@@ -308,7 +311,7 @@ router.delete("/api/auth/account", async (ctx) => {
 // Helper function to get user from request
 export async function getUserFromRequest(
   ctx: { cookies: { get: (name: string) => Promise<string | undefined> } },
-): Promise<{ id: string; email: string } | null> {
+): Promise<{ id: string; email: string; accessToken: string } | null> {
   const accessToken = await ctx.cookies.get("access_token")
 
   if (!accessToken) {
@@ -325,6 +328,7 @@ export async function getUserFromRequest(
   return {
     id: userData.user.id,
     email: userData.user.email || "",
+    accessToken,
   }
 }
 
