@@ -1,33 +1,50 @@
-// Beggy - Frontend JavaScript
+// Beggy - Edit Ad Page JavaScript
 
 // State
 let currentUser = null
+let currentAdId = null
+let currentAd = null
 let categories = []
 let counties = []
-let adjacentCounties = {}
-let currentPage = 1
-let currentCategory = ""
-let currentCounty = ""
-let includeAdjacent = false
-let currentSearch = ""
+let selectedImages = []
+let existingImages = []
+let currentConversationId = null
+const MAX_IMAGES = 5
 
 // DOM Elements
-const adsGrid = document.getElementById("adsGrid")
-const categoryGrid = document.getElementById("categoryGrid")
-const categorySelect = document.getElementById("categorySelect")
-const countySelect = document.getElementById("countySelect")
-const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox")
-const searchInput = document.getElementById("searchInput")
-const pagination = document.getElementById("pagination")
+const adCategorySelect = document.getElementById("adCategory")
+const adCountySelect = document.getElementById("adCounty")
+const imageInput = document.getElementById("adImages")
+const imagePreviewContainer = document.getElementById("imagePreviewContainer")
+const existingImagesContainer = document.getElementById("existingImagesContainer")
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
+  // Get ad ID from URL
+  const pathParts = window.location.pathname.split("/")
+  currentAdId = parseInt(pathParts[2]) // /annons/:id/redigera
+  
+  if (!currentAdId || isNaN(currentAdId)) {
+    showError("Ogiltig annons-ID")
+    return
+  }
+
+  // Update back link
+  document.getElementById("backLink").href = `/annons/${currentAdId}`
+
   checkAuth()
   loadCategories()
   loadCounties()
-  loadAds()
   setupEventListeners()
 })
+
+function showError(message) {
+  document.getElementById("loadingContainer").classList.add("hidden")
+  document.getElementById("editAdContainer").classList.add("hidden")
+  document.getElementById("loginPrompt").classList.add("hidden")
+  document.getElementById("errorContainer").classList.remove("hidden")
+  document.getElementById("errorMessage").textContent = message
+}
 
 // Event Listeners
 function setupEventListeners() {
@@ -57,17 +74,6 @@ function setupEventListeners() {
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
 
-  // Sell buttons - navigate to create ad page
-  document.getElementById("sellBtn").addEventListener("click", (e) => {
-    e.preventDefault()
-    window.location.href = "/ny-annons"
-  })
-
-  document.getElementById("sellBtn2").addEventListener("click", (e) => {
-    e.preventDefault()
-    window.location.href = "/ny-annons"
-  })
-
   // My ads
   document.getElementById("myAdsBtn").addEventListener("click", (e) => {
     e.preventDefault()
@@ -85,44 +91,11 @@ function setupEventListeners() {
   // Chat form
   document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
 
-  // Report ad
-  document.getElementById("reportForm").addEventListener("submit", handleReportAd)
+  // Edit ad form
+  document.getElementById("editAdForm").addEventListener("submit", handleEditAd)
 
-  // Search
-  document.getElementById("searchBtn").addEventListener("click", () => {
-    currentSearch = searchInput.value
-    currentPage = 1
-    loadAds()
-  })
-
-  searchInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      currentSearch = searchInput.value
-      currentPage = 1
-      loadAds()
-    }
-  })
-
-  // County filter (main filter)
-  countySelect.addEventListener("change", () => {
-    currentCounty = countySelect.value
-    currentPage = 1
-    loadAds()
-  })
-
-  // Include adjacent counties checkbox
-  includeAdjacentCheckbox.addEventListener("change", () => {
-    includeAdjacent = includeAdjacentCheckbox.checked
-    currentPage = 1
-    loadAds()
-  })
-
-  // Category filter
-  categorySelect.addEventListener("change", () => {
-    currentCategory = categorySelect.value
-    currentPage = 1
-    loadAds()
-  })
+  // Image preview
+  imageInput.addEventListener("change", handleImageSelect)
 
   // Close modals on outside click
   window.addEventListener("click", (e) => {
@@ -140,9 +113,16 @@ async function checkAuth() {
     if (res.ok) {
       currentUser = await res.json()
       updateAuthUI()
+      loadAdForEdit()
+    } else {
+      // Not logged in
+      document.getElementById("loadingContainer").classList.add("hidden")
+      document.getElementById("loginPrompt").classList.remove("hidden")
     }
   } catch {
     // Not logged in
+    document.getElementById("loadingContainer").classList.add("hidden")
+    document.getElementById("loginPrompt").classList.remove("hidden")
   }
 }
 
@@ -224,9 +204,119 @@ async function handleLogout(e) {
     await fetch("/api/auth/logout", { method: "POST" })
     currentUser = null
     updateAuthUI()
-    showAlert("Du har loggats ut", "success")
+    window.location.href = "/"
   } catch {
     showAlert("Något gick fel", "error")
+  }
+}
+
+// Load Ad for Editing
+async function loadAdForEdit() {
+  try {
+    const res = await fetch(`/api/ads/${currentAdId}`)
+    
+    if (!res.ok) {
+      showError("Annonsen hittades inte")
+      return
+    }
+
+    const ad = await res.json()
+    
+    // Check ownership
+    if (ad.user_id !== currentUser.id) {
+      showError("Du har inte behörighet att redigera denna annons")
+      return
+    }
+
+    currentAd = ad
+    existingImages = ad.images || []
+
+    // Update page title
+    document.title = `Redigera: ${ad.title} - Beggy`
+
+    // Show edit form
+    document.getElementById("loadingContainer").classList.add("hidden")
+    document.getElementById("editAdContainer").classList.remove("hidden")
+
+    // Populate form (wait for categories/counties to load)
+    setTimeout(() => populateForm(ad), 100)
+  } catch (err) {
+    showError("Kunde inte ladda annonsen")
+  }
+}
+
+function populateForm(ad) {
+  document.getElementById("adTitle").value = ad.title || ""
+  document.getElementById("adPrice").value = ad.price || 0
+  document.getElementById("adDescription").value = ad.description || ""
+  document.getElementById("adContactPhone").value = ad.seller_contact_phone || ""
+  document.getElementById("adContactEmail").value = ad.seller_contact_email || ""
+  
+  // Set category (may need to wait for options to load)
+  if (adCategorySelect.options.length > 1) {
+    adCategorySelect.value = ad.category || ""
+  } else {
+    setTimeout(() => { adCategorySelect.value = ad.category || "" }, 200)
+  }
+  
+  // Set county
+  if (adCountySelect.options.length > 1) {
+    adCountySelect.value = ad.county || ""
+  } else {
+    setTimeout(() => { adCountySelect.value = ad.county || "" }, 200)
+  }
+
+  // Show existing images
+  renderExistingImages()
+  updateImageHelpText()
+}
+
+function renderExistingImages() {
+  if (existingImages.length === 0) {
+    document.getElementById("existingImagesSection").classList.add("hidden")
+    return
+  }
+
+  document.getElementById("existingImagesSection").classList.remove("hidden")
+  existingImagesContainer.innerHTML = existingImages
+    .map((img) => `
+      <div class="relative">
+        <img src="${img.url}" alt="Bild" class="w-20 h-20 object-cover rounded">
+        <button type="button" onclick="deleteExistingImage(${img.id})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs hover:bg-red-600">&times;</button>
+      </div>
+    `)
+    .join("")
+}
+
+async function deleteExistingImage(imageId) {
+  if (!confirm("Är du säker på att du vill radera denna bild?")) return
+
+  try {
+    const res = await fetch(`/api/images/${imageId}`, { method: "DELETE" })
+
+    if (res.ok) {
+      existingImages = existingImages.filter(img => img.id !== imageId)
+      renderExistingImages()
+      updateImageHelpText()
+      showAlert("Bild raderad", "success")
+    } else {
+      showAlert("Kunde inte radera bilden", "error")
+    }
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
+function updateImageHelpText() {
+  const remainingSlots = MAX_IMAGES - existingImages.length
+  const helpText = document.getElementById("imageHelpText")
+  
+  if (remainingSlots <= 0) {
+    helpText.textContent = "Max antal bilder uppnått. Radera en befintlig bild för att lägga till fler."
+    imageInput.disabled = true
+  } else {
+    helpText.textContent = `Välj upp till ${remainingSlots} nya bild${remainingSlots !== 1 ? "er" : ""}.`
+    imageInput.disabled = false
   }
 }
 
@@ -237,25 +327,14 @@ async function loadCategories() {
     const data = await res.json()
     categories = data.categories
 
-    // Populate category grid with "All Categories" button first
-    const allCategoriesBtn = `
-      <div class="bg-primary text-white p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCategoryFilter()">
-        📋 Alla Kategorier
-      </div>
-    `
-    categoryGrid.innerHTML = allCategoriesBtn + categories
-      .map(
-        (cat) => `
-      <div class="bg-white p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="filterByCategory('${cat}')">
-        ${getCategoryIcon(cat)} ${cat}
-      </div>
-    `
-      )
-      .join("")
-
-    // Populate category filter select
+    // Populate category select
     const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
-    categorySelect.innerHTML = '<option value="">Alla kategorier</option>' + options
+    adCategorySelect.innerHTML = '<option value="">Välj kategori</option>' + options
+    
+    // Set current value if ad is loaded
+    if (currentAd) {
+      adCategorySelect.value = currentAd.category || ""
+    }
   } catch (err) {
     console.error("Failed to load categories:", err)
   }
@@ -267,197 +346,114 @@ async function loadCounties() {
     const res = await fetch("/api/counties")
     const data = await res.json()
     counties = data.counties
-    adjacentCounties = data.adjacentCounties
 
-    // Populate county filter select (escape HTML to prevent XSS)
+    // Populate county select (escape HTML to prevent XSS)
     const options = counties.map((county) => `<option value="${escapeHtml(county)}">${escapeHtml(county)}</option>`).join("")
-    countySelect.innerHTML = '<option value="">Alla län</option>' + options
+    adCountySelect.innerHTML = '<option value="">Välj län</option>' + options
+    
+    // Set current value if ad is loaded
+    if (currentAd) {
+      adCountySelect.value = currentAd.county || ""
+    }
   } catch (err) {
     console.error("Failed to load counties:", err)
   }
 }
 
-function getCategoryIcon(category) {
-  const icons = {
-    Fordon: "🚗",
-    Elektronik: "📱",
-    Möbler: "🛋️",
-    Kläder: "👕",
-    "Sport & Fritid": "⚽",
-    "Hem & Hushåll": "🏠",
-    "Barn & Baby": "👶",
-    Djur: "🐕",
-    Hobby: "🎨",
-    Övrigt: "📦",
-  }
-  return icons[category] || "📦"
-}
-
-function filterByCategory(category) {
-  currentCategory = category
-  categorySelect.value = category
-  currentPage = 1
-  loadAds()
-  document.getElementById("adsTitle").textContent = category
-}
-
-function clearCategoryFilter() {
-  currentCategory = ""
-  categorySelect.value = ""
-  currentPage = 1
-  loadAds()
-  document.getElementById("adsTitle").textContent = "Senaste annonser"
-}
-
-// Ads
-async function loadAds() {
-  try {
-    const params = new URLSearchParams({
-      page: currentPage,
-      limit: 20,
-    })
-
-    if (currentCounty) {
-      params.append("county", currentCounty)
-      if (includeAdjacent) params.append("includeAdjacent", "true")
-    }
-    if (currentCategory) params.append("category", currentCategory)
-    if (currentSearch) params.append("search", currentSearch)
-
-    const res = await fetch(`/api/ads?${params}`)
-    const data = await res.json()
-
-    renderAds(data.ads)
-    renderPagination(data.pagination)
-
-    // Update title
-    if (currentSearch) {
-      document.getElementById("adsTitle").textContent = `Sökresultat för "${currentSearch}"`
-    } else if (currentCounty) {
-      const adjacentText = includeAdjacent ? " + angränsande" : ""
-      document.getElementById("adsTitle").textContent = `Annonser i ${currentCounty}${adjacentText}`
-    } else if (currentCategory) {
-      document.getElementById("adsTitle").textContent = currentCategory
-    } else {
-      document.getElementById("adsTitle").textContent = "Senaste annonser"
-    }
-  } catch (err) {
-    console.error("Failed to load ads:", err)
-  }
-}
-
-function renderAds(ads) {
-  if (ads.length === 0) {
-    adsGrid.innerHTML = '<p class="text-gray-500 text-center py-8">Inga annonser hittades</p>'
-    return
-  }
-
-  adsGrid.innerHTML = ads
-    .map(
-      (ad) => `
-    <div class="bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
-      ${
-        ad.image_count > 0
-          ? `<div class="w-full h-44 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-primary text-3xl">📷 ${ad.image_count} bild${ad.image_count > 1 ? "er" : ""}</div>`
-          : '<div class="w-full h-44 bg-gray-300 flex items-center justify-center text-gray-500 text-5xl">📦</div>'
-      }
-      <div class="p-4">
-        <div class="text-lg font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
-        <div class="text-xl text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
-        <div class="text-sm text-gray-500">
-          ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""}
-        </div>
-      </div>
-    </div>
-  `
-    )
-    .join("")
-}
-
-function renderPagination(p) {
-  if (p.pages <= 1) {
-    pagination.innerHTML = ""
-    return
-  }
-
-  let html = ""
-
-  if (p.page > 1) {
-    html += `<button class="px-4 py-2.5 border border-gray-300 bg-white cursor-pointer rounded hover:bg-gray-100" onclick="goToPage(${p.page - 1})">« Föregående</button>`
-  }
-
-  for (let i = 1; i <= p.pages; i++) {
-    if (i === 1 || i === p.pages || (i >= p.page - 2 && i <= p.page + 2)) {
-      html += `<button class="px-4 py-2.5 border cursor-pointer rounded ${i === p.page ? "bg-primary text-white border-primary" : "border-gray-300 bg-white hover:bg-gray-100"}" onclick="goToPage(${i})">${i}</button>`
-    } else if (i === p.page - 3 || i === p.page + 3) {
-      html += "<span class='px-2'>...</span>"
-    }
-  }
-
-  if (p.page < p.pages) {
-    html += `<button class="px-4 py-2.5 border border-gray-300 bg-white cursor-pointer rounded hover:bg-gray-100" onclick="goToPage(${p.page + 1})">Nästa »</button>`
-  }
-
-  pagination.innerHTML = html
-}
-
-function goToPage(page) {
-  currentPage = page
-  loadAds()
-  window.scrollTo(0, 0)
-}
-
-// Ad Detail - Navigate to ad page
-function openAdDetail(id) {
-  window.location.href = `/annons/${id}`
-}
-
-function getStateLabel(state) {
-  const labels = {
-    ok: "Aktiv",
-    sold: "Såld",
-    expired: "Utgången",
-    reported: "Under granskning",
-    deleted: "Borttagen"
-  }
-  return labels[state] || state
-}
-
-// Report ad (BBS law compliance)
-let currentReportAdId = null
-
-function openReportModal(adId) {
-  currentReportAdId = adId
-  openModal("reportModal")
-}
-
-async function handleReportAd(e) {
-  e.preventDefault()
+// Image handling
+function handleImageSelect(e) {
+  const files = Array.from(e.target.files)
+  const remainingSlots = MAX_IMAGES - existingImages.length
   
-  const reason = document.getElementById("reportReason").value
-  const details = document.getElementById("reportDetails").value
-
-  if (!reason) {
-    showAlert("Välj en anledning", "error")
+  // Limit to remaining slots
+  if (files.length > remainingSlots) {
+    showAlert(`Du kan max lägga till ${remainingSlots} nya bild${remainingSlots !== 1 ? "er" : ""}`, "error")
+    e.target.value = ""
     return
+  }
+  
+  selectedImages = files.slice(0, remainingSlots)
+  
+  // Show preview
+  imagePreviewContainer.innerHTML = ""
+  selectedImages.forEach((file, index) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const preview = document.createElement("div")
+      preview.className = "relative"
+      preview.innerHTML = `
+        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 object-cover rounded">
+        <button type="button" onclick="removeNewImage(${index})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs hover:bg-red-600">&times;</button>
+      `
+      imagePreviewContainer.appendChild(preview)
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function removeNewImage(index) {
+  selectedImages.splice(index, 1)
+  
+  // Update file input
+  const dataTransfer = new DataTransfer()
+  selectedImages.forEach(file => dataTransfer.items.add(file))
+  imageInput.files = dataTransfer.files
+  
+  // Refresh preview
+  handleImageSelect({ target: imageInput })
+}
+
+// Edit Ad
+async function handleEditAd(e) {
+  e.preventDefault()
+
+  const updates = {
+    title: document.getElementById("adTitle").value,
+    category: document.getElementById("adCategory").value,
+    price: parseInt(document.getElementById("adPrice").value),
+    county: document.getElementById("adCounty").value,
+    description: document.getElementById("adDescription").value,
+    contact_phone: document.getElementById("adContactPhone").value || null,
+    contact_email: document.getElementById("adContactEmail").value || null,
   }
 
   try {
-    const res = await fetch(`/api/ads/${currentReportAdId}/report`, {
-      method: "POST",
+    // Update ad details
+    const res = await fetch(`/api/ads/${currentAdId}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason, details }),
+      body: JSON.stringify(updates),
     })
 
     const data = await res.json()
 
-    if (res.ok) {
-      closeModal("reportModal")
-      document.getElementById("reportForm").reset()
-      showAlert(data.message, "success")
-    } else {
+    if (!res.ok) {
       showAlert(data.error, "error")
+      return
     }
+
+    // Upload new images if any
+    if (selectedImages.length > 0) {
+      const formData = new FormData()
+      selectedImages.forEach(file => formData.append("images", file))
+
+      const imgRes = await fetch(`/api/ads/${currentAdId}/images`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!imgRes.ok) {
+        showAlert("Annons uppdaterad men bilderna kunde inte laddas upp", "error")
+        return
+      }
+    }
+
+    showAlert("Annons uppdaterad!", "success")
+    
+    // Redirect to the ad page
+    setTimeout(() => {
+      window.location.href = `/annons/${currentAdId}`
+    }, 1000)
   } catch {
     showAlert("Något gick fel", "error")
   }
@@ -514,7 +510,6 @@ async function markAsSold(id) {
 
     if (res.ok) {
       loadMyAds()
-      loadAds()
       showAlert("Annons markerad som såld", "success")
     }
   } catch {
@@ -530,12 +525,25 @@ async function deleteAd(id) {
 
     if (res.ok) {
       loadMyAds()
-      loadAds()
+      if (id === currentAdId) {
+        window.location.href = "/"
+      }
       showAlert("Annons raderad", "success")
     }
   } catch {
     showAlert("Något gick fel", "error")
   }
+}
+
+function getStateLabel(state) {
+  const labels = {
+    ok: "Aktiv",
+    sold: "Såld",
+    expired: "Utgången",
+    reported: "Under granskning",
+    deleted: "Borttagen"
+  }
+  return labels[state] || state
 }
 
 // Account management (GDPR compliance)
@@ -582,8 +590,9 @@ async function deleteMyAccount() {
     if (res.ok) {
       currentUser = null
       updateAuthUI()
-      closeModal("accountModal")
+      closeModal("myAdsModal")
       showAlert("Ditt konto har raderats", "success")
+      window.location.href = "/"
     } else {
       showAlert("Kunde inte radera konto", "error")
     }
@@ -592,76 +601,7 @@ async function deleteMyAccount() {
   }
 }
 
-// Modal helpers
-function openModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.remove("hidden")
-  modal.classList.add("block")
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.add("hidden")
-  modal.classList.remove("block")
-}
-
-// Utility functions
-function escapeHtml(text) {
-  if (!text) return ""
-  const div = document.createElement("div")
-  div.textContent = text
-  return div.innerHTML
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("sv-SE", {
-    style: "currency",
-    currency: "SEK",
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
-function formatDate(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(dateString))
-}
-
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
-
-// Make functions available globally for onclick handlers
-window.filterByCategory = filterByCategory
-window.clearCategoryFilter = clearCategoryFilter
-window.openAdDetail = openAdDetail
-window.goToPage = goToPage
-window.markAsSold = markAsSold
-window.deleteAd = deleteAd
-window.openModal = openModal
-window.closeModal = closeModal
-window.openReportModal = openReportModal
-window.exportMyData = exportMyData
-window.deleteMyAccount = deleteMyAccount
-window.startConversation = startConversation
-window.openChat = openChat
-
 // Conversation/Chat functions
-let currentConversationId = null
-
 async function loadConversations() {
   try {
     const res = await fetch("/api/conversations")
@@ -693,25 +633,6 @@ async function loadConversations() {
       .join("")
   } catch {
     showAlert("Kunde inte ladda meddelanden", "error")
-  }
-}
-
-async function startConversation(adId) {
-  try {
-    const res = await fetch(`/api/ads/${adId}/conversation`, {
-      method: "POST",
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      closeModal("adDetailModal")
-      await openChat(data.conversation_id)
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
   }
 }
 
@@ -790,6 +711,43 @@ async function handleSendMessage(e) {
   }
 }
 
+// Modal helpers
+function openModal(id) {
+  const modal = document.getElementById(id)
+  modal.classList.remove("hidden")
+  modal.classList.add("block")
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id)
+  modal.classList.add("hidden")
+  modal.classList.remove("block")
+}
+
+// Utility functions
+function escapeHtml(text) {
+  if (!text) return ""
+  const div = document.createElement("div")
+  div.textContent = text
+  return div.innerHTML
+}
+
+function formatPrice(price) {
+  return new Intl.NumberFormat("sv-SE", {
+    style: "currency",
+    currency: "SEK",
+    minimumFractionDigits: 0,
+  }).format(price)
+}
+
+function formatDate(dateString) {
+  return new Intl.DateTimeFormat("sv-SE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(dateString))
+}
+
 function formatDateTime(dateString) {
   return new Intl.DateTimeFormat("sv-SE", {
     year: "numeric",
@@ -799,3 +757,29 @@ function formatDateTime(dateString) {
     minute: "2-digit",
   }).format(new Date(dateString))
 }
+
+function showAlert(message, type) {
+  // Remove existing alerts
+  document.querySelectorAll(".alert").forEach((el) => el.remove())
+
+  const alert = document.createElement("div")
+  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
+  alert.textContent = message
+
+  document.body.appendChild(alert)
+
+  setTimeout(() => {
+    alert.remove()
+  }, 3000)
+}
+
+// Make functions available globally for onclick handlers
+window.openModal = openModal
+window.closeModal = closeModal
+window.removeNewImage = removeNewImage
+window.deleteExistingImage = deleteExistingImage
+window.openChat = openChat
+window.markAsSold = markAsSold
+window.deleteAd = deleteAd
+window.exportMyData = exportMyData
+window.deleteMyAccount = deleteMyAccount
