@@ -794,9 +794,8 @@ function updateViewModeButtons() {
 
 // Landing/Browse view management
 function updateViewMode() {
-  // Check if any filters are active or URL has parameters
-  const params = new URLSearchParams(window.location.search)
-  const hasFilters = currentSearch || currentCategory || currentCounty || params.toString()
+  // Check if any filters are active (state variables are populated from URL params in loadStateFromUrl)
+  const hasFilters = currentSearch || currentCategory || currentCounty
   
   if (hasFilters || isBrowseMode) {
     showBrowseView()
