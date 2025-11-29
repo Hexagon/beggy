@@ -104,7 +104,8 @@ function setupEventListeners() {
   // Close modals on outside click
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal")) {
-      e.target.style.display = "none"
+      e.target.classList.add("hidden")
+      e.target.classList.remove("block")
     }
   })
 }
@@ -127,11 +128,15 @@ function updateAuthUI() {
   const loggedInNav = document.querySelector(".nav-logged-in")
 
   if (currentUser) {
-    loggedOutNav.style.display = "none"
-    loggedInNav.style.display = "flex"
+    loggedOutNav.classList.add("hidden")
+    loggedOutNav.classList.remove("flex")
+    loggedInNav.classList.remove("hidden")
+    loggedInNav.classList.add("flex")
   } else {
-    loggedOutNav.style.display = "flex"
-    loggedInNav.style.display = "none"
+    loggedOutNav.classList.remove("hidden")
+    loggedOutNav.classList.add("flex")
+    loggedInNav.classList.add("hidden")
+    loggedInNav.classList.remove("flex")
   }
 }
 
@@ -215,7 +220,7 @@ async function loadCategories() {
     categoryGrid.innerHTML = categories
       .map(
         (cat) => `
-      <div class="category-item" onclick="filterByCategory('${cat}')">
+      <div class="bg-white p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="filterByCategory('${cat}')">
         ${getCategoryIcon(cat)} ${cat}
       </div>
     `
@@ -287,23 +292,23 @@ async function loadAds() {
 
 function renderAds(ads) {
   if (ads.length === 0) {
-    adsGrid.innerHTML = '<p class="no-results">Inga annonser hittades</p>'
+    adsGrid.innerHTML = '<p class="text-gray-500 text-center py-8">Inga annonser hittades</p>'
     return
   }
 
   adsGrid.innerHTML = ads
     .map(
       (ad) => `
-    <div class="ad-card" onclick="openAdDetail(${ad.id})">
+    <div class="bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
       ${
         ad.image_count > 0
-          ? `<div class="ad-image-placeholder">📷 ${ad.image_count} bild${ad.image_count > 1 ? "er" : ""}</div>`
-          : '<div class="ad-no-image">📦</div>'
+          ? `<div class="w-full h-44 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-primary text-3xl">📷 ${ad.image_count} bild${ad.image_count > 1 ? "er" : ""}</div>`
+          : '<div class="w-full h-44 bg-gray-300 flex items-center justify-center text-gray-500 text-5xl">📦</div>'
       }
-      <div class="ad-info">
-        <div class="ad-title">${escapeHtml(ad.title)}</div>
-        <div class="ad-price">${formatPrice(ad.price)}</div>
-        <div class="ad-meta">
+      <div class="p-4">
+        <div class="text-lg font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
+        <div class="text-xl text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
+        <div class="text-sm text-gray-500">
           ${escapeHtml(ad.category)}${ad.city ? " • " + escapeHtml(ad.city) : ""}
         </div>
       </div>
@@ -322,19 +327,19 @@ function renderPagination(p) {
   let html = ""
 
   if (p.page > 1) {
-    html += `<button onclick="goToPage(${p.page - 1})">« Föregående</button>`
+    html += `<button class="px-4 py-2.5 border border-gray-300 bg-white cursor-pointer rounded hover:bg-gray-100" onclick="goToPage(${p.page - 1})">« Föregående</button>`
   }
 
   for (let i = 1; i <= p.pages; i++) {
     if (i === 1 || i === p.pages || (i >= p.page - 2 && i <= p.page + 2)) {
-      html += `<button class="${i === p.page ? "active" : ""}" onclick="goToPage(${i})">${i}</button>`
+      html += `<button class="px-4 py-2.5 border cursor-pointer rounded ${i === p.page ? "bg-primary text-white border-primary" : "border-gray-300 bg-white hover:bg-gray-100"}" onclick="goToPage(${i})">${i}</button>`
     } else if (i === p.page - 3 || i === p.page + 3) {
-      html += "<span>...</span>"
+      html += "<span class='px-2'>...</span>"
     }
   }
 
   if (p.page < p.pages) {
-    html += `<button onclick="goToPage(${p.page + 1})">Nästa »</button>`
+    html += `<button class="px-4 py-2.5 border border-gray-300 bg-white cursor-pointer rounded hover:bg-gray-100" onclick="goToPage(${p.page + 1})">Nästa »</button>`
   }
 
   pagination.innerHTML = html
@@ -354,23 +359,23 @@ async function openAdDetail(id) {
 
     const content = document.getElementById("adDetailContent")
     content.innerHTML = `
-      <h2>${escapeHtml(ad.title)}</h2>
+      <h2 class="text-xl font-semibold mb-4">${escapeHtml(ad.title)}</h2>
       ${
         ad.images && ad.images.length > 0
-          ? `<div class="ad-detail-images">
-          ${ad.images.map((img) => `<img src="${img.url}" alt="Bild">`).join("")}
+          ? `<div class="flex gap-2.5 mb-5 flex-wrap">
+          ${ad.images.map((img) => `<img src="${img.url}" alt="Bild" class="max-w-full max-h-72 rounded">`).join("")}
         </div>`
           : ""
       }
-      <div class="ad-detail-price">${formatPrice(ad.price)}</div>
-      <div class="ad-detail-meta">
+      <div class="text-2xl text-primary font-bold mb-4">${formatPrice(ad.price)}</div>
+      <div class="text-gray-500 mb-4">
         <strong>Kategori:</strong> ${escapeHtml(ad.category)}<br>
         ${ad.city ? `<strong>Ort:</strong> ${escapeHtml(ad.city)}<br>` : ""}
         <strong>Publicerad:</strong> ${formatDate(ad.created_at)}
       </div>
-      <hr style="margin: 20px 0;">
-      <div class="ad-detail-description">${escapeHtml(ad.description)}</div>
-      <div class="seller-info">
+      <hr class="my-5">
+      <div class="leading-relaxed whitespace-pre-wrap">${escapeHtml(ad.description)}</div>
+      <div class="bg-gray-100 p-4 rounded mt-5">
         <strong>Säljare:</strong> ${escapeHtml(ad.seller_name)}
         ${ad.seller_city ? ` • ${escapeHtml(ad.seller_city)}` : ""}
       </div>
@@ -468,26 +473,26 @@ async function loadMyAds() {
     const list = document.getElementById("myAdsList")
 
     if (data.ads.length === 0) {
-      list.innerHTML = "<p>Du har inga annonser ännu.</p>"
+      list.innerHTML = "<p class='text-gray-500'>Du har inga annonser ännu.</p>"
       return
     }
 
     list.innerHTML = data.ads
       .map(
         (ad) => `
-      <div class="my-ad-item">
-        <div class="my-ad-info">
+      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0">
+        <div class="flex-1">
           <strong>${escapeHtml(ad.title)}</strong><br>
-          <span class="status-${ad.status}">${ad.status === "sold" ? "Såld" : "Aktiv"}</span>
+          <span class="${ad.status === "sold" ? "text-green-600 font-bold" : "text-primary"}">${ad.status === "sold" ? "Såld" : "Aktiv"}</span>
           • ${formatPrice(ad.price)}
         </div>
-        <div class="my-ad-actions">
+        <div class="flex gap-2.5">
           ${
             ad.status === "active"
-              ? `<button class="btn btn-secondary" onclick="markAsSold(${ad.id})">Markera såld</button>`
+              ? `<button class="px-2.5 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700" onclick="markAsSold(${ad.id})">Markera såld</button>`
               : ""
           }
-          <button class="btn btn-danger" onclick="deleteAd(${ad.id})">Radera</button>
+          <button class="px-2.5 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700" onclick="deleteAd(${ad.id})">Radera</button>
         </div>
       </div>
     `
@@ -588,11 +593,15 @@ async function deleteMyAccount() {
 
 // Modal helpers
 function openModal(id) {
-  document.getElementById(id).style.display = "block"
+  const modal = document.getElementById(id)
+  modal.classList.remove("hidden")
+  modal.classList.add("block")
 }
 
 function closeModal(id) {
-  document.getElementById(id).style.display = "none"
+  const modal = document.getElementById(id)
+  modal.classList.add("hidden")
+  modal.classList.remove("block")
 }
 
 // Utility functions
@@ -624,13 +633,8 @@ function showAlert(message, type) {
   document.querySelectorAll(".alert").forEach((el) => el.remove())
 
   const alert = document.createElement("div")
-  alert.className = `alert alert-${type}`
+  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
   alert.textContent = message
-  alert.style.position = "fixed"
-  alert.style.top = "80px"
-  alert.style.right = "20px"
-  alert.style.zIndex = "1001"
-  alert.style.minWidth = "250px"
 
   document.body.appendChild(alert)
 

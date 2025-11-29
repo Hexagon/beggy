@@ -5,6 +5,17 @@
 Beggy is a Swedish secondhand marketplace built with Deno 2.5 and Oak framework. The platform is
 designed to be simple and easy to use, similar to the original Blocket.
 
+## Code Policy
+
+**Keep code small and simple!**
+
+This project follows a strict policy of minimizing code complexity and size:
+
+- **CSS**: Use Tailwind CSS via CDN to minimize custom CSS. Avoid writing large custom stylesheets.
+- **JavaScript**: Use vanilla JavaScript. No heavy frontend frameworks (React, Vue, Angular, etc.). The current vanilla JS approach is intentional to keep the code simple and maintainable.
+- **Dependencies**: Keep dependencies minimal. Only add dependencies when absolutely necessary.
+- **Code Style**: Write clear, readable code. Prefer simplicity over cleverness.
+
 ## Technology Stack
 
 - **Runtime**: Deno 2.5+
