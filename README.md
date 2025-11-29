@@ -42,9 +42,20 @@ fungerade förr i tiden - enkelt och användarvänligt.
 ### Supabase Setup
 
 1. Skapa ett nytt projekt på [supabase.com](https://supabase.com)
-2. Kör SQL från `src/db/database.ts` i SQL Editor för att skapa tabeller
-3. Skapa en Storage bucket med namnet `ad-images` (public)
-4. Kopiera URL och anon key från Project Settings > API
+2. Kör SQL från `src/db/migrations/001_initial_schema.sql` i SQL Editor för att skapa tabeller
+3. Kör eventuella efterföljande migrationer (002_xxx.sql, 003_xxx.sql, etc.) i ordning
+4. Skapa en Storage bucket med namnet `ad-images` (public)
+5. Kopiera URL och anon key från Project Settings > API
+
+### Databasändringar
+
+Databasschema finns i `src/db/migrations/`:
+
+- **`001_initial_schema.sql`** - Det ursprungliga schemat (ändra INTE denna fil)
+- Nya migrationer skapas med sekventiella nummer (002_xxx.sql, 003_xxx.sql, etc.)
+
+**Viktigt:** Gör aldrig ändringar i `001_initial_schema.sql`. Skapa istället en ny migrationsfil för
+alla databasändringar.
 
 ### Starta lokalt
 
@@ -102,6 +113,7 @@ beggy/
 ├── src/
 │   ├── routes/          # API och sidrouter
 │   ├── db/              # Supabase-klient och schema
+│   │   └── migrations/  # Databasmigrationer (SQL-filer)
 │   ├── models/          # Typdefinitioner
 │   ├── middleware/      # Oak middleware
 │   └── utils/           # Hjälpfunktioner

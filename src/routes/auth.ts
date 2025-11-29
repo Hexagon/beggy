@@ -42,6 +42,7 @@ router.post("/api/auth/register", async (ctx) => {
   })
 
   if (authError) {
+    console.error("Auth signup error:", authError.message, authError.status)
     ctx.response.status = 400
     ctx.response.body = { error: authError.message }
     return
@@ -49,13 +50,16 @@ router.post("/api/auth/register", async (ctx) => {
 
   // Update profile with additional info
   if (authData.user) {
-    await supabase.from("profiles").upsert({
+    const { error: profileError } = await supabase.from("profiles").upsert({
       id: authData.user.id,
       email,
       username,
       contact_phone: contact_phone || null,
       contact_email: contact_email || null,
     })
+    if (profileError) {
+      console.error("Profile upsert error:", profileError.message, profileError.code)
+    }
   }
 
   ctx.response.status = 201
@@ -81,6 +85,7 @@ router.post("/api/auth/login", async (ctx) => {
   })
 
   if (error) {
+    console.error("Login error:", error.message, error.status)
     ctx.response.status = 401
     ctx.response.body = { error: "Felaktig e-post eller lösenord" }
     return
@@ -134,6 +139,9 @@ router.get("/api/auth/me", async (ctx) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
 
   if (userError || !userData.user) {
+    if (userError) {
+      console.error("Get current user error:", userError.message, userError.status)
+    }
     ctx.response.status = 401
     ctx.response.body = { error: "Session utgången" }
     return
@@ -170,6 +178,9 @@ router.get("/api/auth/my-data", async (ctx) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
 
   if (userError || !userData.user) {
+    if (userError) {
+      console.error("Get user data export error:", userError.message, userError.status)
+    }
     ctx.response.status = 401
     ctx.response.body = { error: "Session utgången" }
     return
@@ -255,6 +266,9 @@ router.delete("/api/auth/account", async (ctx) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
 
   if (userError || !userData.user) {
+    if (userError) {
+      console.error("Delete account get user error:", userError.message, userError.status)
+    }
     ctx.response.status = 401
     ctx.response.body = { error: "Session utgången" }
     return

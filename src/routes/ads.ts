@@ -50,6 +50,7 @@ router.get("/api/ads", async (ctx) => {
   const { data: ads, count, error } = await query
 
   if (error) {
+    console.error("Get ads error:", error.message, error.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte hämta annonser" }
     return
@@ -199,6 +200,7 @@ router.post("/api/ads", async (ctx) => {
     .single()
 
   if (error) {
+    console.error("Create ad error:", error.message, error.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte skapa annons" }
     return
@@ -274,6 +276,7 @@ router.put("/api/ads/:id", async (ctx) => {
   const { error } = await supabase.from("ads").update(updates).eq("id", id)
 
   if (error) {
+    console.error("Update ad error:", error.message, error.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte uppdatera annons" }
     return
@@ -473,6 +476,7 @@ router.get("/api/my-ads", async (ctx) => {
     .order("created_at", { ascending: false })
 
   if (error) {
+    console.error("Get my ads error:", error.message, error.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte hämta annonser" }
     return

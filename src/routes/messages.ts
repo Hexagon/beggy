@@ -35,6 +35,7 @@ router.get("/api/conversations", async (ctx) => {
     .order("updated_at", { ascending: false })
 
   if (error) {
+    console.error("Get conversations error:", error.message, error.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte hämta konversationer" }
     return
@@ -99,6 +100,7 @@ router.get("/api/conversations/:id/messages", async (ctx) => {
     .order("created_at", { ascending: true })
 
   if (msgError) {
+    console.error("Get messages error:", msgError.message, msgError.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte hämta meddelanden" }
     return
@@ -207,6 +209,7 @@ router.post("/api/ads/:id/conversation", async (ctx) => {
     .single()
 
   if (convError) {
+    console.error("Create conversation error:", convError.message, convError.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte skapa konversation" }
     return
@@ -297,6 +300,7 @@ router.post("/api/conversations/:id/messages", async (ctx) => {
     .single()
 
   if (msgError) {
+    console.error("Send message error:", msgError.message, msgError.code)
     ctx.response.status = 500
     ctx.response.body = { error: "Kunde inte skicka meddelande" }
     return
