@@ -1,5 +1,5 @@
 import { Router } from "@oak/oak"
-import { getSupabase } from "../db/database.ts"
+import { getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
 import { ADJACENT_COUNTIES, CATEGORIES, COUNTIES } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
@@ -178,7 +178,7 @@ router.post("/api/ads", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Calculate expiry date (30 days from now)
   const expiresAt = new Date()
@@ -226,7 +226,7 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Check ownership
   const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
@@ -300,7 +300,7 @@ router.delete("/api/ads/:id", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Check ownership
   const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
@@ -339,7 +339,7 @@ router.post("/api/ads/:id/images", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Check ownership
   const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
@@ -423,7 +423,7 @@ router.delete("/api/images/:id", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   // Get image and check ownership
   const { data: image } = await supabase
@@ -470,7 +470,7 @@ router.get("/api/my-ads", async (ctx) => {
     return
   }
 
-  const supabase = getSupabase()
+  const supabase = getAuthenticatedSupabase(user.accessToken)
 
   const { data: ads, error } = await supabase
     .from("ads")
