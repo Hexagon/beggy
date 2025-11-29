@@ -1,6 +1,7 @@
 # Contributing to Beggy
 
-Thank you for your interest in contributing to Beggy! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Beggy! This document provides guidelines and
+information for contributors.
 
 ## Getting Started
 
@@ -47,6 +48,7 @@ deno task precommit
 ```
 
 This command runs:
+
 1. `deno task fmt` - Formats all code
 2. `deno task lint` - Checks for linting errors
 3. `deno task check` - Performs type checking
@@ -155,13 +157,13 @@ Consider using a separate Supabase project for testing.
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `main.ts` | Application entry point |
-| `deno.json` | Deno configuration and tasks |
-| `src/routes/mod.ts` | Route aggregation |
-| `src/db/database.ts` | Supabase client and schema |
-| `src/models/types.ts` | TypeScript type definitions |
+| File                  | Purpose                      |
+| --------------------- | ---------------------------- |
+| `main.ts`             | Application entry point      |
+| `deno.json`           | Deno configuration and tasks |
+| `src/routes/mod.ts`   | Route aggregation            |
+| `src/db/database.ts`  | Supabase client and schema   |
+| `src/models/types.ts` | TypeScript type definitions  |
 
 ### Adding New Features
 
@@ -180,13 +182,26 @@ Beggy is a Swedish marketplace, so:
 
 ## Legal Considerations
 
+**IMPORTANT**: Read [legal.md](legal.md) for complete legal requirements.
+
+### BBS Law (Lagen om elektroniska anslagstavlor)
+
+- Report function must be available on all ads
+- Illegal content must be removed when reported
+
 ### GDPR Compliance
 
 When adding features that handle user data:
 
-- Ensure data can be deleted (right to be forgotten)
+- Ensure data can be deleted (right to be forgotten - Article 17)
+- Ensure data can be exported (data portability - Article 20)
 - Don't collect unnecessary data
 - Update privacy policy if needed
+
+### Cookie Law
+
+- Only essential cookies (authentication) are used
+- No tracking or analytics cookies
 
 ### Terms of Service
 

@@ -1,87 +1,96 @@
 <!DOCTYPE html>
 <html lang="sv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Om Beggy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#0066cc',
-            'primary-dark': '#0052a3',
-          }
-        }
-      }
-    }
-  </script>
-</head>
-<body class="bg-gray-100 text-gray-800 leading-relaxed">
-  <header class="bg-white shadow-md py-4 sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-5 flex items-center justify-between">
-      <a href="/" class="text-2xl font-bold text-primary no-underline">🛒 Beggy</a>
-      <nav>
-        <a href="/" class="text-gray-800 no-underline px-3 py-2 hover:text-primary">Tillbaka till startsidan</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="min-h-[calc(100vh-200px)] py-8">
-    <div class="max-w-6xl mx-auto px-5">
-      <div class="bg-white p-8 rounded-lg max-w-3xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6">Om Beggy</h1>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">En svensk begagnatmarknad som den borde vara</h2>
-        <p class="mb-4">Beggy är en enkel, gratis begagnatmarknad med öppen källkod. Inspirerad av hur Blocket fungerade förr i tiden - innan alla annonser krävde betalning och gränssnittet blev överbelamrat med reklam.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">Öppen källkod</h2>
-        <p class="mb-4">Beggy är helt öppen källkod under MIT-licens. Det betyder att:</p>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>Du kan se exakt hur tjänsten fungerar</li>
-          <li>Du kan bidra med förbättringar</li>
-          <li>Du kan köra din egen instans</li>
-          <li>Ingen dold spårning eller annonser</li>
-        </ul>
-        <p class="mb-4">Källkoden finns på <a href="https://github.com/Hexagon/beggy" target="_blank" class="text-primary hover:underline">GitHub</a>.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">Teknisk plattform</h2>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li><strong>Backend:</strong> Deno 2.5 med Oak-ramverket</li>
-          <li><strong>Databas:</strong> SQLite</li>
-          <li><strong>Hosting:</strong> Deno Deploy</li>
-          <li><strong>Frontend:</strong> Vanilla JavaScript med Tailwind CSS (via CDN)</li>
-        </ul>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">Funktioner</h2>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>✅ Skapa och hantera annonser</li>
-          <li>✅ Ladda upp bilder (max 5 per annons)</li>
-          <li>✅ Sök och filtrera på kategori/ort</li>
-          <li>✅ Enkelt användarkonto</li>
-          <li>✅ GDPR-kompatibel (radera all din data)</li>
-          <li>✅ Helt gratis - inga avgifter</li>
-        </ul>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">Bidra</h2>
-        <p class="mb-4">Vill du bidra till projektet? Skapa en pull request på GitHub eller rapportera buggar via Issues.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">Kontakt</h2>
-        <p class="mb-4">Beggy utvecklas av <a href="https://github.com/Hexagon" target="_blank" class="text-primary hover:underline">Hexagon</a>. Kontakta oss via GitHub för frågor eller förslag.</p>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Om Beggy</title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <a href="/" class="logo">🛒 Beggy</a>
+        <nav class="nav">
+          <a href="/" class="nav-link">Tillbaka till startsidan</a>
+        </nav>
       </div>
-    </div>
-  </main>
+    </header>
 
-  <footer class="bg-white py-8 mt-8 border-t border-gray-300">
-    <div class="max-w-6xl mx-auto px-5">
-      <div class="flex justify-center gap-8 mb-4 flex-wrap">
-        <a href="/om" class="text-gray-500 no-underline hover:text-primary">Om Beggy</a>
-        <a href="/villkor" class="text-gray-500 no-underline hover:text-primary">Användarvillkor</a>
-        <a href="/integritetspolicy" class="text-gray-500 no-underline hover:text-primary">Integritetspolicy</a>
+    <main class="main">
+      <div class="container">
+        <div
+          class="legal-content"
+          style="background: #fff; padding: 30px; border-radius: 8px; max-width: 800px; margin: 0 auto"
+        >
+          <h1>Om Beggy</h1>
+
+          <h2>En svensk begagnatmarknad som den borde vara</h2>
+          <p>
+            Beggy är en enkel, gratis begagnatmarknad med öppen källkod. Inspirerad av hur Blocket
+            fungerade förr i tiden - innan alla annonser krävde betalning och gränssnittet blev
+            överbelamrat med reklam.
+          </p>
+
+          <h2>Öppen källkod</h2>
+          <p>Beggy är helt öppen källkod under MIT-licens. Det betyder att:</p>
+          <ul>
+            <li>Du kan se exakt hur tjänsten fungerar</li>
+            <li>Du kan bidra med förbättringar</li>
+            <li>Du kan köra din egen instans</li>
+            <li>Ingen dold spårning eller annonser</li>
+          </ul>
+          <p>
+            Källkoden finns på <a href="https://github.com/Hexagon/beggy" target="_blank"
+            >GitHub</a>.
+          </p>
+
+          <h2>Teknisk plattform</h2>
+          <ul>
+            <li><strong>Backend:</strong> Deno 2.5 med Oak-ramverket</li>
+            <li><strong>Databas:</strong> SQLite</li>
+            <li><strong>Hosting:</strong> Deno Deploy</li>
+            <li><strong>Frontend:</strong> Vanilla JavaScript (ingen tunga ramverk)</li>
+          </ul>
+
+          <h2>Funktioner</h2>
+          <ul>
+            <li>✅ Skapa och hantera annonser</li>
+            <li>✅ Ladda upp bilder (max 5 per annons)</li>
+            <li>✅ Sök och filtrera på kategori/ort</li>
+            <li>✅ Enkelt användarkonto</li>
+            <li>✅ GDPR-kompatibel (radera all din data)</li>
+            <li>✅ Helt gratis - inga avgifter</li>
+          </ul>
+
+          <h2>Bidra</h2>
+          <p>
+            Vill du bidra till projektet? Skapa en pull request på GitHub eller rapportera buggar
+            via Issues.
+          </p>
+
+          <h2>Kontakt</h2>
+          <p>
+            Beggy utvecklas av <a href="https://github.com/Hexagon" target="_blank">Hexagon</a>.
+            Kontakta oss via GitHub för frågor eller förslag.
+          </p>
+        </div>
       </div>
-      <p class="text-center text-gray-500 text-sm">&copy; 2025 Beggy - Öppen källkod på <a href="https://github.com/Hexagon/beggy" target="_blank" class="text-primary">GitHub</a></p>
-    </div>
-  </footer>
-</body>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-links">
+          <a href="/om">Om Beggy</a>
+          <a href="/villkor">Användarvillkor</a>
+          <a href="/integritetspolicy">Integritetspolicy</a>
+        </div>
+        <p>
+          &copy; 2025 Beggy - Öppen källkod på <a
+            href="https://github.com/Hexagon/beggy"
+            target="_blank"
+          >GitHub</a>
+        </p>
+      </div>
+    </footer>
+  </body>
 </html>

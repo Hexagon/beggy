@@ -4,7 +4,8 @@ En svensk begagnatmarknad som den borde vara - enkel, gratis och med öppen käl
 
 ## Om projektet
 
-Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspirerad av hur Blocket fungerade förr i tiden - enkelt och användarvänligt.
+Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspirerad av hur Blocket
+fungerade förr i tiden - enkelt och användarvänligt.
 
 ## Funktioner
 
@@ -12,8 +13,17 @@ Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspir
 - ✅ Ladda upp bilder (max 5 per annons)
 - ✅ Sök och filtrera på kategori och ort
 - ✅ Användarkonton med säker autentisering (Supabase Auth)
-- ✅ GDPR-kompatibel (radera all din data när som helst)
+- ✅ GDPR-kompatibel (radera och exportera all din data)
+- ✅ BBS-lagen: Rapportera olämpliga annonser
 - ✅ Ingen reklam eller spårning
+- ✅ Fungerar fullt ut utan inloggning (bara för att annonsera behövs konto)
+
+## Dokumentation
+
+- 📖 [Installationsguide](docs/INSTALL.md) - Kom igång med lokal utveckling
+- 🤝 [Bidra till projektet](docs/CONTRIBUTING.md) - Riktlinjer för bidrag
+- ⚖️ [Juridiska krav](docs/legal.md) - BBS-lagen, GDPR och cookies
+- 🤖 [AI-agentinstruktioner](docs/agents.md) - För AI-assisterad utveckling
 
 ## Teknisk stack
 
@@ -84,6 +94,11 @@ Projektet är konfigurerat för [Deno Deploy](https://deno.com/deploy):
 beggy/
 ├── main.ts              # Entry point
 ├── deno.json            # Konfiguration och beroenden
+├── docs/                # Dokumentation
+│   ├── INSTALL.md       # Installationsguide
+│   ├── CONTRIBUTING.md  # Bidragsriktlinjer
+│   ├── legal.md         # Juridiska krav
+│   └── agents.md        # AI-agentinstruktioner
 ├── src/
 │   ├── routes/          # API och sidrouter
 │   ├── db/              # Supabase-klient och schema
@@ -98,12 +113,17 @@ beggy/
 
 - Fullständig [integritetspolicy](/integritetspolicy) i enlighet med GDPR
 - Svenska [användarvillkor](/villkor)
-- Användare kan radera all sin data när som helst
-- Inga tredjepartscookies eller spårning
+- Användare kan exportera all sin data (GDPR artikel 20)
+- Användare kan radera all sin data när som helst (GDPR artikel 17)
+- Rapportera-funktion på alla annonser (BBS-lagen)
+- Endast nödvändiga cookies för autentisering
+
+Se [docs/legal.md](docs/legal.md) för fullständig juridisk dokumentation.
 
 ## Bidra
 
-Bidrag välkomnas! Skapa en pull request eller rapportera buggar via [Issues](https://github.com/Hexagon/beggy/issues).
+Bidrag välkomnas! Läs [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) för riktlinjer, eller skapa en
+pull request direkt. Rapportera buggar via [Issues](https://github.com/Hexagon/beggy/issues).
 
 ## Licens
 

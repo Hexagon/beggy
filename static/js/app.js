@@ -76,6 +76,9 @@ function setupEventListeners() {
     openModal("myAdsModal")
   })
 
+  // Report ad
+  document.getElementById("reportForm").addEventListener("submit", handleReportAd)
+
   // Search
   document.getElementById("searchBtn").addEventListener("click", () => {
     currentSearch = searchInput.value
@@ -376,11 +379,54 @@ async function openAdDetail(id) {
         <strong>Säljare:</strong> ${escapeHtml(ad.seller_name)}
         ${ad.seller_city ? ` • ${escapeHtml(ad.seller_city)}` : ""}
       </div>
+      <div class="ad-actions" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+        <button class="btn btn-outline" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
+      </div>
     `
 
     openModal("adDetailModal")
   } catch (err) {
     showAlert("Kunde inte ladda annonsen", "error")
+  }
+}
+
+// Report ad (BBS law compliance)
+let currentReportAdId = null
+
+function openReportModal(adId) {
+  currentReportAdId = adId
+  openModal("reportModal")
+}
+
+async function handleReportAd(e) {
+  e.preventDefault()
+  
+  const reason = document.getElementById("reportReason").value
+  const details = document.getElementById("reportDetails").value
+
+  if (!reason) {
+    showAlert("Välj en anledning", "error")
+    return
+  }
+
+  try {
+    const res = await fetch(`/api/ads/${currentReportAdId}/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason, details }),
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      closeModal("reportModal")
+      document.getElementById("reportForm").reset()
+      showAlert(data.message, "success")
+    } else {
+      showAlert(data.error, "error")
+    }
+  } catch {
+    showAlert("Något gick fel", "error")
   }
 }
 
@@ -491,6 +537,60 @@ async function deleteAd(id) {
   }
 }
 
+// Account management (GDPR compliance)
+async function exportMyData() {
+  try {
+    const res = await fetch("/api/auth/my-data")
+    
+    if (!res.ok) {
+      showAlert("Kunde inte hämta data", "error")
+      return
+    }
+
+    const data = await res.json()
+    
+    // Download as JSON file
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `beggy-data-export-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    showAlert("Data exporterad!", "success")
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
+async function deleteMyAccount() {
+  if (!confirm("Är du HELT säker på att du vill radera ditt konto?\n\nAll din data, inklusive annonser och bilder, kommer att raderas permanent.")) {
+    return
+  }
+  
+  if (!confirm("Detta kan inte ångras. Vill du verkligen fortsätta?")) {
+    return
+  }
+
+  try {
+    const res = await fetch("/api/auth/account", { method: "DELETE" })
+
+    if (res.ok) {
+      currentUser = null
+      updateAuthUI()
+      closeModal("accountModal")
+      showAlert("Ditt konto har raderats", "success")
+    } else {
+      showAlert("Kunde inte radera konto", "error")
+    }
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
 // Modal helpers
 function openModal(id) {
   const modal = document.getElementById(id)
@@ -551,3 +651,6 @@ window.markAsSold = markAsSold
 window.deleteAd = deleteAd
 window.openModal = openModal
 window.closeModal = closeModal
+window.openReportModal = openReportModal
+window.exportMyData = exportMyData
+window.deleteMyAccount = deleteMyAccount
