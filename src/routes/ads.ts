@@ -1,12 +1,13 @@
 import { Router } from "@oak/oak"
-import { getDatabase } from "../db/database.ts"
+import { getSupabase } from "../db/database.ts"
 import { CATEGORIES } from "../models/types.ts"
+import { getUserFromRequest } from "./auth.ts"
 
 const router = new Router()
 const MAX_IMAGES_PER_AD = 5
 
 // Get all ads (with pagination and filters)
-router.get("/api/ads", (ctx) => {
+router.get("/api/ads", async (ctx) => {
   const params = ctx.request.url.searchParams
   const category = params.get("category")
   const city = params.get("city")
@@ -15,147 +16,108 @@ router.get("/api/ads", (ctx) => {
   const limit = Math.min(parseInt(params.get("limit") || "20"), 50)
   const offset = (page - 1) * limit
 
-  const db = getDatabase()
+  const supabase = getSupabase()
 
-  let sql = `
-    SELECT a.*, COUNT(i.id) as image_count
-    FROM ads a
-    LEFT JOIN images i ON i.ad_id = a.id
-    WHERE a.status = 'active'
-  `
-  const args: (string | number)[] = []
+  let query = supabase
+    .from("ads")
+    .select("*, images(id)", { count: "exact" })
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1)
 
   if (category) {
-    sql += " AND a.category = ?"
-    args.push(category)
+    query = query.eq("category", category)
   }
 
   if (city) {
-    sql += " AND a.city = ?"
-    args.push(city)
+    query = query.eq("city", city)
   }
 
   if (search) {
-    sql += " AND (a.title LIKE ? OR a.description LIKE ?)"
-    args.push(`%${search}%`, `%${search}%`)
+    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
   }
 
-  sql += " GROUP BY a.id ORDER BY a.created_at DESC LIMIT ? OFFSET ?"
-  args.push(limit, offset)
+  const { data: ads, count, error } = await query
 
-  const ads = db.prepare(sql).all<
-    [number, number, string, string, number, string, string | null, string, string, string, number]
-  >(...args)
-
-  // Get total count for pagination
-  let countSql = "SELECT COUNT(*) FROM ads WHERE status = 'active'"
-  const countArgs: (string | number)[] = []
-
-  if (category) {
-    countSql += " AND category = ?"
-    countArgs.push(category)
+  if (error) {
+    ctx.response.status = 500
+    ctx.response.body = { error: "Kunde inte hämta annonser" }
+    return
   }
-  if (city) {
-    countSql += " AND city = ?"
-    countArgs.push(city)
-  }
-  if (search) {
-    countSql += " AND (title LIKE ? OR description LIKE ?)"
-    countArgs.push(`%${search}%`, `%${search}%`)
-  }
-
-  const totalResult = db.prepare(countSql).get<[number]>(...countArgs)
-  const total = totalResult ? totalResult[0] : 0
 
   ctx.response.body = {
-    ads: ads.map((row) => ({
-      id: row[0],
-      user_id: row[1],
-      title: row[2],
-      description: row[3],
-      price: row[4],
-      category: row[5],
-      city: row[6],
-      status: row[7],
-      created_at: row[8],
-      updated_at: row[9],
-      image_count: row[10],
+    ads: (ads || []).map((ad) => ({
+      id: ad.id,
+      user_id: ad.user_id,
+      title: ad.title,
+      description: ad.description,
+      price: ad.price,
+      category: ad.category,
+      city: ad.city,
+      status: ad.status,
+      created_at: ad.created_at,
+      updated_at: ad.updated_at,
+      image_count: ad.images?.length || 0,
     })),
     pagination: {
       page,
       limit,
-      total,
-      pages: Math.ceil(total / limit),
+      total: count || 0,
+      pages: Math.ceil((count || 0) / limit),
     },
   }
 })
 
 // Get single ad
-router.get("/api/ads/:id", (ctx) => {
+router.get("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
 
-  const db = getDatabase()
+  const supabase = getSupabase()
 
-  const ad = db.prepare(`
-    SELECT a.*, u.name as seller_name, u.city as seller_city
-    FROM ads a
-    JOIN users u ON u.id = a.user_id
-    WHERE a.id = ? AND a.status != 'deleted'
-  `).get<[number, number, string, string, number, string, string | null, string, string, string, string, string | null]>(
-    id
-  )
+  const { data: ad, error } = await supabase
+    .from("ads")
+    .select("*, profiles(name, city), images(id, filename, storage_path)")
+    .eq("id", id)
+    .neq("status", "deleted")
+    .single()
 
-  if (!ad) {
+  if (error || !ad) {
     ctx.response.status = 404
     ctx.response.body = { error: "Annonsen hittades inte" }
     return
   }
 
-  const images = db.prepare("SELECT id, filename FROM images WHERE ad_id = ?").all<[number, string]>(id)
-
   ctx.response.body = {
-    id: ad[0],
-    user_id: ad[1],
-    title: ad[2],
-    description: ad[3],
-    price: ad[4],
-    category: ad[5],
-    city: ad[6],
-    status: ad[7],
-    created_at: ad[8],
-    updated_at: ad[9],
-    seller_name: ad[10],
-    seller_city: ad[11],
-    images: images.map((img) => ({
-      id: img[0],
-      filename: img[1],
-      url: `/uploads/${img[1]}`,
+    id: ad.id,
+    user_id: ad.user_id,
+    title: ad.title,
+    description: ad.description,
+    price: ad.price,
+    category: ad.category,
+    city: ad.city,
+    status: ad.status,
+    created_at: ad.created_at,
+    updated_at: ad.updated_at,
+    seller_name: ad.profiles?.name || "Användare",
+    seller_city: ad.profiles?.city,
+    images: (ad.images || []).map((img: { id: number; filename: string; storage_path: string }) => ({
+      id: img.id,
+      filename: img.filename,
+      url: supabase.storage.from("ad-images").getPublicUrl(img.storage_path).data.publicUrl,
     })),
   }
 })
 
 // Create ad
 router.post("/api/ads", async (ctx) => {
-  const sessionId = await ctx.cookies.get("session")
+  const user = await getUserFromRequest(ctx)
 
-  if (!sessionId) {
+  if (!user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Du måste vara inloggad för att skapa annonser" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
-
-  if (!session) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
-    return
-  }
-
-  const userId = session[0]
   const body = await ctx.request.body.json()
   const { title, description, price, category, city } = body
 
@@ -177,45 +139,51 @@ router.post("/api/ads", async (ctx) => {
     return
   }
 
-  const result = db.prepare(`
-    INSERT INTO ads (user_id, title, description, price, category, city)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(userId, title, description, price, category, city || null)
+  const supabase = getSupabase()
+
+  const { data, error } = await supabase
+    .from("ads")
+    .insert({
+      user_id: user.id,
+      title,
+      description,
+      price,
+      category,
+      city: city || null,
+    })
+    .select("id")
+    .single()
+
+  if (error) {
+    ctx.response.status = 500
+    ctx.response.body = { error: "Kunde inte skapa annons" }
+    return
+  }
 
   ctx.response.status = 201
   ctx.response.body = {
     message: "Annons skapad!",
-    id: result,
+    id: data.id,
   }
 })
 
 // Update ad
 router.put("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
-  const sessionId = await ctx.cookies.get("session")
+  const user = await getUserFromRequest(ctx)
 
-  if (!sessionId) {
+  if (!user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Du måste vara inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
-
-  if (!session) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
-    return
-  }
-
-  const userId = session[0]
+  const supabase = getSupabase()
 
   // Check ownership
-  const ad = db.prepare("SELECT user_id FROM ads WHERE id = ?").get<[number]>(id)
-  if (!ad || ad[0] !== userId) {
+  const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
+
+  if (!ad || ad.user_id !== user.id) {
     ctx.response.status = 403
     ctx.response.body = { error: "Du kan bara redigera dina egna annonser" }
     return
@@ -230,44 +198,28 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
-  const updates: string[] = []
-  const args: (string | number)[] = []
+  const updates: Record<string, string | number | null> = {}
 
-  if (title !== undefined) {
-    updates.push("title = ?")
-    args.push(title)
-  }
-  if (description !== undefined) {
-    updates.push("description = ?")
-    args.push(description)
-  }
-  if (price !== undefined) {
-    updates.push("price = ?")
-    args.push(price)
-  }
-  if (category !== undefined) {
-    updates.push("category = ?")
-    args.push(category)
-  }
-  if (city !== undefined) {
-    updates.push("city = ?")
-    args.push(city)
-  }
-  if (status !== undefined && ["active", "sold"].includes(status)) {
-    updates.push("status = ?")
-    args.push(status)
-  }
+  if (title !== undefined) updates.title = title
+  if (description !== undefined) updates.description = description
+  if (price !== undefined) updates.price = price
+  if (category !== undefined) updates.category = category
+  if (city !== undefined) updates.city = city
+  if (status !== undefined && ["active", "sold"].includes(status)) updates.status = status
 
-  if (updates.length === 0) {
+  if (Object.keys(updates).length === 0) {
     ctx.response.status = 400
     ctx.response.body = { error: "Inga uppdateringar skickades" }
     return
   }
 
-  updates.push("updated_at = datetime('now')")
-  args.push(id)
+  const { error } = await supabase.from("ads").update(updates).eq("id", id)
 
-  db.prepare(`UPDATE ads SET ${updates.join(", ")} WHERE id = ?`).run(...args)
+  if (error) {
+    ctx.response.status = 500
+    ctx.response.body = { error: "Kunde inte uppdatera annons" }
+    return
+  }
 
   ctx.response.body = { message: "Annons uppdaterad!" }
 })
@@ -275,40 +227,38 @@ router.put("/api/ads/:id", async (ctx) => {
 // Delete ad
 router.delete("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
-  const sessionId = await ctx.cookies.get("session")
+  const user = await getUserFromRequest(ctx)
 
-  if (!sessionId) {
+  if (!user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Du måste vara inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
-
-  if (!session) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
-    return
-  }
-
-  const userId = session[0]
+  const supabase = getSupabase()
 
   // Check ownership
-  const ad = db.prepare("SELECT user_id FROM ads WHERE id = ?").get<[number]>(id)
-  if (!ad || ad[0] !== userId) {
+  const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
+
+  if (!ad || ad.user_id !== user.id) {
     ctx.response.status = 403
     ctx.response.body = { error: "Du kan bara radera dina egna annonser" }
     return
   }
 
-  // Delete images
-  db.prepare("DELETE FROM images WHERE ad_id = ?").run(id)
+  // Get and delete images from storage
+  const { data: images } = await supabase.from("images").select("storage_path").eq("ad_id", id)
+
+  if (images && images.length > 0) {
+    const paths = images.map((img) => img.storage_path)
+    await supabase.storage.from("ad-images").remove(paths)
+  }
+
+  // Delete images from database
+  await supabase.from("images").delete().eq("ad_id", id)
 
   // Soft delete ad
-  db.prepare("UPDATE ads SET status = 'deleted', updated_at = datetime('now') WHERE id = ?").run(id)
+  await supabase.from("ads").update({ status: "deleted" }).eq("id", id)
 
   ctx.response.body = { message: "Annons raderad!" }
 })
@@ -316,40 +266,32 @@ router.delete("/api/ads/:id", async (ctx) => {
 // Upload images
 router.post("/api/ads/:id/images", async (ctx) => {
   const id = parseInt(ctx.params.id)
-  const sessionId = await ctx.cookies.get("session")
+  const user = await getUserFromRequest(ctx)
 
-  if (!sessionId) {
+  if (!user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Du måste vara inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
-
-  if (!session) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
-    return
-  }
-
-  const userId = session[0]
+  const supabase = getSupabase()
 
   // Check ownership
-  const ad = db.prepare("SELECT user_id FROM ads WHERE id = ?").get<[number]>(id)
-  if (!ad || ad[0] !== userId) {
+  const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
+
+  if (!ad || ad.user_id !== user.id) {
     ctx.response.status = 403
     ctx.response.body = { error: "Du kan bara ladda upp bilder till dina egna annonser" }
     return
   }
 
   // Check current image count
-  const imageCountResult = db.prepare("SELECT COUNT(*) FROM images WHERE ad_id = ?").get<[number]>(id)
-  const currentCount = imageCountResult ? imageCountResult[0] : 0
+  const { count: currentCount } = await supabase
+    .from("images")
+    .select("*", { count: "exact", head: true })
+    .eq("ad_id", id)
 
-  if (currentCount >= MAX_IMAGES_PER_AD) {
+  if ((currentCount || 0) >= MAX_IMAGES_PER_AD) {
     ctx.response.status = 400
     ctx.response.body = { error: `Max ${MAX_IMAGES_PER_AD} bilder per annons` }
     return
@@ -359,16 +301,9 @@ router.post("/api/ads/:id/images", async (ctx) => {
   const formData = await body.formData()
   const uploadedFiles: string[] = []
 
-  // Ensure uploads directory exists
-  try {
-    await Deno.mkdir("./static/uploads", { recursive: true })
-  } catch {
-    // Directory might already exist
-  }
-
   for (const [_, value] of formData) {
     if (value instanceof File) {
-      if (currentCount + uploadedFiles.length >= MAX_IMAGES_PER_AD) {
+      if ((currentCount || 0) + uploadedFiles.length >= MAX_IMAGES_PER_AD) {
         break
       }
 
@@ -380,13 +315,27 @@ router.post("/api/ads/:id/images", async (ctx) => {
       // Generate unique filename
       const ext = value.name.split(".").pop() || "jpg"
       const filename = `${id}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+      const storagePath = `${user.id}/${filename}`
 
-      // Save file
+      // Upload to Supabase Storage
       const arrayBuffer = await value.arrayBuffer()
-      await Deno.writeFile(`./static/uploads/${filename}`, new Uint8Array(arrayBuffer))
+      const { error: uploadError } = await supabase.storage
+        .from("ad-images")
+        .upload(storagePath, new Uint8Array(arrayBuffer), {
+          contentType: value.type,
+        })
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError)
+        continue
+      }
 
       // Save to database
-      db.prepare("INSERT INTO images (ad_id, filename) VALUES (?, ?)").run(id, filename)
+      await supabase.from("images").insert({
+        ad_id: id,
+        filename,
+        storage_path: storagePath,
+      })
 
       uploadedFiles.push(filename)
     }
@@ -401,50 +350,34 @@ router.post("/api/ads/:id/images", async (ctx) => {
 // Delete image
 router.delete("/api/images/:id", async (ctx) => {
   const imageId = parseInt(ctx.params.id)
-  const sessionId = await ctx.cookies.get("session")
+  const user = await getUserFromRequest(ctx)
 
-  if (!sessionId) {
+  if (!user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Du måste vara inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
+  const supabase = getSupabase()
 
-  if (!session) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
-    return
-  }
+  // Get image and check ownership
+  const { data: image } = await supabase
+    .from("images")
+    .select("storage_path, ads(user_id)")
+    .eq("id", imageId)
+    .single()
 
-  const userId = session[0]
-
-  // Check ownership
-  const image = db.prepare(`
-    SELECT i.filename, a.user_id 
-    FROM images i 
-    JOIN ads a ON a.id = i.ad_id 
-    WHERE i.id = ?
-  `).get<[string, number]>(imageId)
-
-  if (!image || image[1] !== userId) {
+  if (!image || (image.ads as { user_id: string })?.user_id !== user.id) {
     ctx.response.status = 403
     ctx.response.body = { error: "Du kan bara radera dina egna bilder" }
     return
   }
 
-  // Delete file
-  try {
-    await Deno.remove(`./static/uploads/${image[0]}`)
-  } catch {
-    // File might not exist
-  }
+  // Delete from storage
+  await supabase.storage.from("ad-images").remove([image.storage_path])
 
   // Delete from database
-  db.prepare("DELETE FROM images WHERE id = ?").run(imageId)
+  await supabase.from("images").delete().eq("id", imageId)
 
   ctx.response.body = { message: "Bild raderad!" }
 })
@@ -456,51 +389,42 @@ router.get("/api/categories", (ctx) => {
 
 // Get user's ads
 router.get("/api/my-ads", async (ctx) => {
-  const sessionId = await ctx.cookies.get("session")
+  const user = await getUserFromRequest(ctx)
 
-  if (!sessionId) {
+  if (!user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Du måste vara inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
+  const supabase = getSupabase()
 
-  if (!session) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
+  const { data: ads, error } = await supabase
+    .from("ads")
+    .select("*, images(id)")
+    .eq("user_id", user.id)
+    .neq("status", "deleted")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    ctx.response.status = 500
+    ctx.response.body = { error: "Kunde inte hämta annonser" }
     return
   }
 
-  const userId = session[0]
-
-  const ads = db.prepare(`
-    SELECT a.*, COUNT(i.id) as image_count
-    FROM ads a
-    LEFT JOIN images i ON i.ad_id = a.id
-    WHERE a.user_id = ? AND a.status != 'deleted'
-    GROUP BY a.id
-    ORDER BY a.created_at DESC
-  `).all<
-    [number, number, string, string, number, string, string | null, string, string, string, number]
-  >(userId)
-
   ctx.response.body = {
-    ads: ads.map((row) => ({
-      id: row[0],
-      user_id: row[1],
-      title: row[2],
-      description: row[3],
-      price: row[4],
-      category: row[5],
-      city: row[6],
-      status: row[7],
-      created_at: row[8],
-      updated_at: row[9],
-      image_count: row[10],
+    ads: (ads || []).map((ad) => ({
+      id: ad.id,
+      user_id: ad.user_id,
+      title: ad.title,
+      description: ad.description,
+      price: ad.price,
+      category: ad.category,
+      city: ad.city,
+      status: ad.status,
+      created_at: ad.created_at,
+      updated_at: ad.updated_at,
+      image_count: ad.images?.length || 0,
     })),
   }
 })

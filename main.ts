@@ -3,8 +3,8 @@ import { router } from "./src/routes/mod.ts"
 import { initDatabase } from "./src/db/database.ts"
 import { errorMiddleware } from "./src/middleware/error.ts"
 
-// Initialize database
-await initDatabase()
+// Initialize Supabase
+initDatabase()
 
 const app = new Application()
 

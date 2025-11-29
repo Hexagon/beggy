@@ -11,7 +11,7 @@ Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspir
 - ✅ Skapa och hantera annonser gratis
 - ✅ Ladda upp bilder (max 5 per annons)
 - ✅ Sök och filtrera på kategori och ort
-- ✅ Användarkonton med säker autentisering
+- ✅ Användarkonton med säker autentisering (Supabase Auth)
 - ✅ GDPR-kompatibel (radera all din data när som helst)
 - ✅ Ingen reklam eller spårning
 
@@ -19,7 +19,7 @@ Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspir
 
 - **Runtime:** [Deno](https://deno.land/) 2.5+
 - **Ramverk:** [Oak](https://jsr.io/@oak/oak)
-- **Databas:** SQLite
+- **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + Storage)
 - **Deploy:** Deno Deploy
 
 ## Kom igång
@@ -27,6 +27,14 @@ Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspir
 ### Krav
 
 - Deno 2.5 eller senare
+- Supabase-projekt (gratis på [supabase.com](https://supabase.com))
+
+### Supabase Setup
+
+1. Skapa ett nytt projekt på [supabase.com](https://supabase.com)
+2. Kör SQL från `src/db/database.ts` i SQL Editor för att skapa tabeller
+3. Skapa en Storage bucket med namnet `ad-images` (public)
+4. Kopiera URL och anon key från Project Settings > API
 
 ### Starta lokalt
 
@@ -34,6 +42,10 @@ Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspir
 # Klona projektet
 git clone https://github.com/Hexagon/beggy.git
 cd beggy
+
+# Sätt miljövariabler
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_ANON_KEY="your-anon-key"
 
 # Starta utvecklingsserver
 deno task dev
@@ -61,7 +73,10 @@ Projektet är konfigurerat för [Deno Deploy](https://deno.com/deploy):
 1. Skapa ett nytt projekt på Deno Deploy
 2. Koppla till detta GitHub-repo
 3. Sätt entry point till `main.ts`
-4. Konfigurera custom domain till `beggy.se`
+4. Lägg till miljövariabler:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+5. Konfigurera custom domain till `beggy.se`
 
 ## Struktur
 
@@ -71,11 +86,11 @@ beggy/
 ├── deno.json            # Konfiguration och beroenden
 ├── src/
 │   ├── routes/          # API och sidrouter
-│   ├── db/              # Databashantering
+│   ├── db/              # Supabase-klient och schema
 │   ├── models/          # Typdefinitioner
 │   ├── middleware/      # Oak middleware
 │   └── utils/           # Hjälpfunktioner
-├── static/              # CSS, JS och uppladdade bilder
+├── static/              # CSS, JS
 └── templates/           # HTML-mallar
 ```
 

@@ -9,7 +9,7 @@ The platform is designed to be simple and easy to use, similar to the original B
 
 - **Runtime**: Deno 2.5+
 - **Web Framework**: Oak
-- **Database**: SQLite
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Deployment**: Deno Deploy (beggy.se)
 
 ## Project Structure
@@ -20,11 +20,11 @@ beggy/
 ├── deno.json            # Deno configuration and dependencies
 ├── src/
 │   ├── routes/          # API and page routes
-│   ├── db/              # Database initialization and queries
+│   ├── db/              # Supabase client and schema
 │   ├── models/          # Type definitions
 │   ├── middleware/      # Oak middleware
 │   └── utils/           # Utility functions
-├── static/              # Static assets (CSS, JS, images)
+├── static/              # Static assets (CSS, JS)
 └── templates/           # HTML templates
 ```
 
@@ -50,11 +50,17 @@ deno task fmt
 deno task check
 ```
 
+## Environment Variables
+
+Required environment variables:
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
 ## Key Features
 
-1. **User Accounts**: Simple registration and login
+1. **User Accounts**: Registration and login via Supabase Auth
 2. **Ad Management**: Create, edit, delete ads
-3. **Image Upload**: Max 5 images per ad
+3. **Image Upload**: Max 5 images per ad (stored in Supabase Storage)
 4. **Search & Browse**: Category-based browsing and search
 
 ## Legal Compliance
@@ -64,11 +70,16 @@ deno task check
 - Cookie consent where required
 - User data deletion capability
 
-## Database Schema
+## Database Schema (Supabase/PostgreSQL)
 
-- `users`: User accounts (email, hashed password, contact info)
-- `ads`: Advertisements (title, description, price, category, user_id)
-- `images`: Ad images (ad_id, filename, path)
+- `profiles`: User profiles linked to auth.users (id, email, name, phone, city)
+- `ads`: Advertisements (id, user_id, title, description, price, category, city, status)
+- `images`: Ad images (id, ad_id, filename, storage_path)
+
+## Supabase Storage
+
+- Bucket: `ad-images` (public)
+- Images are stored with path: `{user_id}/{filename}`
 
 ## Code Style
 
@@ -76,4 +87,4 @@ deno task check
 - No semicolons
 - Line width: 100 characters
 - Use Oak Router for routes
-- Use prepared statements for SQLite
+- Use Supabase client for all database operations

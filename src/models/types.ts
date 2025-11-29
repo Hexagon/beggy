@@ -1,7 +1,6 @@
-export interface User {
-  id: number
+export interface Profile {
+  id: string // UUID from Supabase Auth
   email: string
-  password_hash: string
   name: string
   phone?: string
   city?: string
@@ -11,7 +10,7 @@ export interface User {
 
 export interface Ad {
   id: number
-  user_id: number
+  user_id: string // UUID
   title: string
   description: string
   price: number
@@ -26,14 +25,8 @@ export interface Image {
   id: number
   ad_id: number
   filename: string
+  storage_path: string
   created_at: string
-}
-
-export interface Session {
-  id: string
-  user_id: number
-  created_at: string
-  expires_at: string
 }
 
 export const CATEGORIES = [

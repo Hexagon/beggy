@@ -26,9 +26,7 @@
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.0.0",
     "@std/path": "jsr:@std/path@^1.0.0",
-    "@std/crypto": "jsr:@std/crypto@^1.0.0",
-    "@std/encoding": "jsr:@std/encoding@^1.0.0",
-    "@db/sqlite": "jsr:@db/sqlite@^0.12.0"
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.45.0"
   },
   "compilerOptions": {
     "lib": ["deno.window"]

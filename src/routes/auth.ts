@@ -1,6 +1,5 @@
 import { Router } from "@oak/oak"
-import { getDatabase } from "../db/database.ts"
-import { hashPassword, verifyPassword, generateSessionId } from "../utils/helpers.ts"
+import { getSupabase } from "../db/database.ts"
 
 const router = new Router()
 
@@ -21,22 +20,37 @@ router.post("/api/auth/register", async (ctx) => {
     return
   }
 
-  const db = getDatabase()
+  const supabase = getSupabase()
 
-  // Check if email already exists
-  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get<[number]>(email)
-  if (existing) {
+  // Create user with Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name,
+        phone: phone || null,
+        city: city || null,
+      },
+    },
+  })
+
+  if (authError) {
     ctx.response.status = 400
-    ctx.response.body = { error: "E-postadressen används redan" }
+    ctx.response.body = { error: authError.message }
     return
   }
 
-  const passwordHash = await hashPassword(password)
-
-  db.prepare(`
-    INSERT INTO users (email, password_hash, name, phone, city)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(email, passwordHash, name, phone || null, city || null)
+  // Update profile with additional info
+  if (authData.user) {
+    await supabase.from("profiles").upsert({
+      id: authData.user.id,
+      email,
+      name,
+      phone: phone || null,
+      city: city || null,
+    })
+  }
 
   ctx.response.status = 201
   ctx.response.body = { message: "Konto skapat! Du kan nu logga in." }
@@ -53,41 +67,32 @@ router.post("/api/auth/login", async (ctx) => {
     return
   }
 
-  const db = getDatabase()
+  const supabase = getSupabase()
 
-  const user = db.prepare(`
-    SELECT id, password_hash FROM users WHERE email = ?
-  `).get<[number, string]>(email)
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
-  if (!user) {
+  if (error) {
     ctx.response.status = 401
     ctx.response.body = { error: "Felaktig e-post eller lösenord" }
     return
   }
 
-  const [userId, passwordHash] = user
-  const isValid = await verifyPassword(password, passwordHash)
-
-  if (!isValid) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Felaktig e-post eller lösenord" }
-    return
-  }
-
-  // Create session
-  const sessionId = generateSessionId()
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-
-  db.prepare(`
-    INSERT INTO sessions (id, user_id, expires_at)
-    VALUES (?, ?, ?)
-  `).run(sessionId, userId, expiresAt)
-
-  await ctx.cookies.set("session", sessionId, {
+  // Set session token as cookie
+  await ctx.cookies.set("access_token", data.session.access_token, {
     httpOnly: true,
     secure: ctx.request.secure,
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+  })
+
+  await ctx.cookies.set("refresh_token", data.session.refresh_token, {
+    httpOnly: true,
+    secure: ctx.request.secure,
+    sameSite: "lax",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   })
 
   ctx.response.body = { message: "Inloggad!" }
@@ -95,82 +100,128 @@ router.post("/api/auth/login", async (ctx) => {
 
 // Logout
 router.post("/api/auth/logout", async (ctx) => {
-  const sessionId = await ctx.cookies.get("session")
+  const accessToken = await ctx.cookies.get("access_token")
 
-  if (sessionId) {
-    const db = getDatabase()
-    db.prepare("DELETE FROM sessions WHERE id = ?").run(sessionId)
-    await ctx.cookies.delete("session")
+  if (accessToken) {
+    const supabase = getSupabase()
+    await supabase.auth.signOut()
   }
+
+  await ctx.cookies.delete("access_token")
+  await ctx.cookies.delete("refresh_token")
 
   ctx.response.body = { message: "Utloggad!" }
 })
 
 // Get current user
 router.get("/api/auth/me", async (ctx) => {
-  const sessionId = await ctx.cookies.get("session")
+  const accessToken = await ctx.cookies.get("access_token")
 
-  if (!sessionId) {
+  if (!accessToken) {
     ctx.response.status = 401
     ctx.response.body = { error: "Inte inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const user = db.prepare(`
-    SELECT u.id, u.email, u.name, u.phone, u.city
-    FROM users u
-    JOIN sessions s ON s.user_id = u.id
-    WHERE s.id = ? AND datetime(s.expires_at) > datetime('now')
-  `).get<[number, string, string, string | null, string | null]>(sessionId)
+  const supabase = getSupabase()
 
-  if (!user) {
+  const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
+
+  if (userError || !userData.user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Session utgången" }
     return
   }
 
+  // Get profile data
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userData.user.id)
+    .single()
+
   ctx.response.body = {
-    id: user[0],
-    email: user[1],
-    name: user[2],
-    phone: user[3],
-    city: user[4],
+    id: userData.user.id,
+    email: userData.user.email,
+    name: profile?.name || "Användare",
+    phone: profile?.phone,
+    city: profile?.city,
   }
 })
 
 // Delete account (GDPR - Right to be forgotten)
 router.delete("/api/auth/account", async (ctx) => {
-  const sessionId = await ctx.cookies.get("session")
+  const accessToken = await ctx.cookies.get("access_token")
 
-  if (!sessionId) {
+  if (!accessToken) {
     ctx.response.status = 401
     ctx.response.body = { error: "Inte inloggad" }
     return
   }
 
-  const db = getDatabase()
-  const session = db.prepare(`
-    SELECT user_id FROM sessions WHERE id = ? AND datetime(expires_at) > datetime('now')
-  `).get<[number]>(sessionId)
+  const supabase = getSupabase()
 
-  if (!session) {
+  const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
+
+  if (userError || !userData.user) {
     ctx.response.status = 401
     ctx.response.body = { error: "Session utgången" }
     return
   }
 
-  const userId = session[0]
+  const userId = userData.user.id
 
-  // Delete all user data
-  db.prepare("DELETE FROM images WHERE ad_id IN (SELECT id FROM ads WHERE user_id = ?)").run(userId)
-  db.prepare("DELETE FROM ads WHERE user_id = ?").run(userId)
-  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId)
-  db.prepare("DELETE FROM users WHERE id = ?").run(userId)
+  // Delete user's images
+  const { data: userAds } = await supabase.from("ads").select("id").eq("user_id", userId)
 
-  await ctx.cookies.delete("session")
+  if (userAds) {
+    for (const ad of userAds) {
+      // Get images for this ad
+      const { data: images } = await supabase.from("images").select("storage_path").eq("ad_id", ad.id)
+
+      // Delete from storage
+      if (images && images.length > 0) {
+        const paths = images.map((img) => img.storage_path)
+        await supabase.storage.from("ad-images").remove(paths)
+      }
+    }
+  }
+
+  // Delete ads (cascade will delete images records)
+  await supabase.from("ads").delete().eq("user_id", userId)
+
+  // Delete profile
+  await supabase.from("profiles").delete().eq("id", userId)
+
+  // Note: Deleting from auth.users requires admin privileges
+  // The user should be deleted via Supabase dashboard or a server-side admin function
+  await supabase.auth.signOut()
+
+  await ctx.cookies.delete("access_token")
+  await ctx.cookies.delete("refresh_token")
 
   ctx.response.body = { message: "Ditt konto och all data har raderats" }
 })
+
+// Helper function to get user from request
+export async function getUserFromRequest(ctx: { cookies: { get: (name: string) => Promise<string | undefined> } }): Promise<{ id: string; email: string } | null> {
+  const accessToken = await ctx.cookies.get("access_token")
+
+  if (!accessToken) {
+    return null
+  }
+
+  const supabase = getSupabase()
+  const { data: userData, error } = await supabase.auth.getUser(accessToken)
+
+  if (error || !userData.user) {
+    return null
+  }
+
+  return {
+    id: userData.user.id,
+    email: userData.user.email || "",
+  }
+}
 
 export { router as authRouter }
