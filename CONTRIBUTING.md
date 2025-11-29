@@ -1,6 +1,7 @@
 # Contributing to Beggy
 
-Thank you for your interest in contributing to Beggy! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Beggy! This document provides guidelines and
+information for contributors.
 
 ## Getting Started
 
@@ -47,6 +48,7 @@ deno task precommit
 ```
 
 This command runs:
+
 1. `deno task fmt` - Formats all code
 2. `deno task lint` - Checks for linting errors
 3. `deno task check` - Performs type checking
@@ -155,13 +157,13 @@ Consider using a separate Supabase project for testing.
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `main.ts` | Application entry point |
-| `deno.json` | Deno configuration and tasks |
-| `src/routes/mod.ts` | Route aggregation |
-| `src/db/database.ts` | Supabase client and schema |
-| `src/models/types.ts` | TypeScript type definitions |
+| File                  | Purpose                      |
+| --------------------- | ---------------------------- |
+| `main.ts`             | Application entry point      |
+| `deno.json`           | Deno configuration and tasks |
+| `src/routes/mod.ts`   | Route aggregation            |
+| `src/db/database.ts`  | Supabase client and schema   |
+| `src/models/types.ts` | TypeScript type definitions  |
 
 ### Adding New Features
 

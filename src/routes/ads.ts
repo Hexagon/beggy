@@ -100,7 +100,9 @@ router.get("/api/ads/:id", async (ctx) => {
     updated_at: ad.updated_at,
     seller_name: ad.profiles?.name || "Användare",
     seller_city: ad.profiles?.city,
-    images: (ad.images || []).map((img: { id: number; filename: string; storage_path: string }) => ({
+    images: (ad.images || []).map((
+      img: { id: number; filename: string; storage_path: string },
+    ) => ({
       id: img.id,
       filename: img.filename,
       url: supabase.storage.from("ad-images").getPublicUrl(img.storage_path).data.publicUrl,

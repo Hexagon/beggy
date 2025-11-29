@@ -177,7 +177,10 @@ router.delete("/api/auth/account", async (ctx) => {
   if (userAds) {
     for (const ad of userAds) {
       // Get images for this ad
-      const { data: images } = await supabase.from("images").select("storage_path").eq("ad_id", ad.id)
+      const { data: images } = await supabase.from("images").select("storage_path").eq(
+        "ad_id",
+        ad.id,
+      )
 
       // Delete from storage
       if (images && images.length > 0) {
@@ -204,7 +207,9 @@ router.delete("/api/auth/account", async (ctx) => {
 })
 
 // Helper function to get user from request
-export async function getUserFromRequest(ctx: { cookies: { get: (name: string) => Promise<string | undefined> } }): Promise<{ id: string; email: string } | null> {
+export async function getUserFromRequest(
+  ctx: { cookies: { get: (name: string) => Promise<string | undefined> } },
+): Promise<{ id: string; email: string } | null> {
   const accessToken = await ctx.cookies.get("access_token")
 
   if (!accessToken) {

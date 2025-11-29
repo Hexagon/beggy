@@ -2,8 +2,8 @@
 
 ## Project Overview
 
-Beggy is a Swedish secondhand marketplace built with Deno 2.5 and Oak framework.
-The platform is designed to be simple and easy to use, similar to the original Blocket.
+Beggy is a Swedish secondhand marketplace built with Deno 2.5 and Oak framework. The platform is
+designed to be simple and easy to use, similar to the original Blocket.
 
 ## Technology Stack
 
@@ -60,6 +60,7 @@ deno task precommit
 **IMPORTANT**: Always run `deno task precommit` before committing changes.
 
 This command runs:
+
 1. `deno fmt` - Auto-formats all TypeScript files
 2. `deno lint` - Checks for linting errors
 3. `deno check main.ts` - Performs type checking
@@ -69,10 +70,12 @@ All checks must pass before committing. If any check fails, fix the issues and r
 ## Environment Variables
 
 Required environment variables:
+
 - `SUPABASE_URL`: Your Supabase project URL
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 
 Optional:
+
 - `PORT`: Server port (default: 8000)
 
 ## Testing
@@ -128,6 +131,7 @@ Deno.test("example test", () => {
 ## Database Schema (Supabase/PostgreSQL)
 
 Tables:
+
 - `profiles`: User profiles linked to auth.users (id, email, name, phone, city)
 - `ads`: Advertisements (id, user_id, title, description, price, category, city, status)
 - `images`: Ad images (id, ad_id, filename, storage_path)
@@ -150,6 +154,7 @@ Full schema SQL is in `src/db/database.ts` comments.
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
@@ -157,6 +162,7 @@ Full schema SQL is in `src/db/database.ts` comments.
 - `DELETE /api/auth/account` - Delete account (GDPR)
 
 ### Ads
+
 - `GET /api/ads` - List ads (with pagination and filters)
 - `GET /api/ads/:id` - Get single ad
 - `POST /api/ads` - Create ad
@@ -166,6 +172,7 @@ Full schema SQL is in `src/db/database.ts` comments.
 - `DELETE /api/images/:id` - Delete image
 
 ### Other
+
 - `GET /api/categories` - List categories
 - `GET /api/my-ads` - Get user's ads
 

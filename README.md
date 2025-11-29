@@ -4,7 +4,8 @@ En svensk begagnatmarknad som den borde vara - enkel, gratis och med öppen käl
 
 ## Om projektet
 
-Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspirerad av hur Blocket fungerade förr i tiden - enkelt och användarvänligt.
+Beggy är en modern begagnatmarknad byggd med Deno 2.5 och Oak-ramverket. Inspirerad av hur Blocket
+fungerade förr i tiden - enkelt och användarvänligt.
 
 ## Funktioner
 
@@ -103,7 +104,8 @@ beggy/
 
 ## Bidra
 
-Bidrag välkomnas! Skapa en pull request eller rapportera buggar via [Issues](https://github.com/Hexagon/beggy/issues).
+Bidrag välkomnas! Skapa en pull request eller rapportera buggar via
+[Issues](https://github.com/Hexagon/beggy/issues).
 
 ## Licens
 

@@ -48,16 +48,16 @@ cd beggy
 
 ### Required Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SUPABASE_URL` | Your Supabase project URL | `https://xxxxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | `eyJhbGciOiJIUzI1NiIs...` |
+| Variable            | Description                 | Example                     |
+| ------------------- | --------------------------- | --------------------------- |
+| `SUPABASE_URL`      | Your Supabase project URL   | `https://xxxxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | `eyJhbGciOiJIUzI1NiIs...`   |
 
 ### Optional Variables
 
 | Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | `8000` |
+| -------- | ----------- | ------- |
+| `PORT`   | Server port | `8000`  |
 
 ### Setting Environment Variables
 
@@ -86,7 +86,8 @@ deno task dev
 
 #### Option 3: Deno Deploy (Production)
 
-Set environment variables in the Deno Deploy dashboard under **Settings** > **Environment Variables**.
+Set environment variables in the Deno Deploy dashboard under **Settings** > **Environment
+Variables**.
 
 ## 4. Run the Application
 

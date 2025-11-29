@@ -16,7 +16,7 @@ export function initDatabase(): void {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
       "Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables. " +
-        "Please set them in your environment or .env file."
+        "Please set them in your environment or .env file.",
     )
   }
 
@@ -85,9 +85,9 @@ CREATE POLICY "Users can delete own ads" ON ads FOR DELETE USING (auth.uid() = u
 
 -- Policies for images
 CREATE POLICY "Anyone can view images" ON images FOR SELECT USING (true);
-CREATE POLICY "Users can insert images for own ads" ON images FOR INSERT 
+CREATE POLICY "Users can insert images for own ads" ON images FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM ads WHERE ads.id = ad_id AND ads.user_id = auth.uid()));
-CREATE POLICY "Users can delete images for own ads" ON images FOR DELETE 
+CREATE POLICY "Users can delete images for own ads" ON images FOR DELETE
   USING (EXISTS (SELECT 1 FROM ads WHERE ads.id = ad_id AND ads.user_id = auth.uid()));
 
 -- Trigger to update updated_at
