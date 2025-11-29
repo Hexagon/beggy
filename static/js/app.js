@@ -259,14 +259,14 @@ async function loadCategories() {
 
     // Populate category grid with "All Categories" button first
     const allCategoriesBtn = `
-      <div class="bg-primary text-white p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCategoryFilter()">
+      <div class="bg-amber-50 border border-stone-300 text-stone-700 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-amber-100" onclick="clearCategoryFilter()">
         📋 Alla Kategorier
       </div>
     `
     categoryGrid.innerHTML = allCategoriesBtn + categories
       .map(
         (cat) => `
-      <div class="bg-amber-100 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-amber-200" onclick="filterByCategory('${cat}')">
+      <div class="bg-amber-50 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-amber-100" onclick="filterByCategory('${cat}')">
         ${getCategoryIcon(cat)} ${cat}
       </div>
     `
@@ -423,7 +423,7 @@ function renderAds(ads) {
         (ad) => {
           const safeImageUrl = sanitizeUrl(ad.first_image_url)
           return `
-      <div class="bg-amber-100 rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-amber-200 flex" onclick="openAdDetail(${ad.id})">
+      <div class="bg-amber-50 rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-amber-100 flex" onclick="openAdDetail(${ad.id})">
         ${
           safeImageUrl
             ? `<div class="w-24 h-24 flex-shrink-0"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
@@ -449,7 +449,7 @@ function renderAds(ads) {
         (ad) => {
           const safeImageUrl = sanitizeUrl(ad.first_image_url)
           return `
-      <div class="bg-amber-100 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
+      <div class="bg-amber-50 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
         ${
           safeImageUrl
             ? `<div class="w-full h-44"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
@@ -479,19 +479,19 @@ function renderPagination(p) {
   let html = ""
 
   if (p.page > 1) {
-    html += `<button class="px-4 py-2.5 border border-stone-300 bg-amber-100 cursor-pointer rounded hover:bg-amber-200" onclick="goToPage(${p.page - 1})">« Föregående</button>`
+    html += `<button class="px-4 py-2.5 border border-stone-300 bg-amber-50 cursor-pointer rounded hover:bg-amber-100" onclick="goToPage(${p.page - 1})">« Föregående</button>`
   }
 
   for (let i = 1; i <= p.pages; i++) {
     if (i === 1 || i === p.pages || (i >= p.page - 2 && i <= p.page + 2)) {
-      html += `<button class="px-4 py-2.5 border cursor-pointer rounded ${i === p.page ? "bg-primary text-white border-primary" : "border-stone-300 bg-amber-100 hover:bg-amber-200"}" onclick="goToPage(${i})">${i}</button>`
+      html += `<button class="px-4 py-2.5 border cursor-pointer rounded ${i === p.page ? "bg-primary text-white border-primary" : "border-stone-300 bg-amber-50 hover:bg-amber-100"}" onclick="goToPage(${i})">${i}</button>`
     } else if (i === p.page - 3 || i === p.page + 3) {
       html += "<span class='px-2'>...</span>"
     }
   }
 
   if (p.page < p.pages) {
-    html += `<button class="px-4 py-2.5 border border-stone-300 bg-amber-100 cursor-pointer rounded hover:bg-amber-200" onclick="goToPage(${p.page + 1})">Nästa »</button>`
+    html += `<button class="px-4 py-2.5 border border-stone-300 bg-amber-50 cursor-pointer rounded hover:bg-amber-100" onclick="goToPage(${p.page + 1})">Nästa »</button>`
   }
 
   pagination.innerHTML = html
