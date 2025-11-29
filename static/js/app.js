@@ -276,8 +276,8 @@ async function loadCounties() {
     counties = data.counties
     adjacentCounties = data.adjacentCounties
 
-    // Populate county selects
-    const options = counties.map((county) => `<option value="${county}">${county}</option>`).join("")
+    // Populate county selects (escape HTML to prevent XSS)
+    const options = counties.map((county) => `<option value="${escapeHtml(county)}">${escapeHtml(county)}</option>`).join("")
     countySelect.innerHTML = '<option value="">Alla län</option>' + options
     adCountySelect.innerHTML = '<option value="">Välj län</option>' + options
   } catch (err) {
