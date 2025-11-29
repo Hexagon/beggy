@@ -15,6 +15,9 @@ export function getAuthenticatedSupabase(accessToken: string): SupabaseClient {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error("Supabase not initialized")
   }
+  if (!accessToken) {
+    throw new Error("Access token is required")
+  }
   return createClient(supabaseUrl, supabaseKey, {
     global: {
       headers: {
