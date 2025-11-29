@@ -259,14 +259,14 @@ async function loadCategories() {
 
     // Populate category grid with "All Categories" button first
     const allCategoriesBtn = `
-      <div class="bg-amber-50 border border-stone-300 text-stone-700 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-amber-100" onclick="clearCategoryFilter()">
+      <div class="category-btn bg-amber-100 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" data-category="" onclick="clearCategoryFilter()">
         📋 Alla Kategorier
       </div>
     `
     categoryGrid.innerHTML = allCategoriesBtn + categories
       .map(
         (cat) => `
-      <div class="bg-amber-50 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-amber-100" onclick="filterByCategory('${cat}')">
+      <div class="category-btn bg-amber-75 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" data-category="${cat}" onclick="filterByCategory('${cat}')">
         ${getCategoryIcon(cat)} ${cat}
       </div>
     `
@@ -276,9 +276,36 @@ async function loadCategories() {
     // Populate category filter select
     const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
     categorySelect.innerHTML = '<option value="">Alla kategorier</option>' + options
+    
+    // Update category button styles to show current selection
+    updateCategoryButtonStyles()
   } catch (err) {
     console.error("Failed to load categories:", err)
   }
+}
+
+function updateCategoryButtonStyles() {
+  const buttons = document.querySelectorAll(".category-btn")
+  buttons.forEach((btn) => {
+    const btnCategory = btn.dataset.category
+    const isSelected = btnCategory === currentCategory
+    const isAllCategories = btnCategory === ""
+    
+    // Remove previous selection styling
+    btn.classList.remove("ring-2", "ring-primary", "ring-offset-2", "bg-amber-100", "bg-amber-75")
+    
+    if (isSelected) {
+      // Selected button gets prominent styling
+      btn.classList.add("ring-2", "ring-primary", "ring-offset-2")
+    }
+    
+    // Set base background color
+    if (isAllCategories) {
+      btn.classList.add("bg-amber-100")
+    } else {
+      btn.classList.add("bg-amber-75")
+    }
+  })
 }
 
 // Counties
@@ -319,6 +346,7 @@ function filterByCategory(category) {
   currentPage = 1
   loadAdsAndUpdateUrl()
   document.getElementById("adsTitle").textContent = category
+  updateCategoryButtonStyles()
 }
 
 function clearCategoryFilter() {
@@ -327,6 +355,7 @@ function clearCategoryFilter() {
   currentPage = 1
   loadAdsAndUpdateUrl()
   document.getElementById("adsTitle").textContent = "Senaste annonser"
+  updateCategoryButtonStyles()
 }
 
 // URL State Management
@@ -346,6 +375,9 @@ function loadStateFromUrl() {
   countySelect.value = currentCounty
   includeAdjacentCheckbox.checked = includeAdjacent
   sortSelect.value = currentSort
+  
+  // Update category button styles if categories are already loaded
+  updateCategoryButtonStyles()
   
   loadAds()
 }
@@ -416,18 +448,18 @@ function renderAds(ads) {
   }
 
   if (viewMode === "list") {
-    // List view - default
-    adsGrid.className = "ads-grid flex flex-col gap-3"
+    // List view - default (no background per ad, subtle row divider)
+    adsGrid.className = "ads-grid flex flex-col divide-y divide-stone-200"
     adsGrid.innerHTML = ads
       .map(
         (ad) => {
           const safeImageUrl = sanitizeUrl(ad.first_image_url)
           return `
-      <div class="bg-amber-50 rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-amber-100 flex" onclick="openAdDetail(${ad.id})">
+      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-3" onclick="openAdDetail(${ad.id})">
         ${
           safeImageUrl
-            ? `<div class="w-24 h-24 flex-shrink-0"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
-            : '<div class="w-24 h-24 flex-shrink-0 bg-stone-200 flex items-center justify-center text-stone-400 text-3xl">📦</div>'
+            ? `<div class="w-24 h-24 flex-shrink-0 rounded overflow-hidden"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
+            : '<div class="w-24 h-24 flex-shrink-0 bg-stone-200 rounded flex items-center justify-center text-stone-400 text-3xl">📦</div>'
         }
         <div class="p-3 flex-1 min-w-0">
           <div class="text-base font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
@@ -442,7 +474,7 @@ function renderAds(ads) {
       )
       .join("")
   } else {
-    // Gallery view
+    // Gallery view (keep background per ad)
     adsGrid.className = "ads-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
     adsGrid.innerHTML = ads
       .map(
