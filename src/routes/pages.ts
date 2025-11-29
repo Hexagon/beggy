@@ -9,6 +9,24 @@ router.get("/", async (ctx) => {
   ctx.response.body = await renderTemplate("index.html")
 })
 
+// Create ad page
+router.get("/ny-annons", async (ctx) => {
+  ctx.response.type = "text/html"
+  ctx.response.body = await renderTemplate("create-ad.html")
+})
+
+// Ad detail page
+router.get("/annons/:id", async (ctx) => {
+  ctx.response.type = "text/html"
+  ctx.response.body = await renderTemplate("ad.html")
+})
+
+// Edit ad page
+router.get("/annons/:id/redigera", async (ctx) => {
+  ctx.response.type = "text/html"
+  ctx.response.body = await renderTemplate("edit-ad.html")
+})
+
 // Legal pages
 router.get("/villkor", async (ctx) => {
   ctx.response.type = "text/html"
