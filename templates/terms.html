@@ -1,107 +1,145 @@
 <!DOCTYPE html>
 <html lang="sv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Användarvillkor - Beggy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#0066cc',
-            'primary-dark': '#0052a3',
-          }
-        }
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Användarvillkor - Beggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0066cc",
+              "primary-dark": "#0052a3",
+            },
+          },
+        },
       }
-    }
-  </script>
-</head>
-<body class="bg-gray-100 text-gray-800 leading-relaxed">
-  <header class="bg-white shadow-md py-4 sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-5 flex items-center justify-between">
-      <a href="/" class="text-2xl font-bold text-primary no-underline">🛒 Beggy</a>
-      <nav>
-        <a href="/" class="text-gray-800 no-underline px-3 py-2 hover:text-primary">Tillbaka till startsidan</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="min-h-[calc(100vh-200px)] py-8">
-    <div class="max-w-6xl mx-auto px-5">
-      <div class="bg-white p-8 rounded-lg max-w-3xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6">Användarvillkor för Beggy</h1>
-        <p class="italic text-gray-500 mb-6">Senast uppdaterad: 2025-01-01</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">1. Allmänt</h2>
-        <p class="mb-4">Beggy är en gratis begagnatmarknad som drivs som ett hobbyprojekt med öppen källkod. Genom att använda tjänsten godkänner du dessa villkor.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">2. Tjänstens syfte</h2>
-        <p class="mb-4">Beggy är en plattform för att köpa och sälja begagnade varor mellan privatpersoner. Vi fungerar enbart som en mötesplats och är inte part i några transaktioner mellan användare.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">3. Registrering och konto</h2>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>Du måste vara minst 18 år för att skapa ett konto</li>
-          <li>Du ansvarar för att uppgifterna du anger är korrekta</li>
-          <li>Du är ansvarig för all aktivitet på ditt konto</li>
-          <li>Dela aldrig dina inloggningsuppgifter med andra</li>
-        </ul>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">4. Annonsregler</h2>
-        <p class="mb-4">Det är <strong>förbjudet</strong> att annonsera:</p>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>Stöldgods eller olagliga varor</li>
-          <li>Vapen, ammunition eller explosiva varor</li>
-          <li>Narkotika eller läkemedel</li>
-          <li>Pornografiskt material</li>
-          <li>Varor som kränker upphovsrätt</li>
-          <li>Levande djur (utan giltiga tillstånd)</li>
-          <li>Varor som bryter mot svensk lag</li>
-        </ul>
-        <p class="mb-4">Annonser ska vara ärliga och beskriva varan korrekt. Vilseledande annonser är inte tillåtna.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">5. Transaktioner</h2>
-        <p class="mb-4">Beggy ansvarar inte för:</p>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>Varornas kvalitet eller skick</li>
-          <li>Att betalning eller leverans genomförs</li>
-          <li>Eventuella tvister mellan köpare och säljare</li>
-        </ul>
-        <p class="mb-4">Vi rekommenderar att du träffas personligt vid köp/försäljning och inspekterar varan innan betalning.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">6. Ansvarsbegränsning</h2>
-        <p class="mb-4">Beggy tillhandahålls "i befintligt skick" utan garantier. Vi ansvarar inte för:</p>
-        <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>Driftstopp eller tekniska problem</li>
-          <li>Förlust av data</li>
-          <li>Indirekta skador eller förluster</li>
-        </ul>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">7. Borttagning av innehåll</h2>
-        <p class="mb-4">Vi förbehåller oss rätten att ta bort annonser och stänga av användare som bryter mot dessa villkor, utan förvarning.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">8. Ändringar</h2>
-        <p class="mb-4">Vi kan uppdatera dessa villkor. Fortsatt användning efter uppdatering innebär godkännande av nya villkor.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">9. Tillämplig lag</h2>
-        <p class="mb-4">Svensk lag tillämpas på dessa villkor. Eventuella tvister ska avgöras av svensk domstol.</p>
-
-        <h2 class="text-xl font-semibold mt-6 mb-3">10. Kontakt</h2>
-        <p class="mb-4">Vid frågor, kontakta oss via GitHub: <a href="https://github.com/Hexagon/beggy" target="_blank" class="text-primary hover:underline">github.com/Hexagon/beggy</a></p>
+    </script>
+  </head>
+  <body class="bg-gray-100 text-gray-800 leading-relaxed">
+    <header class="bg-white shadow-md py-4 sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-5 flex items-center justify-between">
+        <a href="/" class="text-2xl font-bold text-primary no-underline">🛒 Beggy</a>
+        <nav>
+          <a href="/" class="text-gray-800 no-underline px-3 py-2 hover:text-primary"
+          >Tillbaka till startsidan</a>
+        </nav>
       </div>
-    </div>
-  </main>
+    </header>
 
-  <footer class="bg-white py-8 mt-8 border-t border-gray-300">
-    <div class="max-w-6xl mx-auto px-5">
-      <div class="flex justify-center gap-8 mb-4 flex-wrap">
-        <a href="/om" class="text-gray-500 no-underline hover:text-primary">Om Beggy</a>
-        <a href="/villkor" class="text-gray-500 no-underline hover:text-primary">Användarvillkor</a>
-        <a href="/integritetspolicy" class="text-gray-500 no-underline hover:text-primary">Integritetspolicy</a>
+    <main class="min-h-[calc(100vh-200px)] py-8">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="bg-white p-8 rounded-lg max-w-3xl mx-auto">
+          <h1 class="text-2xl font-bold mb-6">Användarvillkor för Beggy</h1>
+          <p class="italic text-gray-500 mb-6">Senast uppdaterad: 2025-01-01</p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">1. Allmänt</h2>
+          <p class="mb-4">
+            Beggy är en gratis begagnatmarknad som drivs som ett hobbyprojekt med öppen källkod.
+            Genom att använda tjänsten godkänner du dessa villkor.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">2. Tjänstens syfte</h2>
+          <p class="mb-4">
+            Beggy är en plattform för att köpa och sälja begagnade varor mellan privatpersoner. Vi
+            fungerar enbart som en mötesplats och är inte part i några transaktioner mellan
+            användare.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">3. Registrering och konto</h2>
+          <ul class="list-disc pl-6 mb-4 space-y-1">
+            <li>Du måste vara minst 18 år för att skapa ett konto</li>
+            <li>Du ansvarar för att uppgifterna du anger är korrekta</li>
+            <li>Du är ansvarig för all aktivitet på ditt konto</li>
+            <li>Dela aldrig dina inloggningsuppgifter med andra</li>
+          </ul>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">4. Annonsregler</h2>
+          <p class="mb-4">Det är <strong>förbjudet</strong> att annonsera:</p>
+          <ul class="list-disc pl-6 mb-4 space-y-1">
+            <li>Stöldgods eller olagliga varor</li>
+            <li>Vapen, ammunition eller explosiva varor</li>
+            <li>Narkotika eller läkemedel</li>
+            <li>Pornografiskt material</li>
+            <li>Varor som kränker upphovsrätt</li>
+            <li>Levande djur (utan giltiga tillstånd)</li>
+            <li>Varor som bryter mot svensk lag</li>
+          </ul>
+          <p class="mb-4">
+            Annonser ska vara ärliga och beskriva varan korrekt. Vilseledande annonser är inte
+            tillåtna.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">5. Transaktioner</h2>
+          <p class="mb-4">Beggy ansvarar inte för:</p>
+          <ul class="list-disc pl-6 mb-4 space-y-1">
+            <li>Varornas kvalitet eller skick</li>
+            <li>Att betalning eller leverans genomförs</li>
+            <li>Eventuella tvister mellan köpare och säljare</li>
+          </ul>
+          <p class="mb-4">
+            Vi rekommenderar att du träffas personligt vid köp/försäljning och inspekterar varan
+            innan betalning.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">6. Ansvarsbegränsning</h2>
+          <p class="mb-4">
+            Beggy tillhandahålls "i befintligt skick" utan garantier. Vi ansvarar inte för:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-1">
+            <li>Driftstopp eller tekniska problem</li>
+            <li>Förlust av data</li>
+            <li>Indirekta skador eller förluster</li>
+          </ul>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">7. Borttagning av innehåll</h2>
+          <p class="mb-4">
+            Vi förbehåller oss rätten att ta bort annonser och stänga av användare som bryter mot
+            dessa villkor, utan förvarning.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">8. Ändringar</h2>
+          <p class="mb-4">
+            Vi kan uppdatera dessa villkor. Fortsatt användning efter uppdatering innebär
+            godkännande av nya villkor.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">9. Tillämplig lag</h2>
+          <p class="mb-4">
+            Svensk lag tillämpas på dessa villkor. Eventuella tvister ska avgöras av svensk domstol.
+          </p>
+
+          <h2 class="text-xl font-semibold mt-6 mb-3">10. Kontakt</h2>
+          <p class="mb-4">
+            Vid frågor, kontakta oss via GitHub: <a
+              href="https://github.com/Hexagon/beggy"
+              target="_blank"
+              class="text-primary hover:underline"
+            >github.com/Hexagon/beggy</a>
+          </p>
+        </div>
       </div>
-      <p class="text-center text-gray-500 text-sm">&copy; 2025 Beggy - Öppen källkod på <a href="https://github.com/Hexagon/beggy" target="_blank" class="text-primary">GitHub</a></p>
-    </div>
-  </footer>
-</body>
+    </main>
+
+    <footer class="bg-white py-8 mt-8 border-t border-gray-300">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="flex justify-center gap-8 mb-4 flex-wrap">
+          <a href="/om" class="text-gray-500 no-underline hover:text-primary">Om Beggy</a>
+          <a href="/villkor" class="text-gray-500 no-underline hover:text-primary"
+          >Användarvillkor</a>
+          <a href="/integritetspolicy" class="text-gray-500 no-underline hover:text-primary"
+          >Integritetspolicy</a>
+        </div>
+        <p class="text-center text-gray-500 text-sm">
+          &copy; 2025 Beggy - Öppen källkod på <a
+            href="https://github.com/Hexagon/beggy"
+            target="_blank"
+            class="text-primary"
+          >GitHub</a>
+        </p>
+      </div>
+    </footer>
+  </body>
 </html>

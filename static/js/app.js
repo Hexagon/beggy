@@ -76,6 +76,16 @@ function setupEventListeners() {
     openModal("myAdsModal")
   })
 
+  // Messages
+  document.getElementById("messagesBtn").addEventListener("click", (e) => {
+    e.preventDefault()
+    loadConversations()
+    openModal("conversationsModal")
+  })
+
+  // Chat form
+  document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
+
   // Report ad
   document.getElementById("reportForm").addEventListener("submit", handleReportAd)
 
@@ -169,17 +179,18 @@ async function handleLogin(e) {
 
 async function handleRegister(e) {
   e.preventDefault()
-  const name = document.getElementById("regName").value
+  const username = document.getElementById("regUsername").value
   const email = document.getElementById("regEmail").value
   const password = document.getElementById("regPassword").value
-  const phone = document.getElementById("regPhone").value
   const city = document.getElementById("regCity").value
+  const contact_phone = document.getElementById("regContactPhone").value
+  const contact_email = document.getElementById("regContactEmail").value
 
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, phone, city }),
+      body: JSON.stringify({ username, email, password, city, contact_phone, contact_email }),
     })
 
     const data = await res.json()
@@ -358,6 +369,25 @@ async function openAdDetail(id) {
     const ad = await res.json()
 
     const content = document.getElementById("adDetailContent")
+    
+    // Build contact info section with warning
+    let contactInfo = ""
+    if (ad.seller_contact_phone || ad.seller_contact_email) {
+      contactInfo = `
+        <div class="bg-yellow-50 border border-yellow-300 rounded p-3 mt-3 text-sm">
+          <strong>Kontaktuppgifter (publika):</strong><br>
+          ${ad.seller_contact_phone ? `📞 ${escapeHtml(ad.seller_contact_phone)}<br>` : ""}
+          ${ad.seller_contact_email ? `✉️ ${escapeHtml(ad.seller_contact_email)}` : ""}
+        </div>
+      `
+    }
+
+    // Check if user can contact seller (logged in and not own ad)
+    const canContact = currentUser && currentUser.id !== ad.user_id && ad.state === "ok"
+    const contactButton = canContact 
+      ? `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">💬 Kontakta säljaren</button>`
+      : (currentUser && currentUser.id === ad.user_id ? "" : `<button class="px-4 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`)
+
     content.innerHTML = `
       <h2 class="text-xl font-semibold mb-4">${escapeHtml(ad.title)}</h2>
       ${
@@ -372,15 +402,18 @@ async function openAdDetail(id) {
         <strong>Kategori:</strong> ${escapeHtml(ad.category)}<br>
         ${ad.city ? `<strong>Ort:</strong> ${escapeHtml(ad.city)}<br>` : ""}
         <strong>Publicerad:</strong> ${formatDate(ad.created_at)}
+        ${ad.state !== "ok" ? `<br><span class="text-yellow-600 font-bold">Status: ${getStateLabel(ad.state)}</span>` : ""}
       </div>
       <hr class="my-5">
       <div class="leading-relaxed whitespace-pre-wrap">${escapeHtml(ad.description)}</div>
       <div class="bg-gray-100 p-4 rounded mt-5">
-        <strong>Säljare:</strong> ${escapeHtml(ad.seller_name)}
+        <strong>Säljare:</strong> ${escapeHtml(ad.seller_username)}
         ${ad.seller_city ? ` • ${escapeHtml(ad.seller_city)}` : ""}
+        ${contactInfo}
       </div>
-      <div class="ad-actions" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
-        <button class="btn btn-outline" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
+      <div class="ad-actions flex gap-2.5 flex-wrap" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+        ${contactButton}
+        <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
       </div>
     `
 
@@ -388,6 +421,17 @@ async function openAdDetail(id) {
   } catch (err) {
     showAlert("Kunde inte ladda annonsen", "error")
   }
+}
+
+function getStateLabel(state) {
+  const labels = {
+    ok: "Aktiv",
+    sold: "Såld",
+    expired: "Utgången",
+    reported: "Under granskning",
+    deleted: "Borttagen"
+  }
+  return labels[state] || state
 }
 
 // Report ad (BBS law compliance)
@@ -483,12 +527,13 @@ async function loadMyAds() {
       <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0">
         <div class="flex-1">
           <strong>${escapeHtml(ad.title)}</strong><br>
-          <span class="${ad.status === "sold" ? "text-green-600 font-bold" : "text-primary"}">${ad.status === "sold" ? "Såld" : "Aktiv"}</span>
+          <span class="${ad.state === "sold" ? "text-green-600 font-bold" : ad.state === "expired" ? "text-yellow-600" : "text-primary"}">${getStateLabel(ad.state)}</span>
           • ${formatPrice(ad.price)}
+          ${ad.expires_at ? `<br><span class="text-xs text-gray-400">Utgår: ${formatDate(ad.expires_at)}</span>` : ""}
         </div>
         <div class="flex gap-2.5">
           ${
-            ad.status === "active"
+            ad.state === "ok"
               ? `<button class="px-2.5 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700" onclick="markAsSold(${ad.id})">Markera såld</button>`
               : ""
           }
@@ -508,7 +553,7 @@ async function markAsSold(id) {
     const res = await fetch(`/api/ads/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "sold" }),
+      body: JSON.stringify({ state: "sold" }),
     })
 
     if (res.ok) {
@@ -654,3 +699,146 @@ window.closeModal = closeModal
 window.openReportModal = openReportModal
 window.exportMyData = exportMyData
 window.deleteMyAccount = deleteMyAccount
+window.startConversation = startConversation
+window.openChat = openChat
+
+// Conversation/Chat functions
+let currentConversationId = null
+
+async function loadConversations() {
+  try {
+    const res = await fetch("/api/conversations")
+    const data = await res.json()
+
+    const list = document.getElementById("conversationsList")
+
+    if (!data.conversations || data.conversations.length === 0) {
+      list.innerHTML = "<p class='text-gray-500'>Du har inga meddelanden ännu.</p>"
+      return
+    }
+
+    list.innerHTML = data.conversations
+      .map(
+        (conv) => `
+      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0 cursor-pointer hover:bg-gray-50" onclick="openChat(${conv.id})">
+        <div class="flex-1">
+          <strong>${escapeHtml(conv.ad_title)}</strong><br>
+          <span class="text-gray-500 text-sm">
+            ${conv.is_buyer ? "Med: " + escapeHtml(conv.seller_username) : "Från: " + escapeHtml(conv.buyer_username)}
+          </span><br>
+          <span class="text-xs text-gray-400">${conv.message_count} meddelande${conv.message_count !== 1 ? "n" : ""}</span>
+          ${conv.expires_at ? `<br><span class="text-xs text-yellow-600">⚠️ Utgår: ${formatDate(conv.expires_at)}</span>` : ""}
+        </div>
+        <span class="text-gray-400">→</span>
+      </div>
+    `
+      )
+      .join("")
+  } catch {
+    showAlert("Kunde inte ladda meddelanden", "error")
+  }
+}
+
+async function startConversation(adId) {
+  try {
+    const res = await fetch(`/api/ads/${adId}/conversation`, {
+      method: "POST",
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      closeModal("adDetailModal")
+      await openChat(data.conversation_id)
+    } else {
+      showAlert(data.error, "error")
+    }
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
+async function openChat(conversationId) {
+  currentConversationId = conversationId
+
+  try {
+    const res = await fetch(`/api/conversations/${conversationId}/messages`)
+    const data = await res.json()
+
+    // Update header
+    const header = document.getElementById("chatHeader")
+    header.innerHTML = `
+      <h2 class="text-xl font-semibold">${escapeHtml(data.conversation.ad_title)}</h2>
+      <p class="text-gray-500 text-sm">
+        ${data.conversation.is_buyer ? "Säljare: " + escapeHtml(data.conversation.seller_username) : "Köpare: " + escapeHtml(data.conversation.buyer_username)}
+        ${data.conversation.expires_at ? `<br><span class="text-yellow-600">⚠️ Konversationen utgår: ${formatDate(data.conversation.expires_at)}</span>` : ""}
+      </p>
+    `
+
+    // Update messages
+    const messagesDiv = document.getElementById("chatMessages")
+    if (data.messages.length === 0) {
+      messagesDiv.innerHTML = '<p class="text-gray-500 text-center">Inga meddelanden ännu. Skriv något!</p>'
+    } else {
+      messagesDiv.innerHTML = data.messages
+        .map(
+          (msg) => `
+        <div class="mb-3 ${msg.is_own ? "text-right" : "text-left"}">
+          <div class="inline-block max-w-[80%] p-3 rounded-lg ${msg.is_own ? "bg-primary text-white" : "bg-gray-200"}">
+            <p class="text-sm">${escapeHtml(msg.content)}</p>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">${msg.is_own ? "Du" : escapeHtml(msg.sender_username)} • ${formatDateTime(msg.created_at)}</p>
+        </div>
+      `
+        )
+        .join("")
+      
+      // Scroll to bottom
+      messagesDiv.scrollTop = messagesDiv.scrollHeight
+    }
+
+    closeModal("conversationsModal")
+    openModal("chatModal")
+  } catch {
+    showAlert("Kunde inte ladda konversationen", "error")
+  }
+}
+
+async function handleSendMessage(e) {
+  e.preventDefault()
+
+  const input = document.getElementById("chatInput")
+  const content = input.value.trim()
+
+  if (!content) return
+
+  try {
+    const res = await fetch(`/api/conversations/${currentConversationId}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      input.value = ""
+      // Reload messages
+      await openChat(currentConversationId)
+    } else {
+      showAlert(data.error, "error")
+    }
+  } catch {
+    showAlert("Kunde inte skicka meddelande", "error")
+  }
+}
+
+function formatDateTime(dateString) {
+  return new Intl.DateTimeFormat("sv-SE", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(dateString))
+}

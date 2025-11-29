@@ -2,9 +2,11 @@ import { Router } from "@oak/oak"
 import { getSupabase } from "../db/database.ts"
 import { CATEGORIES } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
+import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 
 const router = new Router()
 const MAX_IMAGES_PER_AD = 5
+const AD_EXPIRY_DAYS = 30
 
 // Get all ads (with pagination and filters)
 router.get("/api/ads", async (ctx) => {
@@ -21,7 +23,7 @@ router.get("/api/ads", async (ctx) => {
   let query = supabase
     .from("ads")
     .select("*, images(id)", { count: "exact" })
-    .eq("status", "active")
+    .eq("state", "ok")
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1)
 
@@ -54,9 +56,10 @@ router.get("/api/ads", async (ctx) => {
       price: ad.price,
       category: ad.category,
       city: ad.city,
-      status: ad.status,
+      state: ad.state,
       created_at: ad.created_at,
       updated_at: ad.updated_at,
+      expires_at: ad.expires_at,
       image_count: ad.images?.length || 0,
     })),
     pagination: {
@@ -71,17 +74,27 @@ router.get("/api/ads", async (ctx) => {
 // Get single ad
 router.get("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  const user = await getUserFromRequest(ctx)
 
   const supabase = getSupabase()
 
   const { data: ad, error } = await supabase
     .from("ads")
-    .select("*, profiles(name, city), images(id, filename, storage_path)")
+    .select(
+      "*, profiles(username, city, contact_phone, contact_email), images(id, filename, storage_path)",
+    )
     .eq("id", id)
-    .neq("status", "deleted")
     .single()
 
   if (error || !ad) {
+    ctx.response.status = 404
+    ctx.response.body = { error: "Annonsen hittades inte" }
+    return
+  }
+
+  // Only show ads that are "ok" or owned by the current user
+  const isOwner = user?.id === ad.user_id
+  if (ad.state !== "ok" && !isOwner) {
     ctx.response.status = 404
     ctx.response.body = { error: "Annonsen hittades inte" }
     return
@@ -95,11 +108,14 @@ router.get("/api/ads/:id", async (ctx) => {
     price: ad.price,
     category: ad.category,
     city: ad.city,
-    status: ad.status,
+    state: ad.state,
     created_at: ad.created_at,
     updated_at: ad.updated_at,
-    seller_name: ad.profiles?.name || "Användare",
+    expires_at: ad.expires_at,
+    seller_username: ad.profiles?.username || "Användare",
     seller_city: ad.profiles?.city,
+    seller_contact_phone: ad.profiles?.contact_phone,
+    seller_contact_email: ad.profiles?.contact_email,
     images: (ad.images || []).map((
       img: { id: number; filename: string; storage_path: string },
     ) => ({
@@ -141,7 +157,18 @@ router.post("/api/ads", async (ctx) => {
     return
   }
 
+  // Check for forbidden words
+  if (containsForbiddenWords({ title, description, city })) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Annonsen innehåller otillåtna ord. Vänligen ändra texten." }
+    return
+  }
+
   const supabase = getSupabase()
+
+  // Calculate expiry date (30 days from now)
+  const expiresAt = new Date()
+  expiresAt.setDate(expiresAt.getDate() + AD_EXPIRY_DAYS)
 
   const { data, error } = await supabase
     .from("ads")
@@ -152,6 +179,8 @@ router.post("/api/ads", async (ctx) => {
       price,
       category,
       city: city || null,
+      state: "ok",
+      expires_at: expiresAt.toISOString(),
     })
     .select("id")
     .single()
@@ -192,11 +221,18 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, city, status } = body
+  const { title, description, price, category, city, state } = body
 
   if (category && !CATEGORIES.includes(category)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltig kategori" }
+    return
+  }
+
+  // Check for forbidden words in updated content
+  if (containsForbiddenWords({ title, description, city })) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Annonsen innehåller otillåtna ord. Vänligen ändra texten." }
     return
   }
 
@@ -207,7 +243,8 @@ router.put("/api/ads/:id", async (ctx) => {
   if (price !== undefined) updates.price = price
   if (category !== undefined) updates.category = category
   if (city !== undefined) updates.city = city
-  if (status !== undefined && ["active", "sold"].includes(status)) updates.status = status
+  // User can only change state to "ok" or "sold"
+  if (state !== undefined && ["ok", "sold"].includes(state)) updates.state = state
 
   if (Object.keys(updates).length === 0) {
     ctx.response.status = 400
@@ -259,8 +296,8 @@ router.delete("/api/ads/:id", async (ctx) => {
   // Delete images from database
   await supabase.from("images").delete().eq("ad_id", id)
 
-  // Soft delete ad
-  await supabase.from("ads").update({ status: "deleted" }).eq("id", id)
+  // Soft delete ad (conversations will be set to expire in 90 days via DB trigger)
+  await supabase.from("ads").update({ state: "deleted" }).eq("id", id)
 
   ctx.response.body = { message: "Annons raderad!" }
 })
@@ -408,7 +445,7 @@ router.get("/api/my-ads", async (ctx) => {
     .from("ads")
     .select("*, images(id)")
     .eq("user_id", user.id)
-    .neq("status", "deleted")
+    .neq("state", "deleted")
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -426,15 +463,17 @@ router.get("/api/my-ads", async (ctx) => {
       price: ad.price,
       category: ad.category,
       city: ad.city,
-      status: ad.status,
+      state: ad.state,
       created_at: ad.created_at,
       updated_at: ad.updated_at,
+      expires_at: ad.expires_at,
       image_count: ad.images?.length || 0,
     })),
   }
 })
 
 // Report ad (BBS law compliance - anyone can report)
+// Note: IP is no longer stored as it's not necessary for the report function
 router.post("/api/ads/:id/report", async (ctx) => {
   const id = parseInt(ctx.params.id)
   const body = await ctx.request.body.json()
@@ -463,12 +502,12 @@ router.post("/api/ads/:id/report", async (ctx) => {
 
   const supabase = getSupabase()
 
-  // Verify ad exists
+  // Verify ad exists and is visible
   const { data: ad, error: adError } = await supabase
     .from("ads")
     .select("id, title")
     .eq("id", id)
-    .neq("status", "deleted")
+    .eq("state", "ok")
     .single()
 
   if (adError || !ad) {
@@ -477,24 +516,11 @@ router.post("/api/ads/:id/report", async (ctx) => {
     return
   }
 
-  // Hash IP for privacy (GDPR compliance) while still allowing abuse detection
-  const hashIp = async (ip: string): Promise<string> => {
-    const encoder = new TextEncoder()
-    const data = encoder.encode(ip + "beggy-salt")
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 16)
-  }
-
-  const hashedIp = await hashIp(ctx.request.ip)
-
-  // Store report in database (creates table if not exists via Supabase)
-  // Note: The reports table needs to be created in Supabase SQL Editor
+  // Store report in database (without IP - not needed)
   const { error: reportError } = await supabase.from("reports").insert({
     ad_id: id,
     reason,
     details: details || null,
-    reporter_ip_hash: hashedIp, // SHA-256 hash for privacy (GDPR)
     status: "pending",
   })
 
