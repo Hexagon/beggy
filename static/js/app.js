@@ -1,5 +1,8 @@
 // Beggy - Frontend JavaScript
 
+// Constants
+const DEFAULT_VIEW_MODE = "list"
+
 // State
 let currentUser = null
 let categories = []
@@ -10,6 +13,7 @@ let currentCategory = ""
 let currentCounty = ""
 let includeAdjacent = false
 let currentSearch = ""
+let viewMode = localStorage.getItem("viewMode") || DEFAULT_VIEW_MODE
 
 // DOM Elements
 const adsGrid = document.getElementById("adsGrid")
@@ -27,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCounties()
   loadAds()
   setupEventListeners()
+  updateViewModeButtons()
 })
 
 // Event Listeners
@@ -246,7 +251,7 @@ async function loadCategories() {
     categoryGrid.innerHTML = allCategoriesBtn + categories
       .map(
         (cat) => `
-      <div class="bg-white p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="filterByCategory('${cat}')">
+      <div class="bg-amber-100 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-amber-200" onclick="filterByCategory('${cat}')">
         ${getCategoryIcon(cat)} ${cat}
       </div>
     `
@@ -348,30 +353,63 @@ async function loadAds() {
 
 function renderAds(ads) {
   if (ads.length === 0) {
-    adsGrid.innerHTML = '<p class="text-gray-500 text-center py-8">Inga annonser hittades</p>'
+    adsGrid.innerHTML = '<p class="text-stone-500 text-center py-8">Inga annonser hittades</p>'
     return
   }
 
-  adsGrid.innerHTML = ads
-    .map(
-      (ad) => `
-    <div class="bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
-      ${
-        ad.image_count > 0
-          ? `<div class="w-full h-44 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-primary text-3xl">📷 ${ad.image_count} bild${ad.image_count > 1 ? "er" : ""}</div>`
-          : '<div class="w-full h-44 bg-gray-300 flex items-center justify-center text-gray-500 text-5xl">📦</div>'
-      }
-      <div class="p-4">
-        <div class="text-lg font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
-        <div class="text-xl text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
-        <div class="text-sm text-gray-500">
-          ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""}
+  if (viewMode === "list") {
+    // List view - default
+    adsGrid.className = "ads-grid flex flex-col gap-3"
+    adsGrid.innerHTML = ads
+      .map(
+        (ad) => {
+          const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          return `
+      <div class="bg-amber-100 rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-amber-200 flex" onclick="openAdDetail(${ad.id})">
+        ${
+          safeImageUrl
+            ? `<div class="w-24 h-24 flex-shrink-0"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
+            : '<div class="w-24 h-24 flex-shrink-0 bg-stone-200 flex items-center justify-center text-stone-400 text-3xl">📦</div>'
+        }
+        <div class="p-3 flex-1 min-w-0">
+          <div class="text-base font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
+          <div class="text-lg text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
+          <div class="text-sm text-stone-500">
+            ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""} • ${formatRelativeTime(ad.created_at)}
+          </div>
         </div>
       </div>
-    </div>
-  `
-    )
-    .join("")
+    `
+        }
+      )
+      .join("")
+  } else {
+    // Gallery view
+    adsGrid.className = "ads-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+    adsGrid.innerHTML = ads
+      .map(
+        (ad) => {
+          const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          return `
+      <div class="bg-amber-100 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
+        ${
+          safeImageUrl
+            ? `<div class="w-full h-44"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
+            : '<div class="w-full h-44 bg-stone-200 flex items-center justify-center text-stone-400 text-5xl">📦</div>'
+        }
+        <div class="p-4">
+          <div class="text-lg font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
+          <div class="text-xl text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
+          <div class="text-sm text-stone-500">
+            ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""} • ${formatRelativeTime(ad.created_at)}
+          </div>
+        </div>
+      </div>
+    `
+        }
+      )
+      .join("")
+  }
 }
 
 function renderPagination(p) {
@@ -383,19 +421,19 @@ function renderPagination(p) {
   let html = ""
 
   if (p.page > 1) {
-    html += `<button class="px-4 py-2.5 border border-gray-300 bg-white cursor-pointer rounded hover:bg-gray-100" onclick="goToPage(${p.page - 1})">« Föregående</button>`
+    html += `<button class="px-4 py-2.5 border border-stone-300 bg-amber-100 cursor-pointer rounded hover:bg-amber-200" onclick="goToPage(${p.page - 1})">« Föregående</button>`
   }
 
   for (let i = 1; i <= p.pages; i++) {
     if (i === 1 || i === p.pages || (i >= p.page - 2 && i <= p.page + 2)) {
-      html += `<button class="px-4 py-2.5 border cursor-pointer rounded ${i === p.page ? "bg-primary text-white border-primary" : "border-gray-300 bg-white hover:bg-gray-100"}" onclick="goToPage(${i})">${i}</button>`
+      html += `<button class="px-4 py-2.5 border cursor-pointer rounded ${i === p.page ? "bg-primary text-white border-primary" : "border-stone-300 bg-amber-100 hover:bg-amber-200"}" onclick="goToPage(${i})">${i}</button>`
     } else if (i === p.page - 3 || i === p.page + 3) {
       html += "<span class='px-2'>...</span>"
     }
   }
 
   if (p.page < p.pages) {
-    html += `<button class="px-4 py-2.5 border border-gray-300 bg-white cursor-pointer rounded hover:bg-gray-100" onclick="goToPage(${p.page + 1})">Nästa »</button>`
+    html += `<button class="px-4 py-2.5 border border-stone-300 bg-amber-100 cursor-pointer rounded hover:bg-amber-200" onclick="goToPage(${p.page + 1})">Nästa »</button>`
   }
 
   pagination.innerHTML = html
@@ -613,6 +651,20 @@ function escapeHtml(text) {
   return div.innerHTML
 }
 
+function sanitizeUrl(url) {
+  if (!url) return ""
+  // Only allow http(s) URLs and encode the result
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return ""
+    }
+    return encodeURI(decodeURI(url))
+  } catch {
+    return ""
+  }
+}
+
 function formatPrice(price) {
   return new Intl.NumberFormat("sv-SE", {
     style: "currency",
@@ -627,6 +679,42 @@ function formatDate(dateString) {
     month: "long",
     day: "numeric",
   }).format(new Date(dateString))
+}
+
+function formatRelativeTime(dateString) {
+  const now = new Date()
+  const date = new Date(dateString)
+  const diffMs = now - date
+  const diffSec = Math.floor(diffMs / 1000)
+  const diffMin = Math.floor(diffSec / 60)
+  const diffHour = Math.floor(diffMin / 60)
+  const diffDay = Math.floor(diffHour / 24)
+
+  if (diffMin < 1) return "just nu"
+  if (diffMin < 60) return `${diffMin} minut${diffMin === 1 ? "" : "er"} sedan`
+  if (diffHour < 24) return `${diffHour} timm${diffHour === 1 ? "e" : "ar"} sedan`
+  if (diffDay < 7) return `${diffDay} dag${diffDay === 1 ? "" : "ar"} sedan`
+  return formatDate(dateString)
+}
+
+function setViewMode(mode) {
+  viewMode = mode
+  localStorage.setItem("viewMode", mode)
+  updateViewModeButtons()
+  loadAds()
+}
+
+function updateViewModeButtons() {
+  const listBtn = document.getElementById("listViewBtn")
+  const galleryBtn = document.getElementById("galleryViewBtn")
+  
+  if (viewMode === "list") {
+    listBtn.className = "px-3 py-1 rounded text-sm bg-primary text-white"
+    galleryBtn.className = "px-3 py-1 rounded text-sm bg-stone-200 text-stone-700 hover:bg-stone-300"
+  } else {
+    listBtn.className = "px-3 py-1 rounded text-sm bg-stone-200 text-stone-700 hover:bg-stone-300"
+    galleryBtn.className = "px-3 py-1 rounded text-sm bg-primary text-white"
+  }
 }
 
 function showAlert(message, type) {
@@ -658,6 +746,7 @@ window.exportMyData = exportMyData
 window.deleteMyAccount = deleteMyAccount
 window.startConversation = startConversation
 window.openChat = openChat
+window.setViewMode = setViewMode
 
 // Conversation/Chat functions
 let currentConversationId = null

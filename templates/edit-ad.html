@@ -11,30 +11,30 @@
         theme: {
           extend: {
             colors: {
-              primary: "#0066cc",
-              "primary-dark": "#0052a3",
+              primary: "#c2410c",
+              "primary-dark": "#9a3412",
             },
           },
         },
       }
     </script>
   </head>
-  <body class="bg-gray-100 text-gray-800 leading-relaxed">
-    <header class="bg-white shadow-md py-4 sticky top-0 z-50">
+  <body class="bg-amber-50 text-stone-800 leading-relaxed">
+    <header class="bg-amber-100 shadow-md py-4 sticky top-0 z-50">
       <div class="max-w-6xl mx-auto px-5 flex items-center justify-between flex-wrap gap-2.5">
         <div class="flex items-center">
           <a href="/" class="text-2xl font-bold text-primary no-underline">Beggy</a>
-          <span class="text-sm text-gray-500 ml-2 hidden sm:inline">Köp och sälj begagnat</span>
+          <span class="text-sm text-stone-500 ml-2 hidden sm:inline">Köp och sälj begagnat</span>
         </div>
         <nav class="nav flex items-center gap-5">
           <a href="/ny-annons" class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors">Sälj</a>
-          <a href="#" id="loginBtn" class="text-gray-800 no-underline px-3 py-2 hover:text-primary">Logga in</a>
+          <a href="#" id="loginBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary">Logga in</a>
         </nav>
         <nav class="nav nav-logged-in hidden items-center gap-5">
           <a href="/ny-annons" class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors">Sälj</a>
-          <a href="#" id="messagesBtn" class="text-gray-800 no-underline px-3 py-2 hover:text-primary">💬 Meddelanden</a>
-          <a href="#" id="myAdsBtn" class="text-gray-800 no-underline px-3 py-2 hover:text-primary">Mina annonser</a>
-          <a href="#" id="logoutBtn" class="text-gray-800 no-underline px-3 py-2 hover:text-primary">Logga ut</a>
+          <a href="#" id="messagesBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary">Meddelanden</a>
+          <a href="#" id="myAdsBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary">Mina annonser</a>
+          <a href="#" id="logoutBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary">Logga ut</a>
         </nav>
       </div>
     </header>
@@ -43,43 +43,43 @@
       <div class="max-w-2xl mx-auto px-5">
         <a href="/" class="text-primary no-underline mb-4 inline-block" id="backLink">&larr; Tillbaka</a>
         
-        <div id="loginPrompt" class="bg-white rounded-lg p-8 shadow-md text-center hidden">
+        <div id="loginPrompt" class="bg-amber-100 rounded-lg p-8 shadow-md text-center hidden">
           <h1 class="text-2xl font-bold mb-4">Redigera annons</h1>
-          <p class="text-gray-500 mb-4">Du måste vara inloggad för att redigera annonser.</p>
+          <p class="text-stone-500 mb-4">Du måste vara inloggad för att redigera annonser.</p>
           <button onclick="openModal('loginModal')" class="px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors">Logga in</button>
         </div>
         
-        <div id="loadingContainer" class="bg-white rounded-lg p-8 shadow-md text-center">
-          <p class="text-gray-500">Laddar annons...</p>
+        <div id="loadingContainer" class="bg-amber-100 rounded-lg p-8 shadow-md text-center">
+          <p class="text-stone-500">Laddar annons...</p>
         </div>
 
-        <div id="errorContainer" class="bg-white rounded-lg p-8 shadow-md text-center hidden">
+        <div id="errorContainer" class="bg-amber-100 rounded-lg p-8 shadow-md text-center hidden">
           <p class="text-red-500" id="errorMessage">Annonsen hittades inte eller så har du inte behörighet att redigera den.</p>
         </div>
         
-        <div id="editAdContainer" class="bg-white rounded-lg p-8 shadow-md hidden">
+        <div id="editAdContainer" class="bg-amber-100 rounded-lg p-8 shadow-md hidden">
           <h1 class="text-2xl font-bold mb-6">Redigera annons</h1>
           <form id="editAdForm">
             <div class="mb-4">
               <label for="adTitle" class="block mb-1 font-medium">Rubrik *</label>
-              <input type="text" id="adTitle" required maxlength="100" class="w-full p-2.5 border border-gray-300 rounded text-base">
+              <input type="text" id="adTitle" required maxlength="100" class="w-full p-2.5 border border-stone-300 rounded text-base bg-white">
             </div>
             <div class="mb-4">
               <label for="adCategory" class="block mb-1 font-medium">Kategori *</label>
-              <select id="adCategory" required class="w-full p-2.5 border border-gray-300 rounded text-base"></select>
+              <select id="adCategory" required class="w-full p-2.5 border border-stone-300 rounded text-base bg-white"></select>
             </div>
             <div class="mb-4">
               <label for="adPrice" class="block mb-1 font-medium">Pris (kr) *</label>
-              <input type="number" id="adPrice" required min="0" class="w-full p-2.5 border border-gray-300 rounded text-base">
+              <input type="number" id="adPrice" required min="0" class="w-full p-2.5 border border-stone-300 rounded text-base bg-white">
             </div>
             <div class="mb-4">
               <label for="adCounty" class="block mb-1 font-medium">Län *</label>
-              <select id="adCounty" required aria-describedby="adCountyHelp" class="w-full p-2.5 border border-gray-300 rounded text-base"></select>
-              <p id="adCountyHelp" class="text-sm text-gray-500 mt-1">Ange ort i beskrivningen om du vill vara mer specifik.</p>
+              <select id="adCounty" required aria-describedby="adCountyHelp" class="w-full p-2.5 border border-stone-300 rounded text-base bg-white"></select>
+              <p id="adCountyHelp" class="text-sm text-stone-500 mt-1">Ange ort i beskrivningen om du vill vara mer specifik.</p>
             </div>
             <div class="mb-4">
               <label for="adDescription" class="block mb-1 font-medium">Beskrivning *</label>
-              <textarea id="adDescription" required rows="5" class="w-full p-2.5 border border-gray-300 rounded text-base resize-y font-inherit"></textarea>
+              <textarea id="adDescription" required rows="5" class="w-full p-2.5 border border-stone-300 rounded text-base resize-y font-inherit bg-white"></textarea>
             </div>
             
             <!-- Existing Images -->
@@ -92,17 +92,17 @@
             <div class="mb-4">
               <label class="block mb-1 font-medium">Lägg till nya bilder</label>
               <div id="imagePreviewContainer" class="flex gap-2.5 flex-wrap mb-2"></div>
-              <input type="file" id="adImages" accept="image/*" multiple class="w-full p-2.5 border border-gray-300 rounded text-base">
-              <p class="text-sm text-gray-500 mt-1" id="imageHelpText">Välj bilder att lägga till.</p>
+              <input type="file" id="adImages" accept="image/*" multiple class="w-full p-2.5 border border-stone-300 rounded text-base bg-white">
+              <p class="text-sm text-stone-500 mt-1" id="imageHelpText">Välj bilder att lägga till.</p>
             </div>
             
             <div class="mb-4">
               <label class="block mb-1 font-medium">Kontaktsätt (valfritt)</label>
-              <div class="bg-yellow-50 border border-yellow-300 rounded p-3 mb-2 text-sm text-yellow-800">
+              <div class="bg-amber-50 border border-amber-300 rounded p-3 mb-2 text-sm text-amber-800">
                 ⚠️ <strong>Varning:</strong> Om du anger telefon eller e-post nedan kommer det visas publikt på denna annons. Kontaktuppgifterna tas bort när annonsen raderas. Använd istället vårt inbyggda meddelandesystem för säkrare kontakt.
               </div>
-              <input type="tel" id="adContactPhone" placeholder="Telefonnummer (visas publikt)" class="w-full p-2.5 border border-gray-300 rounded text-base mb-2">
-              <input type="email" id="adContactEmail" placeholder="Kontakt-e-post (visas publikt)" class="w-full p-2.5 border border-gray-300 rounded text-base">
+              <input type="tel" id="adContactPhone" placeholder="Telefonnummer (visas publikt)" class="w-full p-2.5 border border-stone-300 rounded text-base mb-2 bg-white">
+              <input type="email" id="adContactEmail" placeholder="Kontakt-e-post (visas publikt)" class="w-full p-2.5 border border-stone-300 rounded text-base bg-white">
             </div>
             <button type="submit" class="w-full px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors">Spara ändringar</button>
           </form>
@@ -173,9 +173,9 @@
     <!-- Conversations Modal -->
     <div class="modal hidden fixed inset-0 bg-black/50 z-[1000] overflow-y-auto p-5" id="conversationsModal">
       <div class="bg-white max-w-xl mx-auto mt-12 p-8 rounded-lg relative">
-        <span class="close absolute top-4 right-5 text-2xl cursor-pointer text-gray-500 hover:text-gray-800" onclick="closeModal('conversationsModal')">&times;</span>
-        <h2 class="text-xl font-semibold mb-4">💬 Meddelanden</h2>
-        <p class="text-gray-500 mb-4 text-sm">Dina meddelanden är krypterade och kan bara läsas av dig och motparten.</p>
+        <span class="close absolute top-4 right-5 text-2xl cursor-pointer text-stone-500 hover:text-stone-800" onclick="closeModal('conversationsModal')">&times;</span>
+        <h2 class="text-xl font-semibold mb-4">Meddelanden</h2>
+        <p class="text-stone-500 mb-4 text-sm">Dina meddelanden är krypterade och kan bara läsas av dig och motparten.</p>
         <div id="conversationsList"></div>
       </div>
     </div>
@@ -183,24 +183,24 @@
     <!-- Chat Modal -->
     <div class="modal hidden fixed inset-0 bg-black/50 z-[1000] overflow-y-auto p-5" id="chatModal">
       <div class="bg-white max-w-xl mx-auto mt-12 p-8 rounded-lg relative flex flex-col" style="max-height: 80vh">
-        <span class="close absolute top-4 right-5 text-2xl cursor-pointer text-gray-500 hover:text-gray-800" onclick="closeModal('chatModal')">&times;</span>
+        <span class="close absolute top-4 right-5 text-2xl cursor-pointer text-stone-500 hover:text-stone-800" onclick="closeModal('chatModal')">&times;</span>
         <div id="chatHeader" class="mb-4"></div>
-        <div id="chatMessages" class="flex-1 overflow-y-auto border border-gray-200 rounded p-4 mb-4 min-h-[200px] max-h-[400px]"></div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto border border-stone-200 rounded p-4 mb-4 min-h-[200px] max-h-[400px]"></div>
         <form id="chatForm" class="flex gap-2">
-          <input type="text" id="chatInput" placeholder="Skriv ett meddelande..." class="flex-1 p-2.5 border border-gray-300 rounded text-base" maxlength="2000">
+          <input type="text" id="chatInput" placeholder="Skriv ett meddelande..." class="flex-1 p-2.5 border border-stone-300 rounded text-base" maxlength="2000">
           <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors">Skicka</button>
         </form>
       </div>
     </div>
 
-    <footer class="bg-white py-8 mt-8 border-t border-gray-300">
+    <footer class="bg-amber-100 py-8 mt-8 border-t border-stone-300">
       <div class="max-w-6xl mx-auto px-5">
         <div class="flex justify-center gap-8 mb-4 flex-wrap">
-          <a href="/om" class="text-gray-500 no-underline hover:text-primary">Om Beggy</a>
-          <a href="/villkor" class="text-gray-500 no-underline hover:text-primary">Användarvillkor</a>
-          <a href="/integritetspolicy" class="text-gray-500 no-underline hover:text-primary">Integritetspolicy</a>
+          <a href="/om" class="text-stone-500 no-underline hover:text-primary">Om Beggy</a>
+          <a href="/villkor" class="text-stone-500 no-underline hover:text-primary">Användarvillkor</a>
+          <a href="/integritetspolicy" class="text-stone-500 no-underline hover:text-primary">Integritetspolicy</a>
         </div>
-        <p class="text-center text-gray-500 text-sm">&copy; 2025 Beggy - Öppen källkod på <a href="https://github.com/Hexagon/beggy" target="_blank" class="text-primary">GitHub</a></p>
+        <p class="text-center text-stone-500 text-sm">&copy; 2025 Beggy - Öppen källkod på <a href="https://github.com/Hexagon/beggy" target="_blank" class="text-primary">GitHub</a></p>
       </div>
     </footer>
 
