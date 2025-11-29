@@ -4,7 +4,6 @@ export interface Profile {
   username: string
   contact_phone?: string
   contact_email?: string
-  city?: string
   created_at: string
   updated_at: string
 }
@@ -19,7 +18,7 @@ export interface Ad {
   description: string
   price: number
   category: string
-  city?: string
+  county: string // Required Swedish county (län)
   state: AdState
   created_at: string
   updated_at: string
@@ -67,3 +66,55 @@ export const CATEGORIES = [
 ] as const
 
 export type Category = (typeof CATEGORIES)[number]
+
+// Swedish counties (län)
+export const COUNTIES = [
+  "Blekinge",
+  "Dalarna",
+  "Gotland",
+  "Gävleborg",
+  "Halland",
+  "Jämtland",
+  "Jönköping",
+  "Kalmar",
+  "Kronoberg",
+  "Norrbotten",
+  "Skåne",
+  "Stockholm",
+  "Södermanland",
+  "Uppsala",
+  "Värmland",
+  "Västerbotten",
+  "Västernorrland",
+  "Västmanland",
+  "Västra Götaland",
+  "Örebro",
+  "Östergötland",
+] as const
+
+export type County = (typeof COUNTIES)[number]
+
+// Adjacent counties mapping (which counties border each other)
+export const ADJACENT_COUNTIES: Record<string, string[]> = {
+  Blekinge: ["Skåne", "Kronoberg", "Kalmar"],
+  Dalarna: ["Gävleborg", "Västernorrland", "Jämtland", "Värmland", "Örebro", "Västmanland"],
+  Gotland: [], // Island - no adjacent counties
+  Gävleborg: ["Dalarna", "Västernorrland", "Jämtland", "Uppsala", "Västmanland"],
+  Halland: ["Skåne", "Västra Götaland", "Jönköping", "Kronoberg"],
+  Jämtland: ["Västernorrland", "Västerbotten", "Dalarna", "Gävleborg", "Värmland"],
+  Jönköping: ["Halland", "Västra Götaland", "Östergötland", "Kalmar", "Kronoberg"],
+  Kalmar: ["Blekinge", "Kronoberg", "Jönköping", "Östergötland"],
+  Kronoberg: ["Blekinge", "Skåne", "Halland", "Jönköping", "Kalmar"],
+  Norrbotten: ["Västerbotten"],
+  Skåne: ["Blekinge", "Kronoberg", "Halland"],
+  Stockholm: ["Uppsala", "Södermanland"],
+  Södermanland: ["Stockholm", "Uppsala", "Västmanland", "Örebro", "Östergötland"],
+  Uppsala: ["Stockholm", "Södermanland", "Västmanland", "Gävleborg"],
+  Värmland: ["Dalarna", "Örebro", "Västra Götaland", "Jämtland"],
+  Västerbotten: ["Norrbotten", "Västernorrland", "Jämtland"],
+  Västernorrland: ["Västerbotten", "Jämtland", "Gävleborg", "Dalarna"],
+  Västmanland: ["Uppsala", "Gävleborg", "Dalarna", "Örebro", "Södermanland"],
+  "Västra Götaland": ["Halland", "Jönköping", "Östergötland", "Örebro", "Värmland"],
+  Örebro: ["Värmland", "Dalarna", "Västmanland", "Södermanland", "Östergötland", "Västra Götaland"],
+  Östergötland: ["Södermanland", "Örebro", "Västra Götaland", "Jönköping", "Kalmar"],
+}
