@@ -1,22 +1,30 @@
 import { Router } from "@oak/oak"
 import { getSupabase } from "../db/database.ts"
+import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 
 const router = new Router()
 
 // Register
 router.post("/api/auth/register", async (ctx) => {
   const body = await ctx.request.body.json()
-  const { email, password, name, phone, city } = body
+  const { email, password, username, contact_phone, contact_email, city } = body
 
-  if (!email || !password || !name) {
+  if (!email || !password || !username) {
     ctx.response.status = 400
-    ctx.response.body = { error: "E-post, lösenord och namn krävs" }
+    ctx.response.body = { error: "E-post, lösenord och användarnamn krävs" }
     return
   }
 
   if (password.length < 8) {
     ctx.response.status = 400
     ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    return
+  }
+
+  // Check username for forbidden words
+  if (containsForbiddenWords({ username })) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Användarnamnet innehåller otillåtna ord." }
     return
   }
 
@@ -28,8 +36,7 @@ router.post("/api/auth/register", async (ctx) => {
     password,
     options: {
       data: {
-        name,
-        phone: phone || null,
+        username,
         city: city || null,
       },
     },
@@ -46,8 +53,9 @@ router.post("/api/auth/register", async (ctx) => {
     await supabase.from("profiles").upsert({
       id: authData.user.id,
       email,
-      name,
-      phone: phone || null,
+      username,
+      contact_phone: contact_phone || null,
+      contact_email: contact_email || null,
       city: city || null,
     })
   }
@@ -143,8 +151,9 @@ router.get("/api/auth/me", async (ctx) => {
   ctx.response.body = {
     id: userData.user.id,
     email: userData.user.email,
-    name: profile?.name || "Användare",
-    phone: profile?.phone,
+    username: profile?.username || "Användare",
+    contact_phone: profile?.contact_phone,
+    contact_email: profile?.contact_email,
     city: profile?.city,
   }
 })
@@ -183,7 +192,13 @@ router.get("/api/auth/my-data", async (ctx) => {
     .from("ads")
     .select("*, images(id, filename, storage_path, created_at)")
     .eq("user_id", userId)
-    .neq("status", "deleted")
+    .neq("state", "deleted")
+
+  // Get all conversations (as buyer or seller)
+  const { data: conversations } = await supabase
+    .from("conversations")
+    .select("*, messages(id, sender_id, created_at)")
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
 
   // Build image URLs
   const adsWithImageUrls = (ads || []).map((ad) => ({
@@ -193,9 +208,10 @@ router.get("/api/auth/my-data", async (ctx) => {
     price: ad.price,
     category: ad.category,
     city: ad.city,
-    status: ad.status,
+    state: ad.state,
     created_at: ad.created_at,
     updated_at: ad.updated_at,
+    expires_at: ad.expires_at,
     // deno-lint-ignore no-explicit-any
     images: (ad.images || []).map((img: any) => ({
       id: img.id,
@@ -211,13 +227,15 @@ router.get("/api/auth/my-data", async (ctx) => {
     user: {
       id: userId,
       email: userData.user.email,
-      name: profile?.name,
-      phone: profile?.phone,
+      username: profile?.username,
+      contact_phone: profile?.contact_phone,
+      contact_email: profile?.contact_email,
       city: profile?.city,
       created_at: profile?.created_at,
       updated_at: profile?.updated_at,
     },
     ads: adsWithImageUrls,
+    conversations: conversations || [],
     metadata: {
       format: "JSON",
       version: "1.0",

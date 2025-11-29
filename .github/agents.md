@@ -12,7 +12,8 @@ designed to be simple and easy to use, similar to the original Blocket.
 This project follows a strict policy of minimizing code complexity and size:
 
 - **CSS**: Use Tailwind CSS via CDN to minimize custom CSS. Avoid writing large custom stylesheets.
-- **JavaScript**: Use vanilla JavaScript. No heavy frontend frameworks (React, Vue, Angular, etc.). The current vanilla JS approach is intentional to keep the code simple and maintainable.
+- **JavaScript**: Use vanilla JavaScript. No heavy frontend frameworks (React, Vue, Angular, etc.).
+  The current vanilla JS approach is intentional to keep the code simple and maintainable.
 - **Dependencies**: Keep dependencies minimal. Only add dependencies when absolutely necessary.
 - **Code Style**: Write clear, readable code. Prefer simplicity over cleverness.
 
