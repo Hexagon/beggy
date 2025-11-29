@@ -1,5 +1,8 @@
 // Beggy - Frontend JavaScript
 
+// Constants
+const DEFAULT_VIEW_MODE = "list"
+
 // State
 let currentUser = null
 let categories = []
@@ -10,7 +13,7 @@ let currentCategory = ""
 let currentCounty = ""
 let includeAdjacent = false
 let currentSearch = ""
-let viewMode = localStorage.getItem("viewMode") || "list" // Default to list view
+let viewMode = localStorage.getItem("viewMode") || DEFAULT_VIEW_MODE
 
 // DOM Elements
 const adsGrid = document.getElementById("adsGrid")
@@ -359,11 +362,13 @@ function renderAds(ads) {
     adsGrid.className = "ads-grid flex flex-col gap-3"
     adsGrid.innerHTML = ads
       .map(
-        (ad) => `
+        (ad) => {
+          const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          return `
       <div class="bg-amber-100 rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-amber-200 flex" onclick="openAdDetail(${ad.id})">
         ${
-          ad.first_image_url
-            ? `<div class="w-24 h-24 flex-shrink-0"><img src="${ad.first_image_url}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
+          safeImageUrl
+            ? `<div class="w-24 h-24 flex-shrink-0"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
             : '<div class="w-24 h-24 flex-shrink-0 bg-stone-200 flex items-center justify-center text-stone-400 text-3xl">📦</div>'
         }
         <div class="p-3 flex-1 min-w-0">
@@ -375,6 +380,7 @@ function renderAds(ads) {
         </div>
       </div>
     `
+        }
       )
       .join("")
   } else {
@@ -382,11 +388,13 @@ function renderAds(ads) {
     adsGrid.className = "ads-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
     adsGrid.innerHTML = ads
       .map(
-        (ad) => `
+        (ad) => {
+          const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          return `
       <div class="bg-amber-100 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
         ${
-          ad.first_image_url
-            ? `<div class="w-full h-44"><img src="${ad.first_image_url}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
+          safeImageUrl
+            ? `<div class="w-full h-44"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
             : '<div class="w-full h-44 bg-stone-200 flex items-center justify-center text-stone-400 text-5xl">📦</div>'
         }
         <div class="p-4">
@@ -398,6 +406,7 @@ function renderAds(ads) {
         </div>
       </div>
     `
+        }
       )
       .join("")
   }
@@ -640,6 +649,20 @@ function escapeHtml(text) {
   const div = document.createElement("div")
   div.textContent = text
   return div.innerHTML
+}
+
+function sanitizeUrl(url) {
+  if (!url) return ""
+  // Only allow http(s) URLs and encode the result
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return ""
+    }
+    return encodeURI(decodeURI(url))
+  } catch {
+    return ""
+  }
 }
 
 function formatPrice(price) {

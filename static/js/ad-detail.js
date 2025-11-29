@@ -217,7 +217,10 @@ async function loadAdDetail() {
       ${
         ad.images && ad.images.length > 0
           ? `<div class="flex gap-2.5 mb-5 flex-wrap">
-          ${ad.images.map((img) => `<img src="${img.url}" alt="Bild" class="max-w-full max-h-72 rounded">`).join("")}
+          ${ad.images.map((img) => {
+            const safeUrl = sanitizeUrl(img.url)
+            return safeUrl ? `<img src="${safeUrl}" alt="Bild" class="max-w-full max-h-72 rounded">` : ""
+          }).join("")}
         </div>`
           : ""
       }
@@ -572,6 +575,20 @@ function escapeHtml(text) {
   const div = document.createElement("div")
   div.textContent = text
   return div.innerHTML
+}
+
+function sanitizeUrl(url) {
+  if (!url) return ""
+  // Only allow http(s) URLs and encode the result
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return ""
+    }
+    return encodeURI(decodeURI(url))
+  } catch {
+    return ""
+  }
 }
 
 function formatPrice(price) {
