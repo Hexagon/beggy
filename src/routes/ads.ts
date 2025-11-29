@@ -90,7 +90,7 @@ router.get("/api/ads/:id", async (ctx) => {
   const { data: ad, error } = await supabase
     .from("ads")
     .select(
-      "*, profiles(username, contact_phone, contact_email), images(id, filename, storage_path)",
+      "*, profiles(username), images(id, filename, storage_path)",
     )
     .eq("id", id)
     .single()
@@ -122,8 +122,8 @@ router.get("/api/ads/:id", async (ctx) => {
     updated_at: ad.updated_at,
     expires_at: ad.expires_at,
     seller_username: ad.profiles?.username || "Användare",
-    seller_contact_phone: ad.profiles?.contact_phone,
-    seller_contact_email: ad.profiles?.contact_email,
+    seller_contact_phone: ad.contact_phone,
+    seller_contact_email: ad.contact_email,
     images: (ad.images || []).map((
       img: { id: number; filename: string; storage_path: string },
     ) => ({
@@ -145,7 +145,7 @@ router.post("/api/ads", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, county } = body
+  const { title, description, price, category, county, contact_phone, contact_email } = body
 
   if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
@@ -193,6 +193,8 @@ router.post("/api/ads", async (ctx) => {
       price,
       category,
       county,
+      contact_phone: contact_phone || null,
+      contact_email: contact_email || null,
       state: "ok",
       expires_at: expiresAt.toISOString(),
     })
@@ -236,7 +238,7 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, county, state } = body
+  const { title, description, price, category, county, contact_phone, contact_email, state } = body
 
   if (category && !CATEGORIES.includes(category)) {
     ctx.response.status = 400
@@ -264,6 +266,8 @@ router.put("/api/ads/:id", async (ctx) => {
   if (price !== undefined) updates.price = price
   if (category !== undefined) updates.category = category
   if (county !== undefined) updates.county = county
+  if (contact_phone !== undefined) updates.contact_phone = contact_phone || null
+  if (contact_email !== undefined) updates.contact_email = contact_email || null
   // User can only change state to "ok" or "sold"
   if (state !== undefined && ["ok", "sold"].includes(state)) updates.state = state
 
