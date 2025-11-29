@@ -213,33 +213,44 @@ async function loadAdDetail() {
       : ""
 
     content.innerHTML = `
-      <h1 class="text-2xl font-bold mb-4">${escapeHtml(ad.title)}</h1>
-      ${
-        ad.images && ad.images.length > 0
-          ? `<div class="flex gap-2.5 mb-5 flex-wrap">
-          ${ad.images.map((img) => {
-            const safeUrl = sanitizeUrl(img.url)
-            return safeUrl ? `<img src="${safeUrl}" alt="Bild" class="max-w-full max-h-72 rounded">` : ""
-          }).join("")}
-        </div>`
-          : ""
-      }
-      <div class="text-3xl text-primary font-bold mb-4">${formatPrice(ad.price)}</div>
-      <ul class="text-stone-600 mb-4 list-disc list-inside space-y-1">
-        <li><strong>Kategori:</strong> ${escapeHtml(ad.category)}</li>
-        ${ad.county ? `<li><strong>Län:</strong> ${escapeHtml(ad.county)}</li>` : ""}
-        <li><strong>Säljare:</strong> ${escapeHtml(ad.seller_username)}</li>
-        ${ad.seller_contact_phone ? `<li><strong>Telefon:</strong> ${escapeHtml(ad.seller_contact_phone)}</li>` : ""}
-        ${ad.seller_contact_email ? `<li><strong>E-post:</strong> ${escapeHtml(ad.seller_contact_email)}</li>` : ""}
-        <li><strong>Publicerad:</strong> ${formatDate(ad.created_at)}</li>
-        ${ad.state !== "ok" ? `<li><span class="text-amber-600 font-bold">Status: ${getStateLabel(ad.state)}</span></li>` : ""}
-      </ul>
-      <hr class="my-5 border-stone-200">
-      <div class="leading-relaxed whitespace-pre-wrap text-lg">${escapeHtml(ad.description)}</div>
-      <div class="ad-actions flex gap-2.5 flex-wrap mt-5 pt-4 border-t border-stone-200">
-        ${contactButton}
-        ${editButton}
-        <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
+      <h1 class="text-3xl font-bold mb-6">${escapeHtml(ad.title)}</h1>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Left column: Image -->
+        <div>
+          ${
+            ad.images && ad.images.length > 0
+              ? `<div class="flex gap-2.5 flex-wrap">
+              ${ad.images.map((img) => {
+                const safeUrl = sanitizeUrl(img.url)
+                return safeUrl ? `<img src="${safeUrl}" alt="Bild" class="max-w-full rounded-lg shadow-sm">` : ""
+              }).join("")}
+            </div>`
+              : `<div class="bg-stone-100 rounded-lg h-64 flex items-center justify-center text-stone-400">Ingen bild</div>`
+          }
+        </div>
+        <!-- Right column: Basic info -->
+        <div>
+          <div class="text-4xl text-primary font-bold mb-6">${formatPrice(ad.price)}</div>
+          <div class="space-y-3 text-stone-600">
+            <p><span class="font-semibold">Kategori:</span> ${escapeHtml(ad.category)}</p>
+            ${ad.county ? `<p><span class="font-semibold">Län:</span> ${escapeHtml(ad.county)}</p>` : ""}
+            <p><span class="font-semibold">Säljare:</span> ${escapeHtml(ad.seller_username)}</p>
+            ${ad.seller_contact_phone ? `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>` : ""}
+            ${ad.seller_contact_email ? `<p><span class="font-semibold">E-post:</span> ${escapeHtml(ad.seller_contact_email)}</p>` : ""}
+            <p><span class="font-semibold">Publicerad:</span> ${formatDate(ad.created_at)}</p>
+            ${ad.state !== "ok" ? `<p><span class="text-amber-600 font-bold">Status: ${getStateLabel(ad.state)}</span></p>` : ""}
+          </div>
+          <div class="ad-actions flex gap-2.5 flex-wrap mt-6 pt-4 border-t border-stone-200">
+            ${contactButton}
+            ${editButton}
+            <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
+          </div>
+        </div>
+      </div>
+      <!-- Description below -->
+      <div class="border-t border-stone-200 pt-6">
+        <h2 class="text-xl font-semibold mb-4">Beskrivning</h2>
+        <div class="leading-relaxed whitespace-pre-wrap text-lg text-stone-700">${escapeHtml(ad.description)}</div>
       </div>
     `
   } catch (err) {
