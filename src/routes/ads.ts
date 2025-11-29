@@ -23,7 +23,7 @@ router.get("/api/ads", async (ctx) => {
 
   let query = supabase
     .from("ads")
-    .select("*, images(id)", { count: "exact" })
+    .select("*, images(id, storage_path)", { count: "exact" })
     .eq("state", "ok")
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1)
@@ -57,20 +57,29 @@ router.get("/api/ads", async (ctx) => {
   }
 
   ctx.response.body = {
-    ads: (ads || []).map((ad) => ({
-      id: ad.id,
-      user_id: ad.user_id,
-      title: ad.title,
-      description: ad.description,
-      price: ad.price,
-      category: ad.category,
-      county: ad.county,
-      state: ad.state,
-      created_at: ad.created_at,
-      updated_at: ad.updated_at,
-      expires_at: ad.expires_at,
-      image_count: ad.images?.length || 0,
-    })),
+    ads: (ads || []).map((ad) => {
+      // Get first image URL if exists
+      const firstImage = ad.images && ad.images.length > 0 ? ad.images[0] : null
+      const firstImageUrl = firstImage
+        ? supabase.storage.from("ad-images").getPublicUrl(firstImage.storage_path).data.publicUrl
+        : null
+
+      return {
+        id: ad.id,
+        user_id: ad.user_id,
+        title: ad.title,
+        description: ad.description,
+        price: ad.price,
+        category: ad.category,
+        county: ad.county,
+        state: ad.state,
+        created_at: ad.created_at,
+        updated_at: ad.updated_at,
+        expires_at: ad.expires_at,
+        image_count: ad.images?.length || 0,
+        first_image_url: firstImageUrl,
+      }
+    }),
     pagination: {
       page,
       limit,

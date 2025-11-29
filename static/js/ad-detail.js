@@ -195,29 +195,21 @@ async function loadAdDetail() {
 
     const content = document.getElementById("adDetailContent")
     
-    // Build contact info section with warning
-    let contactInfo = ""
-    if (ad.seller_contact_phone || ad.seller_contact_email) {
-      contactInfo = `
-        <div class="bg-yellow-50 border border-yellow-300 rounded p-3 mt-3 text-sm">
-          <strong>Kontaktuppgifter (publika):</strong><br>
-          ${ad.seller_contact_phone ? `📞 ${escapeHtml(ad.seller_contact_phone)}<br>` : ""}
-          ${ad.seller_contact_email ? `✉️ ${escapeHtml(ad.seller_contact_email)}` : ""}
-        </div>
-      `
-    }
-
     // Check if user can contact seller (logged in and not own ad)
     const canContact = currentUser && currentUser.id !== ad.user_id && ad.state === "ok"
     const isOwner = currentUser && currentUser.id === ad.user_id
     
-    const contactButton = canContact 
-      ? `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">💬 Kontakta säljaren</button>`
-      : (isOwner ? "" : `<button class="px-4 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`)
+    // Only show "Logga in" button if NOT logged in
+    let contactButton = ""
+    if (canContact) {
+      contactButton = `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">Kontakta säljaren</button>`
+    } else if (!currentUser && ad.state === "ok") {
+      contactButton = `<button class="px-4 py-2 bg-stone-300 text-stone-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`
+    }
 
     // Edit button for owner
     const editButton = isOwner 
-      ? `<a href="/annons/${ad.id}/redigera" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 no-underline inline-block">✏️ Redigera annons</a>`
+      ? `<a href="/annons/${ad.id}/redigera" class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 no-underline inline-block">✏️ Redigera annons</a>`
       : ""
 
     content.innerHTML = `
@@ -230,22 +222,21 @@ async function loadAdDetail() {
           : ""
       }
       <div class="text-3xl text-primary font-bold mb-4">${formatPrice(ad.price)}</div>
-      <div class="text-gray-500 mb-4">
-        <strong>Kategori:</strong> ${escapeHtml(ad.category)}<br>
-        ${ad.county ? `<strong>Län:</strong> ${escapeHtml(ad.county)}<br>` : ""}
-        <strong>Publicerad:</strong> ${formatDate(ad.created_at)}
-        ${ad.state !== "ok" ? `<br><span class="text-yellow-600 font-bold">Status: ${getStateLabel(ad.state)}</span>` : ""}
-      </div>
-      <hr class="my-5">
+      <ul class="text-stone-600 mb-4 list-disc list-inside space-y-1">
+        <li><strong>Kategori:</strong> ${escapeHtml(ad.category)}</li>
+        ${ad.county ? `<li><strong>Län:</strong> ${escapeHtml(ad.county)}</li>` : ""}
+        <li><strong>Säljare:</strong> ${escapeHtml(ad.seller_username)}</li>
+        ${ad.seller_contact_phone ? `<li><strong>Telefon:</strong> ${escapeHtml(ad.seller_contact_phone)}</li>` : ""}
+        ${ad.seller_contact_email ? `<li><strong>E-post:</strong> ${escapeHtml(ad.seller_contact_email)}</li>` : ""}
+        <li><strong>Publicerad:</strong> ${formatDate(ad.created_at)}</li>
+        ${ad.state !== "ok" ? `<li><span class="text-amber-600 font-bold">Status: ${getStateLabel(ad.state)}</span></li>` : ""}
+      </ul>
+      <hr class="my-5 border-stone-200">
       <div class="leading-relaxed whitespace-pre-wrap text-lg">${escapeHtml(ad.description)}</div>
-      <div class="bg-gray-100 p-4 rounded mt-5">
-        <strong>Säljare:</strong> ${escapeHtml(ad.seller_username)}
-        ${contactInfo}
-      </div>
-      <div class="ad-actions flex gap-2.5 flex-wrap mt-5 pt-4 border-t border-gray-300">
+      <div class="ad-actions flex gap-2.5 flex-wrap mt-5 pt-4 border-t border-stone-200">
         ${contactButton}
         ${editButton}
-        <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
+        <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
       </div>
     `
   } catch (err) {
