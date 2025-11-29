@@ -204,14 +204,12 @@ async function handleRegister(e) {
   const username = document.getElementById("regUsername").value
   const email = document.getElementById("regEmail").value
   const password = document.getElementById("regPassword").value
-  const contact_phone = document.getElementById("regContactPhone").value
-  const contact_email = document.getElementById("regContactEmail").value
 
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password, contact_phone, contact_email }),
+      body: JSON.stringify({ username, email, password }),
     })
 
     const data = await res.json()
@@ -528,6 +526,8 @@ async function handleCreateAd(e) {
     price: parseInt(document.getElementById("adPrice").value),
     county: document.getElementById("adCounty").value,
     description: document.getElementById("adDescription").value,
+    contact_phone: document.getElementById("adContactPhone").value || null,
+    contact_email: document.getElementById("adContactEmail").value || null,
   }
 
   try {

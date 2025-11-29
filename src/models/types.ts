@@ -2,8 +2,6 @@ export interface Profile {
   id: string // UUID from Supabase Auth
   email: string
   username: string
-  contact_phone?: string
-  contact_email?: string
   created_at: string
   updated_at: string
 }
@@ -19,6 +17,8 @@ export interface Ad {
   price: number
   category: string
   county: string // Required Swedish county (län)
+  contact_phone?: string // Optional public contact phone (per ad)
+  contact_email?: string // Optional public contact email (per ad)
   state: AdState
   created_at: string
   updated_at: string

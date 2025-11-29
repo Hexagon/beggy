@@ -7,7 +7,7 @@ const router = new Router()
 // Register
 router.post("/api/auth/register", async (ctx) => {
   const body = await ctx.request.body.json()
-  const { email, password, username, contact_phone, contact_email } = body
+  const { email, password, username } = body
 
   if (!email || !password || !username) {
     ctx.response.status = 400
@@ -54,8 +54,6 @@ router.post("/api/auth/register", async (ctx) => {
       id: authData.user.id,
       email,
       username,
-      contact_phone: contact_phone || null,
-      contact_email: contact_email || null,
     })
     if (profileError) {
       console.error("Profile upsert error:", profileError.message, profileError.code)
@@ -158,8 +156,6 @@ router.get("/api/auth/me", async (ctx) => {
     id: userData.user.id,
     email: userData.user.email,
     username: profile?.username || "Användare",
-    contact_phone: profile?.contact_phone,
-    contact_email: profile?.contact_email,
   }
 })
 
@@ -236,8 +232,6 @@ router.get("/api/auth/my-data", async (ctx) => {
       id: userId,
       email: userData.user.email,
       username: profile?.username,
-      contact_phone: profile?.contact_phone,
-      contact_email: profile?.contact_email,
       created_at: profile?.created_at,
       updated_at: profile?.updated_at,
     },
