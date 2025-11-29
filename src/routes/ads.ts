@@ -15,17 +15,41 @@ router.get("/api/ads", async (ctx) => {
   const county = params.get("county")
   const includeAdjacent = params.get("includeAdjacent") === "true"
   const search = params.get("search")
+  const sort = params.get("sort") || "newest"
   const page = parseInt(params.get("page") || "1")
   const limit = Math.min(parseInt(params.get("limit") || "20"), 50)
   const offset = (page - 1) * limit
 
   const supabase = getSupabase()
 
+  // Determine sort order
+  let sortColumn = "created_at"
+  let ascending = false
+  switch (sort) {
+    case "oldest":
+      sortColumn = "created_at"
+      ascending = true
+      break
+    case "price_asc":
+      sortColumn = "price"
+      ascending = true
+      break
+    case "price_desc":
+      sortColumn = "price"
+      ascending = false
+      break
+    case "newest":
+    default:
+      sortColumn = "created_at"
+      ascending = false
+      break
+  }
+
   let query = supabase
     .from("ads")
     .select("*, images(id, storage_path)", { count: "exact" })
     .eq("state", "ok")
-    .order("created_at", { ascending: false })
+    .order(sortColumn, { ascending })
     .range(offset, offset + limit - 1)
 
   if (category) {

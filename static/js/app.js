@@ -2,6 +2,7 @@
 
 // Constants
 const DEFAULT_VIEW_MODE = "list"
+const DEFAULT_SORT = "newest"
 
 // State
 let currentUser = null
@@ -13,6 +14,7 @@ let currentCategory = ""
 let currentCounty = ""
 let includeAdjacent = false
 let currentSearch = ""
+let currentSort = DEFAULT_SORT
 let viewMode = localStorage.getItem("viewMode") || DEFAULT_VIEW_MODE
 
 // DOM Elements
@@ -23,13 +25,14 @@ const countySelect = document.getElementById("countySelect")
 const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox")
 const searchInput = document.getElementById("searchInput")
 const pagination = document.getElementById("pagination")
+const sortSelect = document.getElementById("sortSelect")
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth()
   loadCategories()
   loadCounties()
-  loadAds()
+  loadStateFromUrl()
   setupEventListeners()
   updateViewModeButtons()
 })
@@ -97,14 +100,14 @@ function setupEventListeners() {
   document.getElementById("searchBtn").addEventListener("click", () => {
     currentSearch = searchInput.value
     currentPage = 1
-    loadAds()
+    loadAdsAndUpdateUrl()
   })
 
   searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       currentSearch = searchInput.value
       currentPage = 1
-      loadAds()
+      loadAdsAndUpdateUrl()
     }
   })
 
@@ -112,21 +115,33 @@ function setupEventListeners() {
   countySelect.addEventListener("change", () => {
     currentCounty = countySelect.value
     currentPage = 1
-    loadAds()
+    loadAdsAndUpdateUrl()
   })
 
   // Include adjacent counties checkbox
   includeAdjacentCheckbox.addEventListener("change", () => {
     includeAdjacent = includeAdjacentCheckbox.checked
     currentPage = 1
-    loadAds()
+    loadAdsAndUpdateUrl()
   })
 
   // Category filter
   categorySelect.addEventListener("change", () => {
     currentCategory = categorySelect.value
     currentPage = 1
-    loadAds()
+    loadAdsAndUpdateUrl()
+  })
+
+  // Sort select
+  sortSelect.addEventListener("change", () => {
+    currentSort = sortSelect.value
+    currentPage = 1
+    loadAdsAndUpdateUrl()
+  })
+
+  // Handle browser back/forward
+  window.addEventListener("popstate", () => {
+    loadStateFromUrl()
   })
 
   // Close modals on outside click
@@ -302,7 +317,7 @@ function filterByCategory(category) {
   currentCategory = category
   categorySelect.value = category
   currentPage = 1
-  loadAds()
+  loadAdsAndUpdateUrl()
   document.getElementById("adsTitle").textContent = category
 }
 
@@ -310,8 +325,50 @@ function clearCategoryFilter() {
   currentCategory = ""
   categorySelect.value = ""
   currentPage = 1
-  loadAds()
+  loadAdsAndUpdateUrl()
   document.getElementById("adsTitle").textContent = "Senaste annonser"
+}
+
+// URL State Management
+function loadStateFromUrl() {
+  const params = new URLSearchParams(window.location.search)
+  
+  currentSearch = params.get("search") || ""
+  currentCategory = params.get("category") || ""
+  currentCounty = params.get("county") || ""
+  includeAdjacent = params.get("adjacent") === "true"
+  currentSort = params.get("sort") || DEFAULT_SORT
+  currentPage = parseInt(params.get("page"), 10) || 1
+  
+  // Update UI elements to reflect state
+  searchInput.value = currentSearch
+  categorySelect.value = currentCategory
+  countySelect.value = currentCounty
+  includeAdjacentCheckbox.checked = includeAdjacent
+  sortSelect.value = currentSort
+  
+  loadAds()
+}
+
+function updateUrl() {
+  const params = new URLSearchParams()
+  
+  if (currentSearch) params.set("search", currentSearch)
+  if (currentCategory) params.set("category", currentCategory)
+  if (currentCounty) params.set("county", currentCounty)
+  if (includeAdjacent) params.set("adjacent", "true")
+  if (currentSort && currentSort !== DEFAULT_SORT) params.set("sort", currentSort)
+  if (currentPage > 1) params.set("page", currentPage.toString())
+  
+  const queryString = params.toString()
+  const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+  
+  window.history.pushState({}, "", newUrl)
+}
+
+function loadAdsAndUpdateUrl() {
+  updateUrl()
+  loadAds()
 }
 
 // Ads
@@ -328,6 +385,7 @@ async function loadAds() {
     }
     if (currentCategory) params.append("category", currentCategory)
     if (currentSearch) params.append("search", currentSearch)
+    if (currentSort) params.append("sort", currentSort)
 
     const res = await fetch(`/api/ads?${params}`)
     const data = await res.json()
@@ -441,7 +499,7 @@ function renderPagination(p) {
 
 function goToPage(page) {
   currentPage = page
-  loadAds()
+  loadAdsAndUpdateUrl()
   window.scrollTo(0, 0)
 }
 
