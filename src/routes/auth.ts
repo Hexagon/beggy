@@ -149,6 +149,83 @@ router.get("/api/auth/me", async (ctx) => {
   }
 })
 
+// Export user data (GDPR - Article 20 Data Portability)
+router.get("/api/auth/my-data", async (ctx) => {
+  const accessToken = await ctx.cookies.get("access_token")
+
+  if (!accessToken) {
+    ctx.response.status = 401
+    ctx.response.body = { error: "Inte inloggad" }
+    return
+  }
+
+  const supabase = getSupabase()
+
+  const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
+
+  if (userError || !userData.user) {
+    ctx.response.status = 401
+    ctx.response.body = { error: "Session utgången" }
+    return
+  }
+
+  const userId = userData.user.id
+
+  // Get profile data
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single()
+
+  // Get all ads with images
+  const { data: ads } = await supabase
+    .from("ads")
+    .select("*, images(id, filename, storage_path, created_at)")
+    .eq("user_id", userId)
+    .neq("status", "deleted")
+
+  // Build image URLs
+  const adsWithImageUrls = (ads || []).map((ad) => ({
+    id: ad.id,
+    title: ad.title,
+    description: ad.description,
+    price: ad.price,
+    category: ad.category,
+    city: ad.city,
+    status: ad.status,
+    created_at: ad.created_at,
+    updated_at: ad.updated_at,
+    // deno-lint-ignore no-explicit-any
+    images: (ad.images || []).map((img: any) => ({
+      id: img.id,
+      filename: img.filename,
+      url: supabase.storage.from("ad-images").getPublicUrl(img.storage_path).data.publicUrl,
+      created_at: img.created_at,
+    })),
+  }))
+
+  // Return all user data in GDPR-compliant format
+  ctx.response.body = {
+    export_date: new Date().toISOString(),
+    user: {
+      id: userId,
+      email: userData.user.email,
+      name: profile?.name,
+      phone: profile?.phone,
+      city: profile?.city,
+      created_at: profile?.created_at,
+      updated_at: profile?.updated_at,
+    },
+    ads: adsWithImageUrls,
+    metadata: {
+      format: "JSON",
+      version: "1.0",
+      description: "GDPR Article 20 Data Export - All personal data associated with this account",
+    },
+  }
+})
+
 // Delete account (GDPR - Right to be forgotten)
 router.delete("/api/auth/account", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")

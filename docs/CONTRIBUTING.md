@@ -182,13 +182,26 @@ Beggy is a Swedish marketplace, so:
 
 ## Legal Considerations
 
+**IMPORTANT**: Read [legal.md](legal.md) for complete legal requirements.
+
+### BBS Law (Lagen om elektroniska anslagstavlor)
+
+- Report function must be available on all ads
+- Illegal content must be removed when reported
+
 ### GDPR Compliance
 
 When adding features that handle user data:
 
-- Ensure data can be deleted (right to be forgotten)
+- Ensure data can be deleted (right to be forgotten - Article 17)
+- Ensure data can be exported (data portability - Article 20)
 - Don't collect unnecessary data
 - Update privacy policy if needed
+
+### Cookie Law
+
+- Only essential cookies (authentication) are used
+- No tracking or analytics cookies
 
 ### Terms of Service
 

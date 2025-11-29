@@ -161,6 +161,53 @@
         <span class="close" onclick="closeModal('myAdsModal')">&times;</span>
         <h2>Mina annonser</h2>
         <div id="myAdsList"></div>
+        <hr style="margin: 20px 0" />
+        <h3>Kontoinställningar</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px">
+          <button class="btn btn-outline" onclick="exportMyData()">
+            📥 Exportera mina data (GDPR)
+          </button>
+          <button class="btn btn-danger" onclick="deleteMyAccount()">
+            🗑️ Radera mitt konto
+          </button>
+        </div>
+        <p style="color: #666; font-size: 0.85rem; margin-top: 10px">
+          Du har rätt att exportera eller radera all din personliga data enligt GDPR.
+        </p>
+      </div>
+    </div>
+
+    <!-- Report Modal (BBS law compliance) -->
+    <div class="modal" id="reportModal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('reportModal')">&times;</span>
+        <h2>⚠️ Rapportera annons</h2>
+        <p style="color: #666; margin-bottom: 15px">
+          Hjälp oss hålla Beggy säkert. Rapporter hanteras konfidentiellt.
+        </p>
+        <form id="reportForm">
+          <div class="form-group">
+            <label for="reportReason">Anledning *</label>
+            <select id="reportReason" required>
+              <option value="">Välj anledning...</option>
+              <option value="illegal_content">Olagligt innehåll</option>
+              <option value="fraud">Bedrägeri/Bluff</option>
+              <option value="spam">Spam/Reklam</option>
+              <option value="offensive">Stötande innehåll</option>
+              <option value="wrong_category">Fel kategori</option>
+              <option value="other">Annat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reportDetails">Detaljer (valfritt)</label>
+            <textarea
+              id="reportDetails"
+              rows="3"
+              placeholder="Beskriv problemet..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Skicka rapport</button>
+        </form>
       </div>
     </div>
 

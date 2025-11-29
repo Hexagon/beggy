@@ -171,5 +171,6 @@ CMD ["deno", "task", "start"]
 ## Next Steps
 
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines
-- Check [README.md](README.md) for project overview
-- See `.github/agents.md` for AI agent instructions
+- Check [README.md](../README.md) for project overview
+- See [docs/agents.md](agents.md) for AI agent instructions
+- See [docs/legal.md](legal.md) for legal requirements (BBS law, GDPR)

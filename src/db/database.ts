@@ -61,16 +61,31 @@ CREATE TABLE IF NOT EXISTS images (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Reports table (BBS law compliance)
+CREATE TABLE IF NOT EXISTS reports (
+  id SERIAL PRIMARY KEY,
+  ad_id INTEGER NOT NULL REFERENCES ads(id) ON DELETE CASCADE,
+  reason TEXT NOT NULL,
+  details TEXT,
+  reporter_ip TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  resolved_at TIMESTAMPTZ
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_ads_category ON ads(category);
 CREATE INDEX IF NOT EXISTS idx_ads_user_id ON ads(user_id);
 CREATE INDEX IF NOT EXISTS idx_ads_status ON ads(status);
 CREATE INDEX IF NOT EXISTS idx_images_ad_id ON images(ad_id);
+CREATE INDEX IF NOT EXISTS idx_reports_ad_id ON reports(ad_id);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 
 -- Policies for profiles
 CREATE POLICY "Users can view all profiles" ON profiles FOR SELECT USING (true);
@@ -89,6 +104,10 @@ CREATE POLICY "Users can insert images for own ads" ON images FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM ads WHERE ads.id = ad_id AND ads.user_id = auth.uid()));
 CREATE POLICY "Users can delete images for own ads" ON images FOR DELETE
   USING (EXISTS (SELECT 1 FROM ads WHERE ads.id = ad_id AND ads.user_id = auth.uid()));
+
+-- Policies for reports (BBS law - anyone can report, no one can read reports except admin)
+CREATE POLICY "Anyone can insert reports" ON reports FOR INSERT WITH CHECK (true);
+-- Note: SELECT, UPDATE, DELETE policies for reports should be added for admin users only
 
 -- Trigger to update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()

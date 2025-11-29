@@ -102,6 +102,17 @@ body {
   color: var(--white);
 }
 
+.btn-outline {
+  background: transparent;
+  color: var(--text-light);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
 .btn-full {
   width: 100%;
 }
