@@ -28,20 +28,20 @@ export function initDatabase(): void {
 // SQL to run in Supabase SQL Editor to create tables:
 /*
 -- Users table (profiles linked to auth.users)
--- Changed: name -> username, phone -> contact_phone, added contact_email
+-- Changed: name -> username, phone -> contact_phone, added contact_email, removed city
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   username TEXT NOT NULL,
   contact_phone TEXT,  -- Optional public contact phone (shown with warning)
   contact_email TEXT,  -- Optional public contact email (shown with warning)
-  city TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Ads table
 -- Changed: status -> state (ok, reported, expired, sold, deleted)
+-- Changed: city -> county (required Swedish county/län)
 -- Added: expires_at (auto-expire after 30 days)
 CREATE TABLE IF NOT EXISTS ads (
   id SERIAL PRIMARY KEY,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS ads (
   description TEXT NOT NULL,
   price INTEGER NOT NULL,
   category TEXT NOT NULL,
-  city TEXT,
+  county TEXT NOT NULL,  -- Required Swedish county (län)
   state TEXT DEFAULT 'ok' CHECK (state IN ('ok', 'reported', 'expired', 'sold', 'deleted')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_ads_category ON ads(category);
+CREATE INDEX IF NOT EXISTS idx_ads_county ON ads(county);
 CREATE INDEX IF NOT EXISTS idx_ads_user_id ON ads(user_id);
 CREATE INDEX IF NOT EXISTS idx_ads_state ON ads(state);
 CREATE INDEX IF NOT EXISTS idx_ads_expires_at ON ads(expires_at);

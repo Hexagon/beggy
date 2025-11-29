@@ -3,15 +3,22 @@
 // State
 let currentUser = null
 let categories = []
+let counties = []
+let adjacentCounties = {}
 let currentPage = 1
 let currentCategory = ""
+let currentCounty = ""
+let includeAdjacent = false
 let currentSearch = ""
 
 // DOM Elements
 const adsGrid = document.getElementById("adsGrid")
 const categoryGrid = document.getElementById("categoryGrid")
 const categorySelect = document.getElementById("categorySelect")
+const countySelect = document.getElementById("countySelect")
+const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox")
 const adCategorySelect = document.getElementById("adCategory")
+const adCountySelect = document.getElementById("adCounty")
 const searchInput = document.getElementById("searchInput")
 const pagination = document.getElementById("pagination")
 
@@ -19,6 +26,7 @@ const pagination = document.getElementById("pagination")
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth()
   loadCategories()
+  loadCounties()
   loadAds()
   setupEventListeners()
 })
@@ -104,6 +112,20 @@ function setupEventListeners() {
     }
   })
 
+  // County filter (main filter)
+  countySelect.addEventListener("change", () => {
+    currentCounty = countySelect.value
+    currentPage = 1
+    loadAds()
+  })
+
+  // Include adjacent counties checkbox
+  includeAdjacentCheckbox.addEventListener("change", () => {
+    includeAdjacent = includeAdjacentCheckbox.checked
+    currentPage = 1
+    loadAds()
+  })
+
   // Category filter
   categorySelect.addEventListener("change", () => {
     currentCategory = categorySelect.value
@@ -182,7 +204,6 @@ async function handleRegister(e) {
   const username = document.getElementById("regUsername").value
   const email = document.getElementById("regEmail").value
   const password = document.getElementById("regPassword").value
-  const city = document.getElementById("regCity").value
   const contact_phone = document.getElementById("regContactPhone").value
   const contact_email = document.getElementById("regContactEmail").value
 
@@ -190,7 +211,7 @@ async function handleRegister(e) {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password, city, contact_phone, contact_email }),
+      body: JSON.stringify({ username, email, password, contact_phone, contact_email }),
     })
 
     const data = await res.json()
@@ -247,6 +268,23 @@ async function loadCategories() {
   }
 }
 
+// Counties
+async function loadCounties() {
+  try {
+    const res = await fetch("/api/counties")
+    const data = await res.json()
+    counties = data.counties
+    adjacentCounties = data.adjacentCounties
+
+    // Populate county selects
+    const options = counties.map((county) => `<option value="${county}">${county}</option>`).join("")
+    countySelect.innerHTML = '<option value="">Alla län</option>' + options
+    adCountySelect.innerHTML = '<option value="">Välj län</option>' + options
+  } catch (err) {
+    console.error("Failed to load counties:", err)
+  }
+}
+
 function getCategoryIcon(category) {
   const icons = {
     Fordon: "🚗",
@@ -279,6 +317,10 @@ async function loadAds() {
       limit: 20,
     })
 
+    if (currentCounty) {
+      params.append("county", currentCounty)
+      if (includeAdjacent) params.append("includeAdjacent", "true")
+    }
     if (currentCategory) params.append("category", currentCategory)
     if (currentSearch) params.append("search", currentSearch)
 
@@ -291,6 +333,9 @@ async function loadAds() {
     // Update title
     if (currentSearch) {
       document.getElementById("adsTitle").textContent = `Sökresultat för "${currentSearch}"`
+    } else if (currentCounty) {
+      const adjacentText = includeAdjacent ? " + angränsande" : ""
+      document.getElementById("adsTitle").textContent = `Annonser i ${currentCounty}${adjacentText}`
     } else if (currentCategory) {
       document.getElementById("adsTitle").textContent = currentCategory
     } else {
@@ -320,7 +365,7 @@ function renderAds(ads) {
         <div class="text-lg font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
         <div class="text-xl text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
         <div class="text-sm text-gray-500">
-          ${escapeHtml(ad.category)}${ad.city ? " • " + escapeHtml(ad.city) : ""}
+          ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""}
         </div>
       </div>
     </div>
@@ -400,7 +445,7 @@ async function openAdDetail(id) {
       <div class="text-2xl text-primary font-bold mb-4">${formatPrice(ad.price)}</div>
       <div class="text-gray-500 mb-4">
         <strong>Kategori:</strong> ${escapeHtml(ad.category)}<br>
-        ${ad.city ? `<strong>Ort:</strong> ${escapeHtml(ad.city)}<br>` : ""}
+        ${ad.county ? `<strong>Län:</strong> ${escapeHtml(ad.county)}<br>` : ""}
         <strong>Publicerad:</strong> ${formatDate(ad.created_at)}
         ${ad.state !== "ok" ? `<br><span class="text-yellow-600 font-bold">Status: ${getStateLabel(ad.state)}</span>` : ""}
       </div>
@@ -408,7 +453,6 @@ async function openAdDetail(id) {
       <div class="leading-relaxed whitespace-pre-wrap">${escapeHtml(ad.description)}</div>
       <div class="bg-gray-100 p-4 rounded mt-5">
         <strong>Säljare:</strong> ${escapeHtml(ad.seller_username)}
-        ${ad.seller_city ? ` • ${escapeHtml(ad.seller_city)}` : ""}
         ${contactInfo}
       </div>
       <div class="ad-actions flex gap-2.5 flex-wrap" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
@@ -482,7 +526,7 @@ async function handleCreateAd(e) {
     title: document.getElementById("adTitle").value,
     category: document.getElementById("adCategory").value,
     price: parseInt(document.getElementById("adPrice").value),
-    city: document.getElementById("adCity").value,
+    county: document.getElementById("adCounty").value,
     description: document.getElementById("adDescription").value,
   }
 

@@ -1,6 +1,6 @@
 import { Router } from "@oak/oak"
 import { getSupabase } from "../db/database.ts"
-import { CATEGORIES } from "../models/types.ts"
+import { ADJACENT_COUNTIES, CATEGORIES, COUNTIES } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 
@@ -12,7 +12,8 @@ const AD_EXPIRY_DAYS = 30
 router.get("/api/ads", async (ctx) => {
   const params = ctx.request.url.searchParams
   const category = params.get("category")
-  const city = params.get("city")
+  const county = params.get("county")
+  const includeAdjacent = params.get("includeAdjacent") === "true"
   const search = params.get("search")
   const page = parseInt(params.get("page") || "1")
   const limit = Math.min(parseInt(params.get("limit") || "20"), 50)
@@ -31,8 +32,15 @@ router.get("/api/ads", async (ctx) => {
     query = query.eq("category", category)
   }
 
-  if (city) {
-    query = query.eq("city", city)
+  if (county) {
+    if (includeAdjacent) {
+      // Include selected county and its adjacent counties
+      const adjacentCounties = ADJACENT_COUNTIES[county] || []
+      const allCounties = [county, ...adjacentCounties]
+      query = query.in("county", allCounties)
+    } else {
+      query = query.eq("county", county)
+    }
   }
 
   if (search) {
@@ -55,7 +63,7 @@ router.get("/api/ads", async (ctx) => {
       description: ad.description,
       price: ad.price,
       category: ad.category,
-      city: ad.city,
+      county: ad.county,
       state: ad.state,
       created_at: ad.created_at,
       updated_at: ad.updated_at,
@@ -81,7 +89,7 @@ router.get("/api/ads/:id", async (ctx) => {
   const { data: ad, error } = await supabase
     .from("ads")
     .select(
-      "*, profiles(username, city, contact_phone, contact_email), images(id, filename, storage_path)",
+      "*, profiles(username, contact_phone, contact_email), images(id, filename, storage_path)",
     )
     .eq("id", id)
     .single()
@@ -107,13 +115,12 @@ router.get("/api/ads/:id", async (ctx) => {
     description: ad.description,
     price: ad.price,
     category: ad.category,
-    city: ad.city,
+    county: ad.county,
     state: ad.state,
     created_at: ad.created_at,
     updated_at: ad.updated_at,
     expires_at: ad.expires_at,
     seller_username: ad.profiles?.username || "Användare",
-    seller_city: ad.profiles?.city,
     seller_contact_phone: ad.profiles?.contact_phone,
     seller_contact_email: ad.profiles?.contact_email,
     images: (ad.images || []).map((
@@ -137,17 +144,23 @@ router.post("/api/ads", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, city } = body
+  const { title, description, price, category, county } = body
 
-  if (!title || !description || price === undefined || !category) {
+  if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
-    ctx.response.body = { error: "Titel, beskrivning, pris och kategori krävs" }
+    ctx.response.body = { error: "Titel, beskrivning, pris, kategori och län krävs" }
     return
   }
 
   if (!CATEGORIES.includes(category)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltig kategori" }
+    return
+  }
+
+  if (!COUNTIES.includes(county)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt län" }
     return
   }
 
@@ -158,7 +171,7 @@ router.post("/api/ads", async (ctx) => {
   }
 
   // Check for forbidden words
-  if (containsForbiddenWords({ title, description, city })) {
+  if (containsForbiddenWords({ title, description })) {
     ctx.response.status = 400
     ctx.response.body = { error: "Annonsen innehåller otillåtna ord. Vänligen ändra texten." }
     return
@@ -178,7 +191,7 @@ router.post("/api/ads", async (ctx) => {
       description,
       price,
       category,
-      city: city || null,
+      county,
       state: "ok",
       expires_at: expiresAt.toISOString(),
     })
@@ -221,7 +234,7 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, city, state } = body
+  const { title, description, price, category, county, state } = body
 
   if (category && !CATEGORIES.includes(category)) {
     ctx.response.status = 400
@@ -229,8 +242,14 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
+  if (county && !COUNTIES.includes(county)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt län" }
+    return
+  }
+
   // Check for forbidden words in updated content
-  if (containsForbiddenWords({ title, description, city })) {
+  if (containsForbiddenWords({ title, description })) {
     ctx.response.status = 400
     ctx.response.body = { error: "Annonsen innehåller otillåtna ord. Vänligen ändra texten." }
     return
@@ -242,7 +261,7 @@ router.put("/api/ads/:id", async (ctx) => {
   if (description !== undefined) updates.description = description
   if (price !== undefined) updates.price = price
   if (category !== undefined) updates.category = category
-  if (city !== undefined) updates.city = city
+  if (county !== undefined) updates.county = county
   // User can only change state to "ok" or "sold"
   if (state !== undefined && ["ok", "sold"].includes(state)) updates.state = state
 
@@ -429,6 +448,11 @@ router.get("/api/categories", (ctx) => {
   ctx.response.body = { categories: CATEGORIES }
 })
 
+// Get counties
+router.get("/api/counties", (ctx) => {
+  ctx.response.body = { counties: COUNTIES, adjacentCounties: ADJACENT_COUNTIES }
+})
+
 // Get user's ads
 router.get("/api/my-ads", async (ctx) => {
   const user = await getUserFromRequest(ctx)
@@ -462,7 +486,7 @@ router.get("/api/my-ads", async (ctx) => {
       description: ad.description,
       price: ad.price,
       category: ad.category,
-      city: ad.city,
+      county: ad.county,
       state: ad.state,
       created_at: ad.created_at,
       updated_at: ad.updated_at,
