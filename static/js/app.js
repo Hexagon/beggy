@@ -294,7 +294,7 @@ function renderAds(ads) {
     <div class="ad-card" onclick="openAdDetail(${ad.id})">
       ${
         ad.image_count > 0
-          ? '<div class="ad-no-image">📷</div>'
+          ? `<div class="ad-image-placeholder">📷 ${ad.image_count} bild${ad.image_count > 1 ? "er" : ""}</div>`
           : '<div class="ad-no-image">📦</div>'
       }
       <div class="ad-info">
