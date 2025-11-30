@@ -1,0 +1,11 @@
+# Beggy - robots.txt
+# https://beggy.se
+
+User-agent: *
+Allow: /
+
+# Disallow API endpoints (not useful for crawlers)
+Disallow: /api/
+
+# Sitemap (if added in future)
+# Sitemap: https://beggy.se/sitemap.xml
