@@ -238,6 +238,13 @@ async function loadAdDetail() {
             ${editButton}
             <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
           </div>
+          <!-- Share buttons -->
+          <div class="share-actions flex gap-2.5 flex-wrap mt-4 pt-4 border-t border-stone-200">
+            <span class="text-stone-600 font-medium self-center">Dela:</span>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" onclick="shareToFacebook()">Facebook</button>
+            <button class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800" onclick="shareToX()">X</button>
+            <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="copyAdLink()">📋 Kopiera länk</button>
+          </div>
         </div>
       </div>
       <!-- Description below -->
@@ -504,9 +511,46 @@ function showAlert(message, type) {
   }, 3000)
 }
 
+// Share functions
+function shareToFacebook() {
+  const url = encodeURIComponent(window.location.href)
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank", "width=600,height=400")
+}
+
+function shareToX() {
+  const url = encodeURIComponent(window.location.href)
+  const title = encodeURIComponent(document.title)
+  window.open(`https://x.com/intent/tweet?url=${url}&text=${title}`, "_blank", "width=600,height=400")
+}
+
+async function copyAdLink() {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    showAlert("Länk kopierad!", "success")
+  } catch {
+    // Fallback for browsers that don't support clipboard API
+    const textArea = document.createElement("textarea")
+    textArea.value = window.location.href
+    textArea.style.position = "fixed"
+    textArea.style.left = "-9999px"
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand("copy")
+      showAlert("Länk kopierad!", "success")
+    } catch {
+      showAlert("Kunde inte kopiera länken", "error")
+    }
+    document.body.removeChild(textArea)
+  }
+}
+
 // Make functions available globally for onclick handlers
 window.openModal = openModal
 window.closeModal = closeModal
 window.openReportModal = openReportModal
 window.startConversation = startConversation
 window.openChat = openChat
+window.shareToFacebook = shareToFacebook
+window.shareToX = shareToX
+window.copyAdLink = copyAdLink
