@@ -52,28 +52,27 @@ The following database fields contain personal data:
 
 ### profiles table
 
-| Field         | Data Type | Purpose                                      | Legal Basis           | Retention              |
-| ------------- | --------- | -------------------------------------------- | --------------------- | ---------------------- |
-| id            | UUID      | Unique user identifier                       | Contract (Art. 6.1.b) | Until account deletion |
-| email         | TEXT      | Account login and identification             | Contract (Art. 6.1.b) | Until account deletion |
-| username      | TEXT      | Public display name (no real name required)  | Contract (Art. 6.1.b) | Until account deletion |
-| contact_phone | TEXT      | Optional public contact phone (with warning) | Consent (Art. 6.1.a)  | Until account deletion |
-| contact_email | TEXT      | Optional public contact email (with warning) | Consent (Art. 6.1.a)  | Until account deletion |
-| city          | TEXT      | Location filtering                           | Contract (Art. 6.1.b) | Until account deletion |
-| created_at    | TIMESTAMP | Account creation date                        | Contract (Art. 6.1.b) | Until account deletion |
-| updated_at    | TIMESTAMP | Profile last updated                         | Contract (Art. 6.1.b) | Until account deletion |
+| Field      | Data Type | Purpose                                     | Legal Basis           | Retention              |
+| ---------- | --------- | ------------------------------------------- | --------------------- | ---------------------- |
+| id         | UUID      | Unique user identifier                      | Contract (Art. 6.1.b) | Until account deletion |
+| email      | TEXT      | Account login and identification            | Contract (Art. 6.1.b) | Until account deletion |
+| username   | TEXT      | Public display name (no real name required) | Contract (Art. 6.1.b) | Until account deletion |
+| created_at | TIMESTAMP | Account creation date                       | Contract (Art. 6.1.b) | Until account deletion |
+| updated_at | TIMESTAMP | Profile last updated                        | Contract (Art. 6.1.b) | Until account deletion |
 
 ### ads table
 
-| Field       | Data Type | Purpose                                    | Legal Basis           | Retention         |
-| ----------- | --------- | ------------------------------------------ | --------------------- | ----------------- |
-| user_id     | UUID      | Link ad to user                            | Contract (Art. 6.1.b) | Until ad deletion |
-| title       | TEXT      | Ad title                                   | Contract (Art. 6.1.b) | Until ad deletion |
-| description | TEXT      | Ad description (may contain personal info) | Contract (Art. 6.1.b) | Until ad deletion |
-| city        | TEXT      | Ad location                                | Contract (Art. 6.1.b) | Until ad deletion |
-| created_at  | TIMESTAMP | Ad creation date                           | Contract (Art. 6.1.b) | Until ad deletion |
-| updated_at  | TIMESTAMP | Ad last updated                            | Contract (Art. 6.1.b) | Until ad deletion |
-| expires_at  | TIMESTAMP | Ad expiry (30 days from creation)          | Contract (Art. 6.1.b) | Until ad deletion |
+| Field         | Data Type | Purpose                                      | Legal Basis           | Retention         |
+| ------------- | --------- | -------------------------------------------- | --------------------- | ----------------- |
+| user_id       | UUID      | Link ad to user                              | Contract (Art. 6.1.b) | Until ad deletion |
+| title         | TEXT      | Ad title                                     | Contract (Art. 6.1.b) | Until ad deletion |
+| description   | TEXT      | Ad description (may contain personal info)   | Contract (Art. 6.1.b) | Until ad deletion |
+| county        | TEXT      | Ad location (Swedish county)                 | Contract (Art. 6.1.b) | Until ad deletion |
+| contact_phone | TEXT      | Optional public contact phone (with warning) | Consent (Art. 6.1.a)  | Until ad deletion |
+| contact_email | TEXT      | Optional public contact email (with warning) | Consent (Art. 6.1.a)  | Until ad deletion |
+| created_at    | TIMESTAMP | Ad creation date                             | Contract (Art. 6.1.b) | Until ad deletion |
+| updated_at    | TIMESTAMP | Ad last updated                              | Contract (Art. 6.1.b) | Until ad deletion |
+| expires_at    | TIMESTAMP | Ad expiry (30 days from creation)            | Contract (Art. 6.1.b) | Until ad deletion |
 
 ### conversations table
 

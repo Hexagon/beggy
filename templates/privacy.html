@@ -38,7 +38,7 @@
       <div class="max-w-6xl mx-auto px-5">
         <div class="bg-amber-50 p-8 rounded-lg max-w-3xl mx-auto">
           <h1 class="text-2xl font-bold mb-6">Integritetspolicy (GDPR)</h1>
-          <p class="italic text-stone-500 mb-6">Senast uppdaterad: 2025-01-01</p>
+          <p class="italic text-stone-500 mb-6">Senast uppdaterad: 2025-11-30</p>
 
           <h2 class="text-xl font-semibold mt-6 mb-3">1. Personuppgiftsansvarig</h2>
           <p class="mb-4">
@@ -51,10 +51,12 @@
           <p class="mb-4">Vi samlar in följande uppgifter:</p>
           <ul class="list-disc pl-6 mb-4 space-y-1">
             <li>
-              <strong>Vid registrering:</strong> E-postadress, namn, telefonnummer (frivilligt), ort
-              (frivilligt)
+              <strong>Vid registrering:</strong> E-postadress och användarnamn
             </li>
-            <li><strong>Vid annonsering:</strong> Annonsinnehåll, bilder, plats</li>
+            <li>
+              <strong>Vid annonsering:</strong> Annonsinnehåll, bilder, län, samt valfri
+              kontaktinformation (telefon/e-post) som visas på annonsen
+            </li>
             <li>
               <strong>Automatiskt:</strong> IP-adress (endast i serverloggar), sessionsinformation
             </li>
@@ -140,9 +142,10 @@
           <h2 class="text-xl font-semibold mt-6 mb-3">10. Säkerhet</h2>
           <p class="mb-4">Vi skyddar dina uppgifter genom:</p>
           <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li>Krypterade lösenord (SHA-256 hash)</li>
+            <li>Säker lösenordshantering via Supabase Auth</li>
             <li>HTTPS-kryptering för all trafik</li>
             <li>Säkra sessionscookies med HttpOnly-flagga</li>
+            <li>End-to-end krypterade chatmeddelanden (AES-256-GCM)</li>
           </ul>
 
           <h2 class="text-xl font-semibold mt-6 mb-3">11. Ändringar i policyn</h2>
