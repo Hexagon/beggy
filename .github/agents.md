@@ -224,3 +224,43 @@ deno task fmt
 # Clear Deno cache if having import issues
 deno cache --reload main.ts
 ```
+
+## SEO Guidelines
+
+**Follow these lean SEO practices when creating or modifying pages:**
+
+### Required Meta Tags
+
+Every HTML page must include:
+
+1. **`<title>`**: Descriptive, unique title (50-60 characters)
+   - Format: `Page Name - Beggy` or `Item Title | Category - Beggy`
+2. **`<meta name="description">`**: Unique summary (150-160 characters)
+3. **`<html lang="sv">`**: Language attribute for Swedish content
+
+### Semantic HTML
+
+- Use proper heading hierarchy (`<h1>` → `<h2>` → `<h3>`)
+- Only one `<h1>` per page
+- Use semantic elements: `<header>`, `<main>`, `<footer>`, `<nav>`, `<article>`
+
+### Links and Navigation
+
+- Use descriptive link text (not "click here")
+- Include `rel="noopener"` on external links with `target="_blank"`
+- Ensure all pages are reachable via internal links
+
+### Images
+
+- Always include `alt` attribute with descriptive text
+- Use lazy loading for images below the fold: `loading="lazy"`
+
+### Performance
+
+- Keep page load fast (minimal JavaScript, CSS via CDN)
+- Avoid render-blocking resources
+
+### Robots and Indexing
+
+- `robots.txt` controls crawler access
+- Pages meant for indexing should be publicly accessible

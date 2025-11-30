@@ -52,7 +52,10 @@
           >Meddelanden</a>
           <a href="#" id="myAdsBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
           >Mina annonser</a>
-          <a href="#" id="logoutBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
+          <a
+            href="#"
+            id="logoutBtn"
+            class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
           >Logga ut</a>
         </nav>
       </div>
@@ -62,37 +65,37 @@
       <!-- Search section (full-width) -->
       <section class="py-4 mb-8">
         <div class="flex gap-2.5 max-w-6xl mx-auto px-5 flex-wrap justify-center items-center">
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Sök bland annonser..."
-              class="flex-1 min-w-[200px] px-4 py-3 border border-stone-300 rounded text-base bg-white"
-            >
-            <select
-              id="countySelect"
-              class="px-4 py-3 border border-stone-300 rounded text-base min-w-[180px] bg-white"
-            >
-              <option value="">Alla län</option>
-            </select>
-            <label class="flex items-center gap-2 px-3 py-2 text-sm text-stone-600">
-              <input type="checkbox" id="includeAdjacentCheckbox" class="w-4 h-4">
-              Angränsande län
-            </label>
-            <button
-              id="searchBtn"
-              class="inline-block px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors"
-            >
-              Sök
-            </button>
-            <!-- Category select hidden from main row but kept for JavaScript functionality -->
-            <select
-              id="categorySelect"
-              class="hidden"
-            >
-              <option value="">Alla kategorier</option>
-            </select>
-          </div>
-        </section>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Sök bland annonser..."
+            class="flex-1 min-w-[200px] px-4 py-3 border border-stone-300 rounded text-base bg-white"
+          >
+          <select
+            id="countySelect"
+            class="px-4 py-3 border border-stone-300 rounded text-base min-w-[180px] bg-white"
+          >
+            <option value="">Alla län</option>
+          </select>
+          <label class="flex items-center gap-2 px-3 py-2 text-sm text-stone-600">
+            <input type="checkbox" id="includeAdjacentCheckbox" class="w-4 h-4">
+            Angränsande län
+          </label>
+          <button
+            id="searchBtn"
+            class="inline-block px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors"
+          >
+            Sök
+          </button>
+          <!-- Category select hidden from main row but kept for JavaScript functionality -->
+          <select
+            id="categorySelect"
+            class="hidden"
+          >
+            <option value="">Alla kategorier</option>
+          </select>
+        </div>
+      </section>
 
       <div class="max-w-6xl mx-auto px-5 py-8">
         <!-- Landing View (shown by default) -->
@@ -102,8 +105,9 @@
               Välkommen till Beggy
             </h1>
             <p class="text-lg text-stone-600 max-w-2xl mx-auto">
-              En <strong>gratis</strong>, <strong>enkel</strong> och <strong>modern</strong> marknadsplats för begagnade varor – 
-              precis som du är van vid, fast utan dolda avgifter.
+              En <strong>gratis</strong>, <strong>enkel</strong> och <strong>modern</strong>
+              marknadsplats för begagnade varor – precis som du är van vid, fast utan dolda
+              avgifter.
             </p>
           </div>
 
@@ -111,27 +115,41 @@
             <div class="bg-amber-50 p-6 rounded-lg text-center">
               <div class="text-4xl mb-3">💰</div>
               <h3 class="font-semibold text-lg mb-2">Helt gratis</h3>
-              <p class="text-stone-600 text-sm">Inga avgifter, inga dolda kostnader. Skapa och publicera annonser utan att betala ett öre.</p>
+              <p class="text-stone-600 text-sm">
+                Inga avgifter, inga dolda kostnader. Skapa och publicera annonser utan att betala
+                ett öre.
+              </p>
             </div>
             <div class="bg-amber-50 p-6 rounded-lg text-center">
               <div class="text-4xl mb-3">✨</div>
               <h3 class="font-semibold text-lg mb-2">Enkelt & snabbt</h3>
-              <p class="text-stone-600 text-sm">Lägg upp en annons på några minuter. Ingen krånglig registrering eller komplicerade formulär.</p>
+              <p class="text-stone-600 text-sm">
+                Lägg upp en annons på några minuter. Ingen krånglig registrering eller komplicerade
+                formulär.
+              </p>
             </div>
             <div class="bg-amber-50 p-6 rounded-lg text-center">
               <div class="text-4xl mb-3">🔒</div>
               <h3 class="font-semibold text-lg mb-2">Säkert & privat</h3>
-              <p class="text-stone-600 text-sm">Dina uppgifter är skyddade. Kommunicera säkert med köpare och säljare direkt på plattformen.</p>
+              <p class="text-stone-600 text-sm">
+                Dina uppgifter är skyddade. Kommunicera säkert med köpare och säljare direkt på
+                plattformen.
+              </p>
             </div>
             <div class="bg-amber-50 p-6 rounded-lg text-center">
               <div class="text-4xl mb-3">🌍</div>
               <h3 class="font-semibold text-lg mb-2">Öppen källkod</h3>
-              <p class="text-stone-600 text-sm">Beggy är helt öppen – transparent och driven av communityn. Ingen stor teknikjätte i bakgrunden.</p>
+              <p class="text-stone-600 text-sm">
+                Beggy är helt öppen – transparent och driven av communityn. Ingen stor teknikjätte i
+                bakgrunden.
+              </p>
             </div>
           </div>
 
           <div class="text-center">
-            <p class="text-stone-500 mb-4">Redo att börja? Sök efter något eller bläddra bland kategorier!</p>
+            <p class="text-stone-500 mb-4">
+              Redo att börja? Sök efter något eller bläddra bland kategorier!
+            </p>
             <button
               id="browseAdsBtn"
               class="inline-block px-6 py-3 bg-primary text-white rounded-lg text-lg font-semibold hover:bg-primary-dark transition-colors"
@@ -169,12 +187,16 @@
                 id="listViewBtn"
                 class="px-3 py-1 rounded text-sm bg-primary text-white"
                 onclick="setViewMode('list')"
-              >☰ Lista</button>
+              >
+                ☰ Lista
+              </button>
               <button
                 id="galleryViewBtn"
                 class="px-3 py-1 rounded text-sm bg-stone-200 text-stone-700 hover:bg-stone-300"
                 onclick="setViewMode('gallery')"
-              >▦ Galleri</button>
+              >
+                ▦ Galleri
+              </button>
             </div>
           </div>
           <div
