@@ -1,24 +1,12 @@
-// Beggy - Ad Detail Page JavaScript
+// Beggy - Settings Page JavaScript
 
 // State
 let currentUser = null
-let currentAdId = null
-let currentReportAdId = null
 let currentConversationId = null
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
-  // Get ad ID from URL
-  const pathParts = window.location.pathname.split("/")
-  currentAdId = parseInt(pathParts[pathParts.length - 1])
-  
-  if (!currentAdId || isNaN(currentAdId)) {
-    document.getElementById("adDetailContent").innerHTML = '<p class="text-red-500 text-center py-8">Ogiltig annons-ID</p>'
-    return
-  }
-
   checkAuth()
-  loadAdDetail()
   setupEventListeners()
 })
 
@@ -60,9 +48,6 @@ function setupEventListeners() {
   // Chat form
   document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
 
-  // Report ad
-  document.getElementById("reportForm").addEventListener("submit", handleReportAd)
-
   // Close modals on outside click
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal")) {
@@ -83,6 +68,7 @@ async function checkAuth() {
   } catch {
     // Not logged in
   }
+  updatePageDisplay()
 }
 
 function updateAuthUI() {
@@ -99,6 +85,19 @@ function updateAuthUI() {
     loggedOutNav.classList.add("flex")
     loggedInNav.classList.add("hidden")
     loggedInNav.classList.remove("flex")
+  }
+}
+
+function updatePageDisplay() {
+  const loginPrompt = document.getElementById("loginPrompt")
+  const settingsContainer = document.getElementById("settingsContainer")
+  
+  if (currentUser) {
+    loginPrompt.classList.add("hidden")
+    settingsContainer.classList.remove("hidden")
+  } else {
+    loginPrompt.classList.remove("hidden")
+    settingsContainer.classList.add("hidden")
   }
 }
 
@@ -120,7 +119,6 @@ async function handleLogin(e) {
       closeModal("loginModal")
       document.getElementById("loginForm").reset()
       await checkAuth()
-      loadAdDetail() // Reload to show contact button
       showAlert("Välkommen tillbaka!", "success")
     } else {
       showAlert(data.error, "error")
@@ -164,136 +162,61 @@ async function handleLogout(e) {
     await fetch("/api/auth/logout", { method: "POST" })
     currentUser = null
     updateAuthUI()
-    loadAdDetail() // Reload to hide contact button
+    updatePageDisplay()
     showAlert("Du har loggats ut", "success")
   } catch {
     showAlert("Något gick fel", "error")
   }
 }
 
-// Load Ad Detail
-async function loadAdDetail() {
+// Account management (GDPR compliance)
+async function exportMyData() {
   try {
-    const res = await fetch(`/api/ads/${currentAdId}`)
+    const res = await fetch("/api/auth/my-data")
     
     if (!res.ok) {
-      document.getElementById("adDetailContent").innerHTML = '<p class="text-red-500 text-center py-8">Annonsen hittades inte</p>'
+      showAlert("Kunde inte hämta data", "error")
       return
     }
 
-    const ad = await res.json()
+    const data = await res.json()
     
-    // Update page title
-    document.title = `${ad.title} - Beggy`
-
-    const content = document.getElementById("adDetailContent")
+    // Download as JSON file
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `beggy-data-export-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
     
-    // Check if user can contact seller (logged in and not own ad)
-    const canContact = currentUser && currentUser.id !== ad.user_id && ad.state === "ok"
-    const isOwner = currentUser && currentUser.id === ad.user_id
-    
-    // Only show "Logga in" button if NOT logged in
-    let contactButton = ""
-    if (canContact) {
-      contactButton = `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">Kontakta säljaren</button>`
-    } else if (!currentUser && ad.state === "ok") {
-      contactButton = `<button class="px-4 py-2 bg-stone-300 text-stone-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`
-    }
-
-    // Edit button for owner
-    const editButton = isOwner 
-      ? `<a href="/annons/${ad.id}/redigera" class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 no-underline inline-block">✏️ Redigera annons</a>`
-      : ""
-
-    content.innerHTML = `
-      <h1 class="text-3xl font-bold mb-6">${escapeHtml(ad.title)}</h1>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Left column: Image -->
-        <div>
-          ${
-            ad.images && ad.images.length > 0
-              ? `<div class="flex gap-2.5 flex-wrap">
-              ${ad.images.map((img) => {
-                const safeUrl = sanitizeUrl(img.url)
-                return safeUrl ? `<img src="${safeUrl}" alt="Bild" class="max-w-full rounded-lg shadow-sm">` : ""
-              }).join("")}
-            </div>`
-              : `<div class="bg-stone-100 rounded-lg h-64 flex items-center justify-center text-stone-400">Ingen bild</div>`
-          }
-        </div>
-        <!-- Right column: Basic info -->
-        <div>
-          <div class="text-4xl text-primary font-bold mb-6">${formatPrice(ad.price)}</div>
-          <div class="space-y-3 text-stone-600">
-            <p><span class="font-semibold">Kategori:</span> ${escapeHtml(ad.category)}</p>
-            ${ad.county ? `<p><span class="font-semibold">Län:</span> ${escapeHtml(ad.county)}</p>` : ""}
-            <p><span class="font-semibold">Säljare:</span> ${escapeHtml(ad.seller_username)}</p>
-            ${ad.seller_contact_phone ? `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>` : ""}
-            ${ad.seller_contact_email ? `<p><span class="font-semibold">E-post:</span> ${escapeHtml(ad.seller_contact_email)}</p>` : ""}
-            <p><span class="font-semibold">Publicerad:</span> ${formatDate(ad.created_at)}</p>
-            ${ad.state !== "ok" ? `<p><span class="text-amber-600 font-bold">Status: ${getStateLabel(ad.state)}</span></p>` : ""}
-          </div>
-          <div class="ad-actions flex gap-2.5 flex-wrap mt-6 pt-4 border-t border-stone-200">
-            ${contactButton}
-            ${editButton}
-            <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
-          </div>
-        </div>
-      </div>
-      <!-- Description below -->
-      <div class="border-t border-stone-200 pt-6">
-        <h2 class="text-xl font-semibold mb-4">Beskrivning</h2>
-        <div class="leading-relaxed whitespace-pre-wrap text-lg text-stone-700">${escapeHtml(ad.description)}</div>
-      </div>
-    `
-  } catch (err) {
-    document.getElementById("adDetailContent").innerHTML = '<p class="text-red-500 text-center py-8">Kunde inte ladda annonsen</p>'
+    showAlert("Data exporterad!", "success")
+  } catch {
+    showAlert("Något gick fel", "error")
   }
 }
 
-function getStateLabel(state) {
-  const labels = {
-    ok: "Aktiv",
-    sold: "Såld",
-    expired: "Utgången",
-    reported: "Under granskning",
-    deleted: "Borttagen"
+async function deleteMyAccount() {
+  if (!confirm("Är du HELT säker på att du vill radera ditt konto?\n\nAll din data, inklusive annonser och bilder, kommer att raderas permanent.")) {
+    return
   }
-  return labels[state] || state
-}
-
-// Report ad (BBS law compliance)
-function openReportModal(adId) {
-  currentReportAdId = adId
-  openModal("reportModal")
-}
-
-async function handleReportAd(e) {
-  e.preventDefault()
   
-  const reason = document.getElementById("reportReason").value
-  const details = document.getElementById("reportDetails").value
-
-  if (!reason) {
-    showAlert("Välj en anledning", "error")
+  if (!confirm("Detta kan inte ångras. Vill du verkligen fortsätta?")) {
     return
   }
 
   try {
-    const res = await fetch(`/api/ads/${currentReportAdId}/report`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason, details }),
-    })
-
-    const data = await res.json()
+    const res = await fetch("/api/auth/account", { method: "DELETE" })
 
     if (res.ok) {
-      closeModal("reportModal")
-      document.getElementById("reportForm").reset()
-      showAlert(data.message, "success")
+      currentUser = null
+      updateAuthUI()
+      showAlert("Ditt konto har raderats", "success")
+      window.location.href = "/"
     } else {
-      showAlert(data.error, "error")
+      showAlert("Kunde inte radera konto", "error")
     }
   } catch {
     showAlert("Något gick fel", "error")
@@ -332,24 +255,6 @@ async function loadConversations() {
       .join("")
   } catch {
     showAlert("Kunde inte ladda meddelanden", "error")
-  }
-}
-
-async function startConversation(adId) {
-  try {
-    const res = await fetch(`/api/ads/${adId}/conversation`, {
-      method: "POST",
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      await openChat(data.conversation_id)
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
   }
 }
 
@@ -449,28 +354,6 @@ function escapeHtml(text) {
   return div.innerHTML
 }
 
-function sanitizeUrl(url) {
-  if (!url) return ""
-  // Only allow http(s) URLs and encode the result
-  try {
-    const parsed = new URL(url)
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return ""
-    }
-    return encodeURI(decodeURI(url))
-  } catch {
-    return ""
-  }
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("sv-SE", {
-    style: "currency",
-    currency: "SEK",
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
 function formatDate(dateString) {
   return new Intl.DateTimeFormat("sv-SE", {
     year: "numeric",
@@ -507,6 +390,6 @@ function showAlert(message, type) {
 // Make functions available globally for onclick handlers
 window.openModal = openModal
 window.closeModal = closeModal
-window.openReportModal = openReportModal
-window.startConversation = startConversation
 window.openChat = openChat
+window.exportMyData = exportMyData
+window.deleteMyAccount = deleteMyAccount

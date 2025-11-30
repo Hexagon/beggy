@@ -1,50 +1,14 @@
-// Beggy - Edit Ad Page JavaScript
+// Beggy - My Ads Page JavaScript
 
 // State
 let currentUser = null
-let currentAdId = null
-let currentAd = null
-let categories = []
-let counties = []
-let selectedImages = []
-let existingImages = []
 let currentConversationId = null
-const MAX_IMAGES = 5
-
-// DOM Elements
-const adCategorySelect = document.getElementById("adCategory")
-const adCountySelect = document.getElementById("adCounty")
-const imageInput = document.getElementById("adImages")
-const imagePreviewContainer = document.getElementById("imagePreviewContainer")
-const existingImagesContainer = document.getElementById("existingImagesContainer")
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
-  // Get ad ID from URL
-  const pathParts = window.location.pathname.split("/")
-  currentAdId = parseInt(pathParts[2]) // /annons/:id/redigera
-  
-  if (!currentAdId || isNaN(currentAdId)) {
-    showError("Ogiltig annons-ID")
-    return
-  }
-
-  // Update back link
-  document.getElementById("backLink").href = `/annons/${currentAdId}`
-
   checkAuth()
-  loadCategories()
-  loadCounties()
   setupEventListeners()
 })
-
-function showError(message) {
-  document.getElementById("loadingContainer").classList.add("hidden")
-  document.getElementById("editAdContainer").classList.add("hidden")
-  document.getElementById("loginPrompt").classList.add("hidden")
-  document.getElementById("errorContainer").classList.remove("hidden")
-  document.getElementById("errorMessage").textContent = message
-}
 
 // Event Listeners
 function setupEventListeners() {
@@ -84,12 +48,6 @@ function setupEventListeners() {
   // Chat form
   document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
 
-  // Edit ad form
-  document.getElementById("editAdForm").addEventListener("submit", handleEditAd)
-
-  // Image preview
-  imageInput.addEventListener("change", handleImageSelect)
-
   // Close modals on outside click
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal")) {
@@ -106,17 +64,11 @@ async function checkAuth() {
     if (res.ok) {
       currentUser = await res.json()
       updateAuthUI()
-      loadAdForEdit()
-    } else {
-      // Not logged in
-      document.getElementById("loadingContainer").classList.add("hidden")
-      document.getElementById("loginPrompt").classList.remove("hidden")
     }
   } catch {
     // Not logged in
-    document.getElementById("loadingContainer").classList.add("hidden")
-    document.getElementById("loginPrompt").classList.remove("hidden")
   }
+  updatePageDisplay()
 }
 
 function updateAuthUI() {
@@ -133,6 +85,20 @@ function updateAuthUI() {
     loggedOutNav.classList.add("flex")
     loggedInNav.classList.add("hidden")
     loggedInNav.classList.remove("flex")
+  }
+}
+
+function updatePageDisplay() {
+  const loginPrompt = document.getElementById("loginPrompt")
+  const myAdsContainer = document.getElementById("myAdsContainer")
+  
+  if (currentUser) {
+    loginPrompt.classList.add("hidden")
+    myAdsContainer.classList.remove("hidden")
+    loadMyAds()
+  } else {
+    loginPrompt.classList.remove("hidden")
+    myAdsContainer.classList.add("hidden")
   }
 }
 
@@ -197,259 +163,95 @@ async function handleLogout(e) {
     await fetch("/api/auth/logout", { method: "POST" })
     currentUser = null
     updateAuthUI()
-    window.location.href = "/"
+    updatePageDisplay()
+    showAlert("Du har loggats ut", "success")
   } catch {
     showAlert("Något gick fel", "error")
   }
 }
 
-// Load Ad for Editing
-async function loadAdForEdit() {
+// My Ads
+async function loadMyAds() {
   try {
-    const res = await fetch(`/api/ads/${currentAdId}`)
-    
-    if (!res.ok) {
-      showError("Annonsen hittades inte")
+    const res = await fetch("/api/my-ads")
+    const data = await res.json()
+
+    const list = document.getElementById("myAdsList")
+
+    if (data.ads.length === 0) {
+      list.innerHTML = "<p class='text-gray-500'>Du har inga annonser ännu.</p>"
       return
     }
 
-    const ad = await res.json()
-    
-    // Check ownership
-    if (ad.user_id !== currentUser.id) {
-      showError("Du har inte behörighet att redigera denna annons")
-      return
-    }
-
-    currentAd = ad
-    existingImages = ad.images || []
-
-    // Update page title
-    document.title = `Redigera: ${ad.title} - Beggy`
-
-    // Show edit form
-    document.getElementById("loadingContainer").classList.add("hidden")
-    document.getElementById("editAdContainer").classList.remove("hidden")
-
-    // Populate form (wait for categories/counties to load)
-    setTimeout(() => populateForm(ad), 100)
-  } catch (err) {
-    showError("Kunde inte ladda annonsen")
-  }
-}
-
-function populateForm(ad) {
-  document.getElementById("adTitle").value = ad.title || ""
-  document.getElementById("adPrice").value = ad.price || 0
-  document.getElementById("adDescription").value = ad.description || ""
-  document.getElementById("adContactPhone").value = ad.seller_contact_phone || ""
-  document.getElementById("adContactEmail").value = ad.seller_contact_email || ""
-  
-  // Set category (may need to wait for options to load)
-  if (adCategorySelect.options.length > 1) {
-    adCategorySelect.value = ad.category || ""
-  } else {
-    setTimeout(() => { adCategorySelect.value = ad.category || "" }, 200)
-  }
-  
-  // Set county
-  if (adCountySelect.options.length > 1) {
-    adCountySelect.value = ad.county || ""
-  } else {
-    setTimeout(() => { adCountySelect.value = ad.county || "" }, 200)
-  }
-
-  // Show existing images
-  renderExistingImages()
-  updateImageHelpText()
-}
-
-function renderExistingImages() {
-  if (existingImages.length === 0) {
-    document.getElementById("existingImagesSection").classList.add("hidden")
-    return
-  }
-
-  document.getElementById("existingImagesSection").classList.remove("hidden")
-  existingImagesContainer.innerHTML = existingImages
-    .map((img) => `
-      <div class="relative">
-        <img src="${img.url}" alt="Bild" class="w-20 h-20 object-cover rounded">
-        <button type="button" onclick="deleteExistingImage(${img.id})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs hover:bg-red-600">&times;</button>
+    list.innerHTML = data.ads
+      .map(
+        (ad) => `
+      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0 bg-amber-50 rounded mb-2">
+        <div class="flex-1">
+          <a href="/annons/${ad.id}" class="text-primary font-semibold">${escapeHtml(ad.title)}</a><br>
+          <span class="${ad.state === "sold" ? "text-green-600 font-bold" : ad.state === "expired" ? "text-yellow-600" : "text-primary"}">${getStateLabel(ad.state)}</span>
+          • ${formatPrice(ad.price)}
+          ${ad.expires_at ? `<br><span class="text-xs text-gray-400">Utgår: ${formatDate(ad.expires_at)}</span>` : ""}
+        </div>
+        <div class="flex gap-2.5">
+          <a href="/annons/${ad.id}/redigera" class="px-2.5 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 no-underline">Redigera</a>
+          ${
+            ad.state === "ok"
+              ? `<button class="px-2.5 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700" onclick="markAsSold(${ad.id})">Markera såld</button>`
+              : ""
+          }
+          <button class="px-2.5 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700" onclick="deleteAd(${ad.id})">Radera</button>
+        </div>
       </div>
-    `)
-    .join("")
-}
-
-async function deleteExistingImage(imageId) {
-  if (!confirm("Är du säker på att du vill radera denna bild?")) return
-
-  try {
-    const res = await fetch(`/api/images/${imageId}`, { method: "DELETE" })
-
-    if (res.ok) {
-      existingImages = existingImages.filter(img => img.id !== imageId)
-      renderExistingImages()
-      updateImageHelpText()
-      showAlert("Bild raderad", "success")
-    } else {
-      showAlert("Kunde inte radera bilden", "error")
-    }
+    `
+      )
+      .join("")
   } catch {
-    showAlert("Något gick fel", "error")
+    showAlert("Kunde inte ladda annonser", "error")
   }
 }
 
-function updateImageHelpText() {
-  const remainingSlots = MAX_IMAGES - existingImages.length
-  const helpText = document.getElementById("imageHelpText")
-  
-  if (remainingSlots <= 0) {
-    helpText.textContent = "Max antal bilder uppnått. Radera en befintlig bild för att lägga till fler."
-    imageInput.disabled = true
-  } else {
-    helpText.textContent = `Välj upp till ${remainingSlots} nya bild${remainingSlots !== 1 ? "er" : ""}.`
-    imageInput.disabled = false
-  }
-}
-
-// Categories
-async function loadCategories() {
+async function markAsSold(id) {
   try {
-    const res = await fetch("/api/categories")
-    const data = await res.json()
-    categories = data.categories
-
-    // Populate category select
-    const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
-    adCategorySelect.innerHTML = '<option value="">Välj kategori</option>' + options
-    
-    // Set current value if ad is loaded
-    if (currentAd) {
-      adCategorySelect.value = currentAd.category || ""
-    }
-  } catch (err) {
-    console.error("Failed to load categories:", err)
-  }
-}
-
-// Counties
-async function loadCounties() {
-  try {
-    const res = await fetch("/api/counties")
-    const data = await res.json()
-    counties = data.counties
-
-    // Populate county select (escape HTML to prevent XSS)
-    const options = counties.map((county) => `<option value="${escapeHtml(county)}">${escapeHtml(county)}</option>`).join("")
-    adCountySelect.innerHTML = '<option value="">Välj län</option>' + options
-    
-    // Set current value if ad is loaded
-    if (currentAd) {
-      adCountySelect.value = currentAd.county || ""
-    }
-  } catch (err) {
-    console.error("Failed to load counties:", err)
-  }
-}
-
-// Image handling
-function handleImageSelect(e) {
-  const files = Array.from(e.target.files)
-  const remainingSlots = MAX_IMAGES - existingImages.length
-  
-  // Limit to remaining slots
-  if (files.length > remainingSlots) {
-    showAlert(`Du kan max lägga till ${remainingSlots} nya bild${remainingSlots !== 1 ? "er" : ""}`, "error")
-    e.target.value = ""
-    return
-  }
-  
-  selectedImages = files.slice(0, remainingSlots)
-  
-  // Show preview
-  imagePreviewContainer.innerHTML = ""
-  selectedImages.forEach((file, index) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const preview = document.createElement("div")
-      preview.className = "relative"
-      preview.innerHTML = `
-        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 object-cover rounded">
-        <button type="button" onclick="removeNewImage(${index})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs hover:bg-red-600">&times;</button>
-      `
-      imagePreviewContainer.appendChild(preview)
-    }
-    reader.readAsDataURL(file)
-  })
-}
-
-function removeNewImage(index) {
-  selectedImages.splice(index, 1)
-  
-  // Update file input
-  const dataTransfer = new DataTransfer()
-  selectedImages.forEach(file => dataTransfer.items.add(file))
-  imageInput.files = dataTransfer.files
-  
-  // Refresh preview
-  handleImageSelect({ target: imageInput })
-}
-
-// Edit Ad
-async function handleEditAd(e) {
-  e.preventDefault()
-
-  const updates = {
-    title: document.getElementById("adTitle").value,
-    category: document.getElementById("adCategory").value,
-    price: parseInt(document.getElementById("adPrice").value),
-    county: document.getElementById("adCounty").value,
-    description: document.getElementById("adDescription").value,
-    contact_phone: document.getElementById("adContactPhone").value || null,
-    contact_email: document.getElementById("adContactEmail").value || null,
-  }
-
-  try {
-    // Update ad details
-    const res = await fetch(`/api/ads/${currentAdId}`, {
+    const res = await fetch(`/api/ads/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
+      body: JSON.stringify({ state: "sold" }),
     })
 
-    const data = await res.json()
-
-    if (!res.ok) {
-      showAlert(data.error, "error")
-      return
+    if (res.ok) {
+      loadMyAds()
+      showAlert("Annons markerad som såld", "success")
     }
-
-    // Upload new images if any
-    if (selectedImages.length > 0) {
-      const formData = new FormData()
-      selectedImages.forEach(file => formData.append("images", file))
-
-      const imgRes = await fetch(`/api/ads/${currentAdId}/images`, {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!imgRes.ok) {
-        showAlert("Annons uppdaterad men bilderna kunde inte laddas upp", "error")
-        return
-      }
-    }
-
-    showAlert("Annons uppdaterad!", "success")
-    
-    // Redirect to the ad page
-    setTimeout(() => {
-      window.location.href = `/annons/${currentAdId}`
-    }, 1000)
   } catch {
     showAlert("Något gick fel", "error")
   }
+}
+
+async function deleteAd(id) {
+  if (!confirm("Är du säker på att du vill radera denna annons?")) return
+
+  try {
+    const res = await fetch(`/api/ads/${id}`, { method: "DELETE" })
+
+    if (res.ok) {
+      loadMyAds()
+      showAlert("Annons raderad", "success")
+    }
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
+function getStateLabel(state) {
+  const labels = {
+    ok: "Aktiv",
+    sold: "Såld",
+    expired: "Utgången",
+    reported: "Under granskning",
+    deleted: "Borttagen"
+  }
+  return labels[state] || state
 }
 
 // Conversation/Chat functions
@@ -627,6 +429,6 @@ function showAlert(message, type) {
 // Make functions available globally for onclick handlers
 window.openModal = openModal
 window.closeModal = closeModal
-window.removeNewImage = removeNewImage
-window.deleteExistingImage = deleteExistingImage
 window.openChat = openChat
+window.markAsSold = markAsSold
+window.deleteAd = deleteAd
