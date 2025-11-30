@@ -1,8 +1,4 @@
-function assertEquals<T>(actual: T, expected: T, msg?: string): void {
-  if (actual !== expected) {
-    throw new Error(msg || `Expected ${expected}, but got ${actual}`)
-  }
-}
+import { assertEquals } from "../utils/test_utils.ts"
 import { ADJACENT_COUNTIES, CATEGORIES, COUNTIES } from "./types.ts"
 
 Deno.test("CATEGORIES - contains expected categories", () => {

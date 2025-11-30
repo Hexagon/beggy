@@ -1,8 +1,4 @@
-function assertEquals<T>(actual: T, expected: T, msg?: string): void {
-  if (actual !== expected) {
-    throw new Error(msg || `Expected ${expected}, but got ${actual}`)
-  }
-}
+import { assertEquals } from "./test_utils.ts"
 import {
   decryptMessage,
   deriveConversationKey,
