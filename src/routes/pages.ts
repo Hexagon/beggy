@@ -43,4 +43,15 @@ router.get("/om", async (ctx) => {
   ctx.response.body = await renderTemplate("about.html")
 })
 
+// User pages
+router.get("/mina-annonser", async (ctx) => {
+  ctx.response.type = "text/html"
+  ctx.response.body = await renderTemplate("my-ads.html")
+})
+
+router.get("/installningar", async (ctx) => {
+  ctx.response.type = "text/html"
+  ctx.response.body = await renderTemplate("settings.html")
+})
+
 export { router as pagesRouter }

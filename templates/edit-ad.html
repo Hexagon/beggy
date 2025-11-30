@@ -48,8 +48,10 @@
             id="messagesBtn"
             class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
           >Meddelanden</a>
-          <a href="#" id="myAdsBtn" class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
+          <a href="/mina-annonser" class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
           >Mina annonser</a>
+          <a href="/installningar" class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
+          >Inställningar</a>
           <a
             href="#"
             id="logoutBtn"
@@ -290,40 +292,6 @@
             Har du redan ett konto? <a href="#" id="showLogin" class="text-primary">Logga in</a>
           </p>
         </form>
-      </div>
-    </div>
-
-    <!-- My Ads Modal -->
-    <div
-      class="modal hidden fixed inset-0 bg-black/50 z-[1000] overflow-y-auto p-5"
-      id="myAdsModal"
-    >
-      <div class="bg-white max-w-xl mx-auto mt-12 p-8 rounded-lg relative">
-        <span
-          class="close absolute top-4 right-5 text-2xl cursor-pointer text-gray-500 hover:text-gray-800"
-          onclick="closeModal('myAdsModal')"
-        >&times;</span>
-        <h2 class="text-xl font-semibold mb-4">Mina annonser</h2>
-        <div id="myAdsList"></div>
-        <hr class="my-5" />
-        <h3 class="text-lg font-semibold">Kontoinställningar</h3>
-        <div class="flex gap-2.5 flex-wrap mt-4">
-          <button
-            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-            onclick="exportMyData()"
-          >
-            📥 Exportera mina data (GDPR)
-          </button>
-          <button
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            onclick="deleteMyAccount()"
-          >
-            🗑️ Radera mitt konto
-          </button>
-        </div>
-        <p class="text-gray-500 text-sm mt-2.5">
-          Du har rätt att exportera eller radera all din personliga data enligt GDPR.
-        </p>
       </div>
     </div>
 

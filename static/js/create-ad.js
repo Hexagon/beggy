@@ -49,13 +49,6 @@ function setupEventListeners() {
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
 
-  // My ads
-  document.getElementById("myAdsBtn").addEventListener("click", (e) => {
-    e.preventDefault()
-    loadMyAds()
-    openModal("myAdsModal")
-  })
-
   // Messages
   document.getElementById("messagesBtn").addEventListener("click", (e) => {
     e.preventDefault()
@@ -322,145 +315,6 @@ async function handleCreateAd(e) {
   }
 }
 
-// My Ads
-async function loadMyAds() {
-  try {
-    const res = await fetch("/api/my-ads")
-    const data = await res.json()
-
-    const list = document.getElementById("myAdsList")
-
-    if (data.ads.length === 0) {
-      list.innerHTML = "<p class='text-gray-500'>Du har inga annonser ännu.</p>"
-      return
-    }
-
-    list.innerHTML = data.ads
-      .map(
-        (ad) => `
-      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0">
-        <div class="flex-1">
-          <a href="/annons/${ad.id}" class="text-primary font-semibold">${escapeHtml(ad.title)}</a><br>
-          <span class="${ad.state === "sold" ? "text-green-600 font-bold" : ad.state === "expired" ? "text-yellow-600" : "text-primary"}">${getStateLabel(ad.state)}</span>
-          • ${formatPrice(ad.price)}
-          ${ad.expires_at ? `<br><span class="text-xs text-gray-400">Utgår: ${formatDate(ad.expires_at)}</span>` : ""}
-        </div>
-        <div class="flex gap-2.5">
-          <a href="/annons/${ad.id}/redigera" class="px-2.5 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 no-underline">Redigera</a>
-          ${
-            ad.state === "ok"
-              ? `<button class="px-2.5 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700" onclick="markAsSold(${ad.id})">Markera såld</button>`
-              : ""
-          }
-          <button class="px-2.5 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700" onclick="deleteAd(${ad.id})">Radera</button>
-        </div>
-      </div>
-    `
-      )
-      .join("")
-  } catch {
-    showAlert("Kunde inte ladda annonser", "error")
-  }
-}
-
-async function markAsSold(id) {
-  try {
-    const res = await fetch(`/api/ads/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state: "sold" }),
-    })
-
-    if (res.ok) {
-      loadMyAds()
-      showAlert("Annons markerad som såld", "success")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
-
-async function deleteAd(id) {
-  if (!confirm("Är du säker på att du vill radera denna annons?")) return
-
-  try {
-    const res = await fetch(`/api/ads/${id}`, { method: "DELETE" })
-
-    if (res.ok) {
-      loadMyAds()
-      showAlert("Annons raderad", "success")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
-
-function getStateLabel(state) {
-  const labels = {
-    ok: "Aktiv",
-    sold: "Såld",
-    expired: "Utgången",
-    reported: "Under granskning",
-    deleted: "Borttagen"
-  }
-  return labels[state] || state
-}
-
-// Account management (GDPR compliance)
-async function exportMyData() {
-  try {
-    const res = await fetch("/api/auth/my-data")
-    
-    if (!res.ok) {
-      showAlert("Kunde inte hämta data", "error")
-      return
-    }
-
-    const data = await res.json()
-    
-    // Download as JSON file
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `beggy-data-export-${new Date().toISOString().split("T")[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    showAlert("Data exporterad!", "success")
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
-
-async function deleteMyAccount() {
-  if (!confirm("Är du HELT säker på att du vill radera ditt konto?\n\nAll din data, inklusive annonser och bilder, kommer att raderas permanent.")) {
-    return
-  }
-  
-  if (!confirm("Detta kan inte ångras. Vill du verkligen fortsätta?")) {
-    return
-  }
-
-  try {
-    const res = await fetch("/api/auth/account", { method: "DELETE" })
-
-    if (res.ok) {
-      currentUser = null
-      updateAuthUI()
-      closeModal("myAdsModal")
-      showAlert("Ditt konto har raderats", "success")
-      window.location.href = "/"
-    } else {
-      showAlert("Kunde inte radera konto", "error")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
-
 // Conversation/Chat functions
 async function loadConversations() {
   try {
@@ -638,7 +492,3 @@ window.openModal = openModal
 window.closeModal = closeModal
 window.removeImage = removeImage
 window.openChat = openChat
-window.markAsSold = markAsSold
-window.deleteAd = deleteAd
-window.exportMyData = exportMyData
-window.deleteMyAccount = deleteMyAccount
