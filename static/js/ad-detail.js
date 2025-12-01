@@ -188,16 +188,18 @@ async function loadAdDetail() {
 
     const content = document.getElementById("adDetailContent")
     
-    // Check if user can contact seller (logged in and not own ad)
-    const canContact = currentUser && currentUser.id !== ad.user_id && ad.state === "ok"
+    // Check if user can contact seller (logged in, not own ad, and messages are enabled)
+    const canContact = currentUser && currentUser.id !== ad.user_id && ad.state === "ok" && ad.allow_messages !== false
     const isOwner = currentUser && currentUser.id === ad.user_id
     
-    // Only show "Logga in" button if NOT logged in
+    // Only show "Logga in" or "Kontakta säljaren" button if on-site messages are enabled
     let contactButton = ""
-    if (canContact) {
-      contactButton = `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">Kontakta säljaren</button>`
-    } else if (!currentUser && ad.state === "ok") {
-      contactButton = `<button class="px-4 py-2 bg-stone-300 text-stone-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`
+    if (ad.allow_messages !== false) {
+      if (canContact) {
+        contactButton = `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">Kontakta säljaren</button>`
+      } else if (!currentUser && ad.state === "ok") {
+        contactButton = `<button class="px-4 py-2 bg-stone-300 text-stone-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`
+      }
     }
 
     // Edit button for owner
@@ -205,8 +207,35 @@ async function loadAdDetail() {
       ? `<a href="/annons/${ad.id}/redigera" class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 no-underline inline-block">✏️ Redigera annons</a>`
       : ""
 
+    // Build contact info section - only show enabled contact methods
+    let contactInfo = ""
+    if (ad.allow_messages !== false) {
+      // On-site messages are enabled by default (allow_messages is true or undefined)
+      contactInfo += `<p><span class="font-semibold">Meddelanden:</span> Aktiverat</p>`
+    }
+    if (ad.seller_contact_phone) {
+      contactInfo += `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>`
+    }
+    if (ad.seller_contact_email) {
+      contactInfo += `<p><span class="font-semibold">E-post:</span> ${escapeHtml(ad.seller_contact_email)}</p>`
+    }
+
     content.innerHTML = `
-      <h1 class="text-3xl font-bold mb-6">${escapeHtml(ad.title)}</h1>
+      <div class="flex items-start justify-between gap-4 mb-6">
+        <h1 class="text-3xl font-bold">${escapeHtml(ad.title)}</h1>
+        <!-- Share icons in title row -->
+        <div class="flex gap-2 flex-shrink-0">
+          <button class="p-2 text-stone-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" onclick="shareToFacebook()" title="Dela på Facebook" aria-label="Dela på Facebook">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </button>
+          <button class="p-2 text-stone-500 hover:text-black hover:bg-stone-100 rounded-full transition-colors" onclick="shareToX()" title="Dela på X" aria-label="Dela på X">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+          <button class="p-2 text-stone-500 hover:text-primary hover:bg-amber-50 rounded-full transition-colors" onclick="copyAdLink()" title="Kopiera länk" aria-label="Kopiera länk">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+      </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Left column: Image -->
         <div>
@@ -228,8 +257,7 @@ async function loadAdDetail() {
             <p><span class="font-semibold">Kategori:</span> ${escapeHtml(ad.category)}</p>
             ${ad.county ? `<p><span class="font-semibold">Län:</span> ${escapeHtml(ad.county)}</p>` : ""}
             <p><span class="font-semibold">Säljare:</span> ${escapeHtml(ad.seller_username)}</p>
-            ${ad.seller_contact_phone ? `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>` : ""}
-            ${ad.seller_contact_email ? `<p><span class="font-semibold">E-post:</span> ${escapeHtml(ad.seller_contact_email)}</p>` : ""}
+            ${contactInfo}
             <p><span class="font-semibold">Publicerad:</span> ${formatDate(ad.created_at)}</p>
             ${ad.state !== "ok" ? `<p><span class="text-amber-600 font-bold">Status: ${getStateLabel(ad.state)}</span></p>` : ""}
           </div>
@@ -237,13 +265,6 @@ async function loadAdDetail() {
             ${contactButton}
             ${editButton}
             <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="openReportModal(${ad.id})">⚠️ Rapportera annons</button>
-          </div>
-          <!-- Share buttons -->
-          <div class="share-actions flex gap-2.5 flex-wrap mt-4 pt-4 border-t border-stone-200">
-            <span class="text-stone-600 font-medium self-center">Dela:</span>
-            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" onclick="shareToFacebook()">Facebook</button>
-            <button class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800" onclick="shareToX()">X</button>
-            <button class="px-4 py-2 border border-stone-300 rounded hover:bg-stone-100" onclick="copyAdLink()">📋 Kopiera länk</button>
           </div>
         </div>
       </div>

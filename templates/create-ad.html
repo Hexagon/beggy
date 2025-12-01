@@ -145,26 +145,57 @@
               </p>
             </div>
             <div class="mb-4">
-              <label class="block mb-1 font-medium">Kontaktsätt (valfritt)</label>
-              <div
-                class="bg-amber-50 border border-amber-300 rounded p-3 mb-2 text-sm text-amber-800"
-              >
-                ⚠️ <strong>Varning:</strong> Om du anger telefon eller e-post nedan kommer det visas
-                publikt på denna annons. Kontaktuppgifterna tas bort när annonsen raderas. Använd
-                istället vårt inbyggda meddelandesystem för säkrare kontakt.
+              <label class="block mb-1 font-medium">Kontaktsätt *</label>
+              <p class="text-sm text-stone-500 mb-2">
+                Välj minst ett sätt för köpare att kontakta dig.
+              </p>
+              <div class="space-y-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="adAllowMessages"
+                    checked
+                    class="w-4 h-4 text-primary"
+                  >
+                  <span>Meddelanden via Beggy (rekommenderas)</span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="adUsePhone"
+                    class="w-4 h-4 text-primary"
+                    onchange="togglePhoneInput()"
+                  >
+                  <input
+                    type="tel"
+                    id="adContactPhone"
+                    placeholder="Telefonnummer (visas publikt)"
+                    class="flex-1 p-2.5 border border-stone-300 rounded text-base bg-white disabled:bg-stone-100 disabled:text-stone-400"
+                    disabled
+                  >
+                </div>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="adUseEmail"
+                    class="w-4 h-4 text-primary"
+                    onchange="toggleEmailInput()"
+                  >
+                  <input
+                    type="email"
+                    id="adContactEmail"
+                    placeholder="E-post (visas publikt)"
+                    class="flex-1 p-2.5 border border-stone-300 rounded text-base bg-white disabled:bg-stone-100 disabled:text-stone-400"
+                    disabled
+                  >
+                </div>
               </div>
-              <input
-                type="tel"
-                id="adContactPhone"
-                placeholder="Telefonnummer (visas publikt)"
-                class="w-full p-2.5 border border-stone-300 rounded text-base mb-2 bg-white"
+              <div
+                class="bg-amber-50 border border-amber-300 rounded p-3 mt-2 text-sm text-amber-800"
               >
-              <input
-                type="email"
-                id="adContactEmail"
-                placeholder="Kontakt-e-post (visas publikt)"
-                class="w-full p-2.5 border border-stone-300 rounded text-base bg-white"
-              >
+                ⚠️ <strong>Varning:</strong> Om du anger telefon eller e-post kommer det visas
+                publikt på annonsen. Kontaktuppgifterna tas bort när annonsen raderas.
+              </div>
             </div>
             <button
               type="submit"
