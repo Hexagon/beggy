@@ -27,13 +27,16 @@ export function getAuthenticatedSupabase(accessToken: string): SupabaseClient {
   })
 }
 
-export function initDatabase(supabaseUrl: string | null = null, supabaseKey: string | null = null): void {
+export function initDatabase(_supabaseUrl: string | null = null, _supabaseKey: string | null = null): void {
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!_supabaseUrl || !_supabaseKey) {
     throw new Error(
       "Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables. " +
         "Please set them in your environment or .env file.",
     )
+  } else {
+    supabaseUrl = _supabaseUrl;
+    supabaseKey = _supabaseKey;
   }
 
   supabase = createClient(supabaseUrl, supabaseKey)
