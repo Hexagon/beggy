@@ -258,9 +258,55 @@ function removeImage(index) {
   handleImageSelect({ target: imageInput })
 }
 
+// Toggle phone input based on checkbox
+function togglePhoneInput() {
+  const checkbox = document.getElementById("adUsePhone")
+  const input = document.getElementById("adContactPhone")
+  input.disabled = !checkbox.checked
+  if (!checkbox.checked) {
+    input.value = ""
+  }
+}
+
+// Toggle email input based on checkbox
+function toggleEmailInput() {
+  const checkbox = document.getElementById("adUseEmail")
+  const input = document.getElementById("adContactEmail")
+  input.disabled = !checkbox.checked
+  if (!checkbox.checked) {
+    input.value = ""
+  }
+}
+
 // Create Ad
 async function handleCreateAd(e) {
   e.preventDefault()
+
+  const allowMessages = document.getElementById("adAllowMessages").checked
+  const usePhone = document.getElementById("adUsePhone").checked
+  const useEmail = document.getElementById("adUseEmail").checked
+  const contactPhoneRaw = usePhone ? document.getElementById("adContactPhone").value.trim() : null
+  const contactEmailRaw = useEmail ? document.getElementById("adContactEmail").value.trim() : null
+  const contactPhone = contactPhoneRaw || null
+  const contactEmail = contactEmailRaw || null
+
+  // Validate at least one contact method
+  if (!allowMessages && !contactPhone && !contactEmail) {
+    showAlert("Du måste välja minst ett kontaktsätt", "error")
+    return
+  }
+
+  // Validate phone number if enabled
+  if (usePhone && !contactPhone) {
+    showAlert("Ange ett telefonnummer eller avmarkera telefon", "error")
+    return
+  }
+
+  // Validate email if enabled
+  if (useEmail && !contactEmail) {
+    showAlert("Ange en e-postadress eller avmarkera e-post", "error")
+    return
+  }
 
   const ad = {
     title: document.getElementById("adTitle").value,
@@ -268,8 +314,9 @@ async function handleCreateAd(e) {
     price: parseInt(document.getElementById("adPrice").value),
     county: document.getElementById("adCounty").value,
     description: document.getElementById("adDescription").value,
-    contact_phone: document.getElementById("adContactPhone").value || null,
-    contact_email: document.getElementById("adContactEmail").value || null,
+    allow_messages: allowMessages,
+    contact_phone: contactPhone,
+    contact_email: contactEmail,
   }
 
   try {
@@ -492,3 +539,5 @@ window.openModal = openModal
 window.closeModal = closeModal
 window.removeImage = removeImage
 window.openChat = openChat
+window.togglePhoneInput = togglePhoneInput
+window.toggleEmailInput = toggleEmailInput

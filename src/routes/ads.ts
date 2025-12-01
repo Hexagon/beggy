@@ -151,6 +151,7 @@ router.get("/api/ads/:id", async (ctx) => {
     category: ad.category,
     county: ad.county,
     state: ad.state,
+    allow_messages: ad.allow_messages !== false, // default to true for backwards compatibility
     created_at: ad.created_at,
     updated_at: ad.updated_at,
     expires_at: ad.expires_at,
@@ -178,7 +179,7 @@ router.post("/api/ads", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, county, contact_phone, contact_email } = body
+  const { title, description, price, category, county, contact_phone, contact_email, allow_messages } = body
 
   if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
@@ -204,6 +205,21 @@ router.post("/api/ads", async (ctx) => {
     return
   }
 
+  // Trim whitespace from contact fields
+  const trimmedPhone = typeof contact_phone === "string" ? contact_phone.trim() : null
+  const trimmedEmail = typeof contact_email === "string" ? contact_email.trim() : null
+
+  // Validate that at least one contact method is enabled
+  const hasMessages = allow_messages !== false // default to true
+  const hasPhone = !!trimmedPhone
+  const hasEmail = !!trimmedEmail
+  
+  if (!hasMessages && !hasPhone && !hasEmail) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden, telefon eller e-post)" }
+    return
+  }
+
   // Check for forbidden words
   if (containsForbiddenWords({ title, description })) {
     ctx.response.status = 400
@@ -226,8 +242,9 @@ router.post("/api/ads", async (ctx) => {
       price,
       category,
       county,
-      contact_phone: contact_phone || null,
-      contact_email: contact_email || null,
+      contact_phone: trimmedPhone || null,
+      contact_email: trimmedEmail || null,
+      allow_messages: allow_messages !== false, // default to true
       state: "ok",
       expires_at: expiresAt.toISOString(),
     })
@@ -271,7 +288,7 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, county, contact_phone, contact_email, state } = body
+  const { title, description, price, category, county, contact_phone, contact_email, allow_messages, state } = body
 
   if (category && !CATEGORIES.includes(category)) {
     ctx.response.status = 400
@@ -285,6 +302,23 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
+  // Trim whitespace from contact fields
+  const trimmedPhone = typeof contact_phone === "string" ? contact_phone.trim() : contact_phone
+  const trimmedEmail = typeof contact_email === "string" ? contact_email.trim() : contact_email
+
+  // Validate that at least one contact method is enabled when updating contact settings
+  if (allow_messages !== undefined || contact_phone !== undefined || contact_email !== undefined) {
+    const hasMessages = allow_messages !== false // default to true if not specified
+    const hasPhone = !!trimmedPhone
+    const hasEmail = !!trimmedEmail
+    
+    if (!hasMessages && !hasPhone && !hasEmail) {
+      ctx.response.status = 400
+      ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden, telefon eller e-post)" }
+      return
+    }
+  }
+
   // Check for forbidden words in updated content
   if (containsForbiddenWords({ title, description })) {
     ctx.response.status = 400
@@ -292,15 +326,16 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
-  const updates: Record<string, string | number | null> = {}
+  const updates: Record<string, string | number | boolean | null> = {}
 
   if (title !== undefined) updates.title = title
   if (description !== undefined) updates.description = description
   if (price !== undefined) updates.price = price
   if (category !== undefined) updates.category = category
   if (county !== undefined) updates.county = county
-  if (contact_phone !== undefined) updates.contact_phone = contact_phone || null
-  if (contact_email !== undefined) updates.contact_email = contact_email || null
+  if (contact_phone !== undefined) updates.contact_phone = trimmedPhone || null
+  if (contact_email !== undefined) updates.contact_email = trimmedEmail || null
+  if (allow_messages !== undefined) updates.allow_messages = allow_messages
   // User can only change state to "ok" or "sold"
   if (state !== undefined && ["ok", "sold"].includes(state)) updates.state = state
 

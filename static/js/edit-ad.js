@@ -242,8 +242,20 @@ function populateForm(ad) {
   document.getElementById("adTitle").value = ad.title || ""
   document.getElementById("adPrice").value = ad.price || 0
   document.getElementById("adDescription").value = ad.description || ""
+  
+  // Set contact method checkboxes and inputs
+  const allowMessages = ad.allow_messages !== false // default to true
+  document.getElementById("adAllowMessages").checked = allowMessages
+  
+  const hasPhone = !!ad.seller_contact_phone
+  document.getElementById("adUsePhone").checked = hasPhone
   document.getElementById("adContactPhone").value = ad.seller_contact_phone || ""
+  document.getElementById("adContactPhone").disabled = !hasPhone
+  
+  const hasEmail = !!ad.seller_contact_email
+  document.getElementById("adUseEmail").checked = hasEmail
   document.getElementById("adContactEmail").value = ad.seller_contact_email || ""
+  document.getElementById("adContactEmail").disabled = !hasEmail
   
   // Set category (may need to wait for options to load)
   if (adCategorySelect.options.length > 1) {
@@ -396,9 +408,55 @@ function removeNewImage(index) {
   handleImageSelect({ target: imageInput })
 }
 
+// Toggle phone input based on checkbox
+function togglePhoneInput() {
+  const checkbox = document.getElementById("adUsePhone")
+  const input = document.getElementById("adContactPhone")
+  input.disabled = !checkbox.checked
+  if (!checkbox.checked) {
+    input.value = ""
+  }
+}
+
+// Toggle email input based on checkbox
+function toggleEmailInput() {
+  const checkbox = document.getElementById("adUseEmail")
+  const input = document.getElementById("adContactEmail")
+  input.disabled = !checkbox.checked
+  if (!checkbox.checked) {
+    input.value = ""
+  }
+}
+
 // Edit Ad
 async function handleEditAd(e) {
   e.preventDefault()
+
+  const allowMessages = document.getElementById("adAllowMessages").checked
+  const usePhone = document.getElementById("adUsePhone").checked
+  const useEmail = document.getElementById("adUseEmail").checked
+  const contactPhoneRaw = usePhone ? document.getElementById("adContactPhone").value.trim() : null
+  const contactEmailRaw = useEmail ? document.getElementById("adContactEmail").value.trim() : null
+  const contactPhone = contactPhoneRaw || null
+  const contactEmail = contactEmailRaw || null
+
+  // Validate at least one contact method
+  if (!allowMessages && !contactPhone && !contactEmail) {
+    showAlert("Du måste välja minst ett kontaktsätt", "error")
+    return
+  }
+
+  // Validate phone number if enabled
+  if (usePhone && !contactPhone) {
+    showAlert("Ange ett telefonnummer eller avmarkera telefon", "error")
+    return
+  }
+
+  // Validate email if enabled
+  if (useEmail && !contactEmail) {
+    showAlert("Ange en e-postadress eller avmarkera e-post", "error")
+    return
+  }
 
   const updates = {
     title: document.getElementById("adTitle").value,
@@ -406,8 +464,9 @@ async function handleEditAd(e) {
     price: parseInt(document.getElementById("adPrice").value),
     county: document.getElementById("adCounty").value,
     description: document.getElementById("adDescription").value,
-    contact_phone: document.getElementById("adContactPhone").value || null,
-    contact_email: document.getElementById("adContactEmail").value || null,
+    allow_messages: allowMessages,
+    contact_phone: contactPhone,
+    contact_email: contactEmail,
   }
 
   try {
@@ -630,3 +689,5 @@ window.closeModal = closeModal
 window.removeNewImage = removeNewImage
 window.deleteExistingImage = deleteExistingImage
 window.openChat = openChat
+window.togglePhoneInput = togglePhoneInput
+window.toggleEmailInput = toggleEmailInput
