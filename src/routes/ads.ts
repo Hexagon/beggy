@@ -205,10 +205,14 @@ router.post("/api/ads", async (ctx) => {
     return
   }
 
+  // Trim whitespace from contact fields
+  const trimmedPhone = typeof contact_phone === "string" ? contact_phone.trim() : null
+  const trimmedEmail = typeof contact_email === "string" ? contact_email.trim() : null
+
   // Validate that at least one contact method is enabled
   const hasMessages = allow_messages !== false // default to true
-  const hasPhone = !!contact_phone
-  const hasEmail = !!contact_email
+  const hasPhone = !!trimmedPhone
+  const hasEmail = !!trimmedEmail
   
   if (!hasMessages && !hasPhone && !hasEmail) {
     ctx.response.status = 400
@@ -238,8 +242,8 @@ router.post("/api/ads", async (ctx) => {
       price,
       category,
       county,
-      contact_phone: contact_phone || null,
-      contact_email: contact_email || null,
+      contact_phone: trimmedPhone || null,
+      contact_email: trimmedEmail || null,
       allow_messages: allow_messages !== false, // default to true
       state: "ok",
       expires_at: expiresAt.toISOString(),
@@ -298,11 +302,15 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
+  // Trim whitespace from contact fields
+  const trimmedPhone = typeof contact_phone === "string" ? contact_phone.trim() : contact_phone
+  const trimmedEmail = typeof contact_email === "string" ? contact_email.trim() : contact_email
+
   // Validate that at least one contact method is enabled when updating contact settings
   if (allow_messages !== undefined || contact_phone !== undefined || contact_email !== undefined) {
     const hasMessages = allow_messages !== false // default to true if not specified
-    const hasPhone = !!contact_phone
-    const hasEmail = !!contact_email
+    const hasPhone = !!trimmedPhone
+    const hasEmail = !!trimmedEmail
     
     if (!hasMessages && !hasPhone && !hasEmail) {
       ctx.response.status = 400
@@ -325,8 +333,8 @@ router.put("/api/ads/:id", async (ctx) => {
   if (price !== undefined) updates.price = price
   if (category !== undefined) updates.category = category
   if (county !== undefined) updates.county = county
-  if (contact_phone !== undefined) updates.contact_phone = contact_phone || null
-  if (contact_email !== undefined) updates.contact_email = contact_email || null
+  if (contact_phone !== undefined) updates.contact_phone = trimmedPhone || null
+  if (contact_email !== undefined) updates.contact_email = trimmedEmail || null
   if (allow_messages !== undefined) updates.allow_messages = allow_messages
   // User can only change state to "ok" or "sold"
   if (state !== undefined && ["ok", "sold"].includes(state)) updates.state = state

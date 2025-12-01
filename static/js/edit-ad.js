@@ -435,8 +435,10 @@ async function handleEditAd(e) {
   const allowMessages = document.getElementById("adAllowMessages").checked
   const usePhone = document.getElementById("adUsePhone").checked
   const useEmail = document.getElementById("adUseEmail").checked
-  const contactPhone = usePhone ? document.getElementById("adContactPhone").value : null
-  const contactEmail = useEmail ? document.getElementById("adContactEmail").value : null
+  const contactPhoneRaw = usePhone ? document.getElementById("adContactPhone").value.trim() : null
+  const contactEmailRaw = useEmail ? document.getElementById("adContactEmail").value.trim() : null
+  const contactPhone = contactPhoneRaw || null
+  const contactEmail = contactEmailRaw || null
 
   // Validate at least one contact method
   if (!allowMessages && !contactPhone && !contactEmail) {
