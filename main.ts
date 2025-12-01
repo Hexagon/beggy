@@ -1,10 +1,14 @@
 import { Application } from "@oak/oak"
+import { setupEnv, getEnv } from "@cross/env"
 import { router } from "./src/routes/mod.ts"
 import { initDatabase } from "./src/db/database.ts"
 import { errorMiddleware } from "./src/middleware/error.ts"
 
+// Load environment variables from .env file
+await setupEnv({ dotEnv: { enabled: true } })
+
 // Initialize Supabase
-initDatabase()
+initDatabase(getEnv("SUPABASE_URL"), getEnv("SUPABASE_ANON_KEY"))
 
 const app = new Application()
 
@@ -27,6 +31,6 @@ app.use(async (ctx, next) => {
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-const port = parseInt(Deno.env.get("PORT") || "8000")
+const port = parseInt(getEnv("PORT") || "8000")
 console.log(`🛒 Beggy startar på http://localhost:${port}`)
 app.listen({ port })

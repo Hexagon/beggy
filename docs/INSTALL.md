@@ -46,45 +46,67 @@ cd beggy
 
 ## 3. Environment Variables
 
+### Setup Using .env File (Recommended for Local Development)
+
+Beggy uses environment variables for configuration. The easiest way to set these up locally is:
+
+1. **Copy the template file:**
+
+```bash
+cp .env.template .env
+```
+
+2. **Edit the `.env` file** and fill in your actual values:
+
+```env
+# Supabase Configuration
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-actual-anon-key-here
+
+# Server Configuration
+PORT=8000
+
+# Message Encryption
+ENCRYPTION_SECRET=generate-a-random-secret-key-here
+```
+
+3. **Generate a secure encryption secret:**
+
+```bash
+# Generate a random secret (use one of these methods)
+openssl rand -base64 32
+# or
+deno eval "console.log(crypto.randomUUID() + crypto.randomUUID())"
+```
+
+The `.env` file is automatically loaded when you start the application - no need to manually export variables!
+
 ### Required Variables
 
-| Variable            | Description                 | Example                     |
-| ------------------- | --------------------------- | --------------------------- |
-| `SUPABASE_URL`      | Your Supabase project URL   | `https://xxxxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | `eyJhbGciOiJIUzI1NiIs...`   |
+| Variable            | Description                        | Example                     |
+| ------------------- | ---------------------------------- | --------------------------- |
+| `SUPABASE_URL`      | Your Supabase project URL          | `https://xxxxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Your Supabase anonymous key        | `eyJhbGciOiJIUzI1NiIs...`   |
+| `ENCRYPTION_SECRET` | Secret key for message encryption  | Random 32+ character string |
 
 ### Optional Variables
 
-| Variable | Description | Default |
-| -------- | ----------- | ------- |
-| `PORT`   | Server port | `8000`  |
+| Variable | Description                            | Default |
+| -------- | -------------------------------------- | ------- |
+| `PORT`   | Server port                            | `8000`  |
+| `DEV`    | Enable development mode (no caching)   | `false` |
 
-### Setting Environment Variables
+### Alternative Methods
 
-#### Option 1: Export in Terminal
+#### Option 1: Export in Terminal (Temporary)
 
 ```bash
 export SUPABASE_URL="https://your-project.supabase.co"
 export SUPABASE_ANON_KEY="your-anon-key"
+export ENCRYPTION_SECRET="your-secret-key"
 ```
 
-#### Option 2: Create .env File
-
-Create a `.env` file in the project root:
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-```
-
-Then load it before running:
-
-```bash
-export $(cat .env | xargs)
-deno task dev
-```
-
-#### Option 3: Deno Deploy (Production)
+#### Option 2: Deno Deploy (Production)
 
 Set environment variables in the Deno Deploy dashboard under **Settings** > **Environment
 Variables**.

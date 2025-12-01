@@ -3,11 +3,12 @@ import { getAuthenticatedSupabase } from "../db/database.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { decryptMessage, deriveConversationKey, encryptMessage } from "../utils/encryption.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
+import { getEnv } from "@cross/env"
 
 const router = new Router()
 
 // Server-side encryption secret (should be in environment variable)
-const ENCRYPTION_SECRET = Deno.env.get("ENCRYPTION_SECRET") || "beggy-default-secret-key-change-me"
+const ENCRYPTION_SECRET = getEnv("ENCRYPTION_SECRET") || "beggy-default-secret-key-change-me"
 
 // Get all conversations for current user
 router.get("/api/conversations", async (ctx) => {

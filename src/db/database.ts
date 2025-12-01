@@ -27,9 +27,7 @@ export function getAuthenticatedSupabase(accessToken: string): SupabaseClient {
   })
 }
 
-export function initDatabase(): void {
-  supabaseUrl = Deno.env.get("SUPABASE_URL") || null
-  supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || null
+export function initDatabase(supabaseUrl: string | null = null, supabaseKey: string | null = null): void {
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
