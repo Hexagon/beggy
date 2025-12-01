@@ -5,7 +5,7 @@
     ".": "./main.ts"
   },
   "tasks": {
-    "dev": "deno run --watch --allow-net --allow-read --allow-write --allow-env main.ts",
+    "dev": "deno run --watch=main.ts,src/,templates/ --allow-net --allow-read --allow-write --allow-env main.ts",
     "start": "deno run --allow-net --allow-read --allow-write --allow-env main.ts",
     "test": "deno test --allow-net --allow-read --allow-write --allow-env",
     "lint": "deno lint",

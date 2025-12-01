@@ -1,8 +1,11 @@
-<header class="bg-amber-50 py-4 sticky top-0 z-50">
+<header class="bg-amber-50 py-4 sticky top-0 z-50 border-b border-stone-200">
   <div class="max-w-6xl mx-auto px-5 flex items-center justify-between flex-wrap gap-2.5">
-    <div class="flex items-center">
-      <a href="/" class="text-2xl font-bold text-primary no-underline">Beggy</a>
-      <span class="text-sm text-stone-500 ml-4 hidden sm:inline">Köp och sälj begagnat</span>
+    <div class="flex items-baseline">
+      <a href="/" class="text-2xl font-bold text-primary-dark no-underline relative">
+        Beggy
+        <span class="absolute -top-2 -right-7 text-xs text-amber-50 font-bold bg-orange-400 px-1.5 pt-px pb-0.5 rounded transform rotate-6">beta</span>
+      </a>
+      <span class="text-xs text-stone-500 font-medium ml-9">Köp och sälj begagnat</span>
     </div>
     <nav class="nav flex items-center gap-5">
       <a
@@ -32,7 +35,13 @@
         href="#"
         id="logoutBtn"
         class="text-stone-800 no-underline px-3 py-2 hover:text-primary"
-      >Logga ut</a>
+        title="Logga ut"
+        aria-label="Logga ut"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+      </a>
     </nav>
   </div>
 </header>
