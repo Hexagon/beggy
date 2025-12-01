@@ -268,14 +268,14 @@ async function loadCategories() {
 
     // Populate category grid with "All Categories" button first
     const allCategoriesBtn = `
-      <div class="category-btn bg-amber-100 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" data-category="" onclick="clearCategoryFilter()">
-        📋 Alla Kategorier
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" onclick="clearCategoryFilter()">
+        📋 Alla kategorier
       </div>
     `
     categoryGrid.innerHTML = allCategoriesBtn + categories
       .map(
         (cat) => `
-      <div class="category-btn bg-amber-75 p-4 rounded text-center cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md" data-category="${cat}" onclick="filterByCategory('${cat}')">
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${cat}" onclick="filterByCategory('${cat}')">
         ${getCategoryIcon(cat)} ${cat}
       </div>
     `
@@ -298,21 +298,13 @@ function updateCategoryButtonStyles() {
   buttons.forEach((btn) => {
     const btnCategory = btn.dataset.category
     const isSelected = btnCategory === currentCategory
-    const isAllCategories = btnCategory === ""
     
     // Remove previous selection styling
-    btn.classList.remove("ring-2", "ring-primary", "ring-offset-2", "bg-amber-100", "bg-amber-75")
+    btn.classList.remove("text-primary", "font-semibold", "bg-stone-100")
     
     if (isSelected) {
-      // Selected button gets prominent styling
-      btn.classList.add("ring-2", "ring-primary", "ring-offset-2")
-    }
-    
-    // Set base background color
-    if (isAllCategories) {
-      btn.classList.add("bg-amber-100")
-    } else {
-      btn.classList.add("bg-amber-75")
+      // Selected button gets subtle highlight
+      btn.classList.add("text-primary", "font-semibold", "bg-stone-100")
     }
   })
 }
