@@ -152,31 +152,3 @@ export function getAdjacentCountySlugs(slug: string): string[] {
   return ADJACENT_COUNTIES_CONFIG[slug] || []
 }
 
-// Legacy compatibility exports (for backwards compatibility with existing code)
-// These will be deprecated in future versions
-
-/**
- * @deprecated Use CATEGORIES_CONFIG instead
- */
-export const CATEGORIES = CATEGORIES_CONFIG.map((c) => c.name)
-
-/**
- * @deprecated Use COUNTIES_CONFIG instead
- */
-export const COUNTIES = COUNTIES_CONFIG.map((c) => c.name)
-
-/**
- * @deprecated Use ADJACENT_COUNTIES_CONFIG instead
- */
-export const ADJACENT_COUNTIES: Record<string, string[]> = Object.fromEntries(
-  Object.entries(ADJACENT_COUNTIES_CONFIG).map(([slug, adjacentSlugs]) => {
-    const county = getCountyBySlug(slug)
-    const adjacentNames = adjacentSlugs
-      .map((s) => getCountyBySlug(s)?.name)
-      .filter((name): name is string => name !== undefined)
-    return [county?.name || slug, adjacentNames]
-  }),
-)
-
-export type Category_Legacy = (typeof CATEGORIES)[number]
-export type County_Legacy = (typeof COUNTIES)[number]

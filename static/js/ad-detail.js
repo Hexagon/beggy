@@ -209,10 +209,14 @@ async function loadAdDetail() {
       contactInfo += `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>`
     }
 
-    // Build subcategory display
+    // Build subcategory display - use display names from API
     const subcategoryDisplay = ad.subcategory 
-      ? `<p><span class="font-semibold">Underkategori:</span> ${escapeHtml(ad.subcategory)}</p>` 
+      ? `<p><span class="font-semibold">Underkategori:</span> ${escapeHtml(ad.subcategory_name || ad.subcategory)}</p>` 
       : ""
+
+    // Use display names from API (_name fields), fallback to slug
+    const categoryDisplay = ad.category_name || ad.category
+    const countyDisplay = ad.county_name || ad.county
 
     content.innerHTML = `
       <div class="flex items-start justify-between gap-4 mb-6">
@@ -248,9 +252,9 @@ async function loadAdDetail() {
         <div>
           <div class="text-4xl text-primary font-bold mb-6">${formatPrice(ad.price)}</div>
           <div class="space-y-3 text-stone-600">
-            <p><span class="font-semibold">Kategori:</span> ${escapeHtml(ad.category)}</p>
+            <p><span class="font-semibold">Kategori:</span> ${escapeHtml(categoryDisplay)}</p>
             ${subcategoryDisplay}
-            ${ad.county ? `<p><span class="font-semibold">Län:</span> ${escapeHtml(ad.county)}</p>` : ""}
+            ${countyDisplay ? `<p><span class="font-semibold">Län:</span> ${escapeHtml(countyDisplay)}</p>` : ""}
             <p><span class="font-semibold">Säljare:</span> ${escapeHtml(ad.seller_username)}</p>
             ${contactInfo}
             <p><span class="font-semibold">Publicerad:</span> ${formatDate(ad.created_at)}</p>

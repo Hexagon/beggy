@@ -1,10 +1,7 @@
 import { assertEquals } from "../utils/test_utils.ts"
 import {
-  ADJACENT_COUNTIES,
   ADJACENT_COUNTIES_CONFIG,
-  CATEGORIES,
   CATEGORIES_CONFIG,
-  COUNTIES,
   COUNTIES_CONFIG,
   getCategoryByName,
   getCategoryBySlug,
@@ -68,25 +65,12 @@ Deno.test("ADJACENT_COUNTIES_CONFIG - relationships are symmetrical", () => {
   }
 })
 
-// Legacy compatibility tests
-Deno.test("Legacy CATEGORIES - maintains backwards compatibility", () => {
-  assertEquals(CATEGORIES.length, 10)
-  assertEquals(CATEGORIES.includes("Fordon"), true)
-  assertEquals(CATEGORIES.includes("Elektronik"), true)
-  assertEquals(CATEGORIES.includes("Övrigt"), true)
-})
+Deno.test("getCategoryBySlug - finds category by slug", () => {
+  const fordon = getCategoryBySlug("fordon")
+  assertEquals(fordon?.name, "Fordon")
 
-Deno.test("Legacy COUNTIES - maintains backwards compatibility", () => {
-  assertEquals(COUNTIES.length, 21)
-  assertEquals(COUNTIES.includes("Stockholm"), true)
-  assertEquals(COUNTIES.includes("Skåne"), true)
-  assertEquals(COUNTIES.includes("Västra Götaland"), true)
-})
-
-Deno.test("Legacy ADJACENT_COUNTIES - maintains backwards compatibility", () => {
-  for (const county of COUNTIES) {
-    assertEquals(county in ADJACENT_COUNTIES, true)
-  }
+  const notFound = getCategoryBySlug("nonexistent")
+  assertEquals(notFound, undefined)
 })
 
 Deno.test("getCategoryByName - finds category by name", () => {
@@ -94,6 +78,14 @@ Deno.test("getCategoryByName - finds category by name", () => {
   assertEquals(fordon?.slug, "fordon")
 
   const notFound = getCategoryByName("NonExistent")
+  assertEquals(notFound, undefined)
+})
+
+Deno.test("getCountyBySlug - finds county by slug", () => {
+  const stockholm = getCountyBySlug("stockholm")
+  assertEquals(stockholm?.name, "Stockholm")
+
+  const notFound = getCountyBySlug("nonexistent")
   assertEquals(notFound, undefined)
 })
 
