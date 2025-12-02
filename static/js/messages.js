@@ -8,8 +8,6 @@ let currentConversationId = null
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth()
   setupEventListeners()
-  initTextSizeToggle()
-  initMobileMenu()
   
   // Check for conversation ID in URL
   const urlParams = new URLSearchParams(window.location.search)
@@ -18,90 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
     openChat(convId)
   }
 })
-
-// Text Size Accessibility (same as app.js)
-function initTextSizeToggle() {
-  const textSizeToggle = document.getElementById("textSizeToggle")
-  if (!textSizeToggle) return
-  
-  const isLargeText = localStorage.getItem("textSize") === "large"
-  
-  if (isLargeText) {
-    document.body.classList.add("text-large")
-    updateTextSizeToggleIcon(true)
-  }
-  
-  textSizeToggle.addEventListener("click", () => {
-    const isCurrentlyLarge = document.body.classList.contains("text-large")
-    
-    if (isCurrentlyLarge) {
-      document.body.classList.remove("text-large")
-      localStorage.setItem("textSize", "normal")
-      updateTextSizeToggleIcon(false)
-    } else {
-      document.body.classList.add("text-large")
-      localStorage.setItem("textSize", "large")
-      updateTextSizeToggleIcon(true)
-    }
-  })
-}
-
-function updateTextSizeToggleIcon(isLarge) {
-  const textSizeToggle = document.getElementById("textSizeToggle")
-  if (!textSizeToggle) return
-  
-  if (isLarge) {
-    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">-</span>'
-    textSizeToggle.title = "Minska textstorlek"
-    textSizeToggle.setAttribute("aria-label", "Minska textstorlek")
-  } else {
-    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">+</span>'
-    textSizeToggle.title = "Öka textstorlek"
-    textSizeToggle.setAttribute("aria-label", "Öka textstorlek")
-  }
-}
-
-// Mobile Menu (same as app.js)
-function initMobileMenu() {
-  const mobileMenuToggle = document.getElementById("mobileMenuToggle")
-  const mobileMenu = document.getElementById("mobileMenu")
-  
-  if (!mobileMenuToggle || !mobileMenu) return
-  
-  mobileMenuToggle.addEventListener("click", () => {
-    mobileMenu.classList.toggle("hidden")
-  })
-  
-  // Setup mobile menu button listeners
-  const loginBtnMobile = document.getElementById("loginBtnMobile")
-  const logoutBtnMobile = document.getElementById("logoutBtnMobile")
-  
-  if (loginBtnMobile) {
-    loginBtnMobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      mobileMenu.classList.add("hidden")
-      openModal("loginModal")
-    })
-  }
-  
-  if (logoutBtnMobile) {
-    logoutBtnMobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      mobileMenu.classList.add("hidden")
-      handleLogout(e)
-    })
-  }
-  
-  // Close mobile menu when clicking links
-  const mobileLinks = mobileMenu.querySelectorAll("a")
-  mobileLinks.forEach(link => {
-    link.addEventListener("click", () => {
-      if (!link.id.includes("loginBtn")) {
-        mobileMenu.classList.add("hidden")
-      }
-    })
-  })
-}
 
 // Mobile chat navigation
 function closeChatOnMobile() {

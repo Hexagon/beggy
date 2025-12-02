@@ -40,8 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCounties()
   loadStateFromUrl()
   setupEventListeners()
-  initTextSizeToggle()
-  initMobileMenu()
   
   // Force mute all videos (browser policy often requires this for autoplay)
   document.querySelectorAll("video").forEach(v => v.muted = true)
@@ -49,100 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateViewModeButtons()
   updateViewMode()
 })
-
-// Text Size Accessibility
-function initTextSizeToggle() {
-  const textSizeToggle = document.getElementById("textSizeToggle")
-  const isLargeText = localStorage.getItem("textSize") === "large"
-  
-  if (isLargeText) {
-    document.body.classList.add("text-large")
-    updateTextSizeToggleIcon(true)
-  }
-  
-  textSizeToggle.addEventListener("click", () => {
-    const isCurrentlyLarge = document.body.classList.contains("text-large")
-    
-    if (isCurrentlyLarge) {
-      document.body.classList.remove("text-large")
-      localStorage.setItem("textSize", "normal")
-      updateTextSizeToggleIcon(false)
-    } else {
-      document.body.classList.add("text-large")
-      localStorage.setItem("textSize", "large")
-      updateTextSizeToggleIcon(true)
-    }
-  })
-}
-
-function updateTextSizeToggleIcon(isLarge) {
-  const textSizeToggle = document.getElementById("textSizeToggle")
-  if (isLarge) {
-    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">-</span>'
-    textSizeToggle.title = "Minska textstorlek"
-    textSizeToggle.setAttribute("aria-label", "Minska textstorlek")
-  } else {
-    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">+</span>'
-    textSizeToggle.title = "Öka textstorlek"
-    textSizeToggle.setAttribute("aria-label", "Öka textstorlek")
-  }
-}
-
-// Mobile Menu
-function initMobileMenu() {
-  const mobileMenuToggle = document.getElementById("mobileMenuToggle")
-  const mobileMenu = document.getElementById("mobileMenu")
-  
-  mobileMenuToggle.addEventListener("click", () => {
-    mobileMenu.classList.toggle("hidden")
-  })
-  
-  // Setup mobile menu button listeners
-  const loginBtnMobile = document.getElementById("loginBtnMobile")
-  const logoutBtnMobile = document.getElementById("logoutBtnMobile")
-  const sellBtnMobile = document.getElementById("sellBtnMobile")
-  const sellBtn2Mobile = document.getElementById("sellBtn2Mobile")
-  
-  if (loginBtnMobile) {
-    loginBtnMobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      mobileMenu.classList.add("hidden")
-      openModal("loginModal")
-    })
-  }
-  
-  if (logoutBtnMobile) {
-    logoutBtnMobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      mobileMenu.classList.add("hidden")
-      handleLogout(e)
-    })
-  }
-  
-  if (sellBtnMobile) {
-    sellBtnMobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      window.location.href = "/ny-annons"
-    })
-  }
-  
-  if (sellBtn2Mobile) {
-    sellBtn2Mobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      window.location.href = "/ny-annons"
-    })
-  }
-  
-  // Close mobile menu when clicking links (except sell button which navigates)
-  const mobileLinks = mobileMenu.querySelectorAll("a:not([id*='sellBtn'])")
-  mobileLinks.forEach(link => {
-    link.addEventListener("click", () => {
-      if (!link.id.includes("loginBtn")) {
-        mobileMenu.classList.add("hidden")
-      }
-    })
-  })
-}
 
 // Event Listeners
 function setupEventListeners() {
