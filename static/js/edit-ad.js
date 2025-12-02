@@ -124,24 +124,20 @@ function updateAuthUI() {
     // Show logged-in navigation, hide logged-out navigation
     if (loggedOutNav) {
       loggedOutNav.classList.add("hidden")
-      loggedOutNav.classList.add("md:hidden")
       loggedOutNav.classList.remove("md:flex")
     }
     if (loggedInNav) {
       loggedInNav.classList.remove("hidden")
-      loggedInNav.classList.remove("md:hidden")
       loggedInNav.classList.add("md:flex")
     }
   } else {
     // Show logged-out navigation, hide logged-in navigation
     if (loggedOutNav) {
       loggedOutNav.classList.remove("hidden")
-      loggedOutNav.classList.remove("md:hidden")
       loggedOutNav.classList.add("md:flex")
     }
     if (loggedInNav) {
       loggedInNav.classList.add("hidden")
-      loggedInNav.classList.add("md:hidden")
       loggedInNav.classList.remove("md:flex")
     }
   }
