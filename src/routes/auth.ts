@@ -403,7 +403,7 @@ router.delete("/api/auth/account", async (ctx) => {
   const userId = userData.user.id
   const authSupabase = getAuthenticatedSupabase(accessToken)
 
-  // Delete user's images
+  // Delete user's images from storage
   const { data: userAds } = await authSupabase.from("ads").select("id").eq("user_id", userId)
 
   if (userAds) {
@@ -417,7 +417,14 @@ router.delete("/api/auth/account", async (ctx) => {
       // Delete from storage
       if (images && images.length > 0) {
         const paths = images.map((img) => img.storage_path)
-        await authSupabase.storage.from("ad-images").remove(paths)
+        const { error: storageError } = await authSupabase.storage.from("ad-images").remove(paths)
+        if (storageError) {
+          console.error(
+            `Failed to delete images from storage for ad ${ad.id}:`,
+            storageError.message,
+          )
+          // Continue with account deletion even if storage cleanup fails (GDPR compliance)
+        }
       }
     }
   }
