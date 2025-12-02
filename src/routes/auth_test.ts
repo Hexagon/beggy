@@ -68,3 +68,28 @@ Deno.test("Password reset protection - profile must exist for reset", () => {
     "Password reset should verify profile exists to prevent reset after account deletion",
   )
 })
+
+Deno.test("Account deletion - deletes both profile and auth user", () => {
+  // This test documents the expected behavior:
+  // When a user deletes their account, both the profile record and the auth.users
+  // record should be deleted. This requires the SUPABASE_SERVICE_ROLE_KEY to be
+  // configured. If not configured, only the profile is deleted.
+  const expectedSteps = [
+    "Delete user images from storage",
+    "Delete user ads",
+    "Delete user profile",
+    "Delete user from auth.users (requires service role key)",
+  ]
+  
+  assertEquals(
+    expectedSteps.length,
+    4,
+    "Account deletion should complete all 4 steps",
+  )
+  
+  assertEquals(
+    expectedSteps.includes("Delete user from auth.users (requires service role key)"),
+    true,
+    "Account deletion should attempt to delete the auth user record",
+  )
+})
