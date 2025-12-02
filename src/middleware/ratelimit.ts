@@ -12,11 +12,19 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>()
 
-// Cleanup interval reference for stopping
+// Cleanup interval reference for stopping (singleton pattern)
 let cleanupInterval: number | undefined
 
-// Cleanup old entries every 5 minutes (only start if not already running)
-if (cleanupInterval === undefined) {
+/**
+ * Start the cleanup interval if not already running
+ * This is called lazily by the middleware
+ */
+function startCleanupIfNeeded(): void {
+  if (cleanupInterval !== undefined) {
+    return // Already running
+  }
+
+  // Cleanup old entries every 5 minutes
   cleanupInterval = setInterval(() => {
     const now = Date.now()
     for (const [key, entry] of rateLimitStore.entries()) {
@@ -50,12 +58,18 @@ export function rateLimitMiddleware(
   errorMessage: string = "För många förfrågningar. Försök igen senare.",
 ) {
   return async (ctx: Context, next: Next): Promise<void> => {
-    // Get client IP
-    const ip = ctx.request.ip || "unknown"
+    // Start cleanup on first use (lazy initialization)
+    startCleanupIfNeeded()
 
-    // Skip rate limiting for unknown IPs (shouldn't happen in production)
-    if (ip === "unknown") {
-      await next()
+    // Get client IP - reject if missing for security
+    const ip = ctx.request.ip
+
+    if (!ip) {
+      // No IP means we can't rate limit - reject for security
+      ctx.response.status = 400
+      ctx.response.body = {
+        error: "Ogiltig förfrågan - kunde inte identifiera klient.",
+      }
       return
     }
 

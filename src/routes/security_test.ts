@@ -9,9 +9,15 @@ Deno.test("SQL injection protection - search parameter with wildcards is escaped
   // After escaping, wildcards should be escaped
   assertEquals(escapedSearch, "test\\%'; DROP TABLE ads; --")
 
-  // The escaped search should not contain unescaped % or _
-  const hasUnescapedWildcards = /(?<!\\)[%_]/.test(escapedSearch)
-  assertEquals(hasUnescapedWildcards, false)
+  // Verify no unescaped wildcards remain (compatible check without lookbehind)
+  // Count backslashes before each wildcard - should always be odd number
+  const wildcardPattern = /\\*[%_]/g
+  const matches = escapedSearch.match(wildcardPattern) || []
+  for (const match of matches) {
+    const backslashes = match.length - 1
+    // If backslashes are even (including 0), the wildcard is unescaped
+    assertEquals(backslashes % 2, 1, `Unescaped wildcard found in: ${match}`)
+  }
 })
 
 Deno.test("SQL injection protection - search parameter with underscores is escaped", () => {
