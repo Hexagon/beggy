@@ -30,6 +30,32 @@ router.post("/api/auth/register", async (ctx) => {
 
   const supabase = getSupabase()
 
+  // Check if user already exists by email
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle()
+
+  if (existingProfile) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "En användare med denna e-postadress finns redan." }
+    return
+  }
+
+  // Check if username is already taken
+  const { data: existingUsername } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle()
+
+  if (existingUsername) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Användarnamnet är redan taget." }
+    return
+  }
+
   // Create user with Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -62,7 +88,7 @@ router.post("/api/auth/register", async (ctx) => {
   }
 
   ctx.response.status = 201
-  ctx.response.body = { message: "Konto skapat! Du kan nu logga in." }
+  ctx.response.body = { message: "Konto skapat! Kolla din e-post för att bekräfta kontot." }
 })
 
 // Login

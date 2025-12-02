@@ -122,6 +122,13 @@ async function handleRegister(e) {
   const username = document.getElementById("regUsername").value
   const email = document.getElementById("regEmail").value
   const password = document.getElementById("regPassword").value
+  const confirmPassword = document.getElementById("regConfirmPassword").value
+
+  // Validate password confirmation
+  if (password !== confirmPassword) {
+    showAlert("Lösenorden matchar inte", "error")
+    return
+  }
 
   try {
     const res = await fetch("/api/auth/register", {
@@ -135,8 +142,7 @@ async function handleRegister(e) {
     if (res.ok) {
       closeModal("registerModal")
       document.getElementById("registerForm").reset()
-      openModal("loginModal")
-      showAlert("Konto skapat! Logga in för att fortsätta.", "success")
+      openModal("registerSuccessModal")
     } else {
       showAlert(data.error, "error")
     }
