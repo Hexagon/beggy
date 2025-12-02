@@ -1,6 +1,7 @@
 import { Router } from "@oak/oak"
 import { getAdminSupabase, getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
+import { sendBadRequest, sendCreated, sendUnauthorized } from "../utils/response-helpers.ts"
 
 const router = new Router()
 
@@ -10,27 +11,23 @@ router.post("/api/auth/register", async (ctx) => {
   const { email, password, username, acceptTerms } = body
 
   if (!email || !password || !username) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "E-post, lösenord och användarnamn krävs" }
+    sendBadRequest(ctx, "E-post, lösenord och användarnamn krävs")
     return
   }
 
   if (!acceptTerms) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Du måste godkänna integritetspolicyn och användarvillkoren" }
+    sendBadRequest(ctx, "Du måste godkänna integritetspolicyn och användarvillkoren")
     return
   }
 
   if (password.length < 8) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    sendBadRequest(ctx, "Lösenordet måste vara minst 8 tecken")
     return
   }
 
   // Check username for forbidden words
   if (containsForbiddenWords({ username })) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Användarnamnet innehåller otillåtna ord." }
+    sendBadRequest(ctx, "Användarnamnet innehåller otillåtna ord.")
     return
   }
 
@@ -44,8 +41,7 @@ router.post("/api/auth/register", async (ctx) => {
     .maybeSingle()
 
   if (existingProfile) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "En användare med denna e-postadress finns redan." }
+    sendBadRequest(ctx, "En användare med denna e-postadress finns redan.")
     return
   }
 
@@ -57,8 +53,7 @@ router.post("/api/auth/register", async (ctx) => {
     .maybeSingle()
 
   if (existingUsername) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Användarnamnet är redan taget." }
+    sendBadRequest(ctx, "Användarnamnet är redan taget.")
     return
   }
 
@@ -93,8 +88,7 @@ router.post("/api/auth/register", async (ctx) => {
     }
   }
 
-  ctx.response.status = 201
-  ctx.response.body = { message: "Konto skapat! Kolla din e-post för att bekräfta kontot." }
+  sendCreated(ctx, { message: "Konto skapat! Kolla din e-post för att bekräfta kontot." })
 })
 
 // Login
@@ -103,8 +97,7 @@ router.post("/api/auth/login", async (ctx) => {
   const { email, password } = body
 
   if (!email || !password) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "E-post och lösenord krävs" }
+    sendBadRequest(ctx, "E-post och lösenord krävs")
     return
   }
 
@@ -117,8 +110,7 @@ router.post("/api/auth/login", async (ctx) => {
 
   if (error) {
     console.error("Login error:", error.message, error.status)
-    ctx.response.status = 401
-    ctx.response.body = { error: "Felaktig e-post eller lösenord" }
+    sendUnauthorized(ctx, "Felaktig e-post eller lösenord")
     return
   }
 
@@ -133,8 +125,7 @@ router.post("/api/auth/login", async (ctx) => {
     console.error("Profile check error:", profileError?.message)
     // Sign out the auth session since profile doesn't exist
     await supabase.auth.signOut()
-    ctx.response.status = 401
-    ctx.response.body = { error: "Kontot har raderats" }
+    sendUnauthorized(ctx, "Kontot har raderats")
     return
   }
 
@@ -177,8 +168,7 @@ router.post("/api/auth/forgot-password", async (ctx) => {
   const { email } = body
 
   if (!email) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "E-post krävs" }
+    sendBadRequest(ctx, "E-post krävs")
     return
   }
 
@@ -208,14 +198,12 @@ router.post("/api/auth/reset-password", async (ctx) => {
   const { accessToken, newPassword } = body
 
   if (!accessToken || !newPassword) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Åtkomsttoken och nytt lösenord krävs" }
+    sendBadRequest(ctx, "Åtkomsttoken och nytt lösenord krävs")
     return
   }
 
   if (newPassword.length < 8) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    sendBadRequest(ctx, "Lösenordet måste vara minst 8 tecken")
     return
   }
 
@@ -226,8 +214,7 @@ router.post("/api/auth/reset-password", async (ctx) => {
 
   if (userError || !userData.user) {
     console.error("Reset password user validation error:", userError?.message)
-    ctx.response.status = 400
-    ctx.response.body = { error: "Kunde inte uppdatera lösenordet. Länken kan ha gått ut." }
+    sendBadRequest(ctx, "Kunde inte uppdatera lösenordet. Länken kan ha gått ut.")
     return
   }
 
@@ -240,8 +227,7 @@ router.post("/api/auth/reset-password", async (ctx) => {
 
   if (profileError || !profile) {
     console.error("Profile check error during password reset:", profileError?.message)
-    ctx.response.status = 400
-    ctx.response.body = { error: "Kontot har raderats. Länken kan ha gått ut." }
+    sendBadRequest(ctx, "Kontot har raderats. Länken kan ha gått ut.")
     return
   }
 
@@ -251,8 +237,7 @@ router.post("/api/auth/reset-password", async (ctx) => {
 
   if (error) {
     console.error("Reset password error:", error.message, error.status)
-    ctx.response.status = 400
-    ctx.response.body = { error: "Kunde inte uppdatera lösenordet. Länken kan ha gått ut." }
+    sendBadRequest(ctx, "Kunde inte uppdatera lösenordet. Länken kan ha gått ut.")
     return
   }
 
@@ -264,8 +249,7 @@ router.post("/api/auth/change-password", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")
 
   if (!accessToken) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Inte inloggad" }
+    sendUnauthorized(ctx, "Inte inloggad")
     return
   }
 
@@ -273,14 +257,12 @@ router.post("/api/auth/change-password", async (ctx) => {
   const { currentPassword, newPassword } = body
 
   if (!currentPassword || !newPassword) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Nuvarande lösenord och nytt lösenord krävs" }
+    sendBadRequest(ctx, "Nuvarande lösenord och nytt lösenord krävs")
     return
   }
 
   if (newPassword.length < 8) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    sendBadRequest(ctx, "Lösenordet måste vara minst 8 tecken")
     return
   }
 
@@ -291,8 +273,7 @@ router.post("/api/auth/change-password", async (ctx) => {
 
   if (userError || !userData.user) {
     console.error("Change password user validation error:", userError?.message)
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
+    sendUnauthorized(ctx, "Session utgången")
     return
   }
 
@@ -305,8 +286,7 @@ router.post("/api/auth/change-password", async (ctx) => {
 
   if (signInError || !signInData.session) {
     console.error("Current password verification error:", signInError?.message)
-    ctx.response.status = 400
-    ctx.response.body = { error: "Nuvarande lösenord är felaktigt" }
+    sendBadRequest(ctx, "Nuvarande lösenord är felaktigt")
     return
   }
 
@@ -322,8 +302,7 @@ router.post("/api/auth/change-password", async (ctx) => {
 
   if (sessionError) {
     console.error("Set session error:", sessionError.message)
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
+    sendUnauthorized(ctx, "Session utgången")
     return
   }
 
@@ -333,8 +312,7 @@ router.post("/api/auth/change-password", async (ctx) => {
 
   if (error) {
     console.error("Change password error:", error.message, error.status)
-    ctx.response.status = 400
-    ctx.response.body = { error: "Kunde inte uppdatera lösenordet" }
+    sendBadRequest(ctx, "Kunde inte uppdatera lösenordet")
     return
   }
 
@@ -346,8 +324,7 @@ router.get("/api/auth/me", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")
 
   if (!accessToken) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Inte inloggad" }
+    sendUnauthorized(ctx, "Inte inloggad")
     return
   }
 
@@ -359,8 +336,7 @@ router.get("/api/auth/me", async (ctx) => {
     if (userError) {
       console.error("Get current user error:", userError.message, userError.status)
     }
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
+    sendUnauthorized(ctx, "Session utgången")
     return
   }
 
@@ -383,8 +359,7 @@ router.get("/api/auth/my-data", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")
 
   if (!accessToken) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Inte inloggad" }
+    sendUnauthorized(ctx, "Inte inloggad")
     return
   }
 
@@ -396,8 +371,7 @@ router.get("/api/auth/my-data", async (ctx) => {
     if (userError) {
       console.error("Get user data export error:", userError.message, userError.status)
     }
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
+    sendUnauthorized(ctx, "Session utgången")
     return
   }
 
@@ -470,8 +444,7 @@ router.delete("/api/auth/account", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")
 
   if (!accessToken) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Inte inloggad" }
+    sendUnauthorized(ctx, "Inte inloggad")
     return
   }
 
@@ -483,8 +456,7 @@ router.delete("/api/auth/account", async (ctx) => {
     if (userError) {
       console.error("Delete account get user error:", userError.message, userError.status)
     }
-    ctx.response.status = 401
-    ctx.response.body = { error: "Session utgången" }
+    sendUnauthorized(ctx, "Session utgången")
     return
   }
 

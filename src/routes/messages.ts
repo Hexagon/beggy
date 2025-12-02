@@ -4,6 +4,7 @@ import { getUserFromRequest } from "./auth.ts"
 import { decryptMessage, deriveConversationKey, encryptMessage } from "../utils/encryption.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 import { getEnv } from "@cross/env"
+import { sendUnauthorized, sendNotFound, sendForbidden, sendServerError, sendBadRequest } from "../utils/response-helpers.ts"
 
 const router = new Router()
 
@@ -21,8 +22,7 @@ router.get("/api/conversations", async (ctx) => {
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Du måste vara inloggad" }
+    sendUnauthorized(ctx, "Du måste vara inloggad")
     return
   }
 
@@ -43,8 +43,7 @@ router.get("/api/conversations", async (ctx) => {
 
   if (error) {
     console.error("Get conversations error:", error.message, error.code)
-    ctx.response.status = 500
-    ctx.response.body = { error: "Kunde inte hämta konversationer" }
+    sendServerError(ctx, "Kunde inte hämta konversationer")
     return
   }
 
@@ -71,8 +70,7 @@ router.get("/api/conversations/:id/messages", async (ctx) => {
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Du måste vara inloggad" }
+    sendUnauthorized(ctx, "Du måste vara inloggad")
     return
   }
 
@@ -88,14 +86,12 @@ router.get("/api/conversations/:id/messages", async (ctx) => {
     .single()
 
   if (convError || !conversation) {
-    ctx.response.status = 404
-    ctx.response.body = { error: "Konversationen hittades inte" }
+    sendNotFound(ctx, "Konversationen hittades inte")
     return
   }
 
   if (conversation.buyer_id !== user.id && conversation.seller_id !== user.id) {
-    ctx.response.status = 403
-    ctx.response.body = { error: "Du har inte tillgång till denna konversation" }
+    sendForbidden(ctx, "Du har inte tillgång till denna konversation")
     return
   }
 
@@ -108,8 +104,7 @@ router.get("/api/conversations/:id/messages", async (ctx) => {
 
   if (msgError) {
     console.error("Get messages error:", msgError.message, msgError.code)
-    ctx.response.status = 500
-    ctx.response.body = { error: "Kunde inte hämta meddelanden" }
+    sendServerError(ctx, "Kunde inte hämta meddelanden")
     return
   }
 
@@ -155,8 +150,7 @@ router.post("/api/ads/:id/conversation", async (ctx) => {
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Du måste vara inloggad för att kontakta säljaren" }
+    sendUnauthorized(ctx, "Du måste vara inloggad för att kontakta säljaren")
     return
   }
 
@@ -170,20 +164,17 @@ router.post("/api/ads/:id/conversation", async (ctx) => {
     .single()
 
   if (adError || !ad) {
-    ctx.response.status = 404
-    ctx.response.body = { error: "Annonsen hittades inte" }
+    sendNotFound(ctx, "Annonsen hittades inte")
     return
   }
 
   if (ad.state !== "ok") {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Det går inte att kontakta säljaren för denna annons" }
+    sendBadRequest(ctx, "Det går inte att kontakta säljaren för denna annons")
     return
   }
 
   if (ad.user_id === user.id) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Du kan inte starta en konversation med dig själv" }
+    sendBadRequest(ctx, "Du kan inte starta en konversation med dig själv")
     return
   }
 
@@ -217,8 +208,7 @@ router.post("/api/ads/:id/conversation", async (ctx) => {
 
   if (convError) {
     console.error("Create conversation error:", convError.message, convError.code)
-    ctx.response.status = 500
-    ctx.response.body = { error: "Kunde inte skapa konversation" }
+    sendServerError(ctx, "Kunde inte skapa konversation")
     return
   }
 
@@ -235,8 +225,7 @@ router.post("/api/conversations/:id/messages", async (ctx) => {
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Du måste vara inloggad" }
+    sendUnauthorized(ctx, "Du måste vara inloggad")
     return
   }
 
@@ -244,21 +233,18 @@ router.post("/api/conversations/:id/messages", async (ctx) => {
   const { content } = body
 
   if (!content || typeof content !== "string" || content.trim().length === 0) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Meddelandet kan inte vara tomt" }
+    sendBadRequest(ctx, "Meddelandet kan inte vara tomt")
     return
   }
 
   if (content.length > 2000) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Meddelandet är för långt (max 2000 tecken)" }
+    sendBadRequest(ctx, "Meddelandet är för långt (max 2000 tecken)")
     return
   }
 
   // Check for forbidden words
   if (containsForbiddenWords({ content })) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Meddelandet innehåller otillåtna ord." }
+    sendBadRequest(ctx, "Meddelandet innehåller otillåtna ord.")
     return
   }
 
@@ -272,21 +258,18 @@ router.post("/api/conversations/:id/messages", async (ctx) => {
     .single()
 
   if (convError || !conversation) {
-    ctx.response.status = 404
-    ctx.response.body = { error: "Konversationen hittades inte" }
+    sendNotFound(ctx, "Konversationen hittades inte")
     return
   }
 
   if (conversation.buyer_id !== user.id && conversation.seller_id !== user.id) {
-    ctx.response.status = 403
-    ctx.response.body = { error: "Du har inte tillgång till denna konversation" }
+    sendForbidden(ctx, "Du har inte tillgång till denna konversation")
     return
   }
 
   // Check if conversation is expired
   if (conversation.expires_at && new Date(conversation.expires_at) < new Date()) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Denna konversation har upphört" }
+    sendBadRequest(ctx, "Denna konversation har upphört")
     return
   }
 
@@ -308,8 +291,7 @@ router.post("/api/conversations/:id/messages", async (ctx) => {
 
   if (msgError) {
     console.error("Send message error:", msgError.message, msgError.code)
-    ctx.response.status = 500
-    ctx.response.body = { error: "Kunde inte skicka meddelande" }
+    sendServerError(ctx, "Kunde inte skicka meddelande")
     return
   }
 
