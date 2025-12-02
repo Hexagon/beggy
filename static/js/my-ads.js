@@ -2,7 +2,6 @@
 
 // State
 let currentUser = null
-let currentConversationId = null
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
@@ -305,16 +304,6 @@ function formatDate(dateString) {
     year: "numeric",
     month: "long",
     day: "numeric",
-  }).format(new Date(dateString))
-}
-
-function formatDateTime(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   }).format(new Date(dateString))
 }
 
