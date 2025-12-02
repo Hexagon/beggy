@@ -297,22 +297,36 @@ router.post("/api/auth/change-password", async (ctx) => {
   }
 
   // Verify current password by attempting to sign in
-  // Note: This creates a new session, but it's necessary to verify the password
-  // The user's existing session (from cookies) remains valid and will be used for the update
-  const { error: signInError } = await supabase.auth.signInWithPassword({
+  // This creates a new session which we'll use to update the password
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
     email: userData.user.email!,
     password: currentPassword,
   })
 
-  if (signInError) {
-    console.error("Current password verification error:", signInError.message)
+  if (signInError || !signInData.session) {
+    console.error("Current password verification error:", signInError?.message)
     ctx.response.status = 400
     ctx.response.body = { error: "Nuvarande lösenord är felaktigt" }
     return
   }
 
-  // Update to new password
-  const authSupabase = getAuthenticatedSupabase(accessToken)
+  // Update to new password using the session from sign-in
+  // We need to create a new client with this session because updateUser() requires an active session
+  const authSupabase = getAuthenticatedSupabase(signInData.session.access_token)
+  
+  // Set the session so updateUser() has the required session context
+  const { error: sessionError } = await authSupabase.auth.setSession({
+    access_token: signInData.session.access_token,
+    refresh_token: signInData.session.refresh_token,
+  })
+
+  if (sessionError) {
+    console.error("Set session error:", sessionError.message)
+    ctx.response.status = 401
+    ctx.response.body = { error: "Session utgången" }
+    return
+  }
+
   const { error } = await authSupabase.auth.updateUser({
     password: newPassword,
   })
