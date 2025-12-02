@@ -259,6 +259,72 @@ router.post("/api/auth/reset-password", async (ctx) => {
   ctx.response.body = { message: "Lösenordet har uppdaterats!" }
 })
 
+// Change password - update password for logged-in user
+router.post("/api/auth/change-password", async (ctx) => {
+  const accessToken = await ctx.cookies.get("access_token")
+
+  if (!accessToken) {
+    ctx.response.status = 401
+    ctx.response.body = { error: "Inte inloggad" }
+    return
+  }
+
+  const body = await ctx.request.body.json()
+  const { currentPassword, newPassword } = body
+
+  if (!currentPassword || !newPassword) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Nuvarande lösenord och nytt lösenord krävs" }
+    return
+  }
+
+  if (newPassword.length < 8) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    return
+  }
+
+  const supabase = getSupabase()
+
+  // Verify the user exists and get their email
+  const { data: userData, error: userError } = await supabase.auth.getUser(accessToken)
+
+  if (userError || !userData.user) {
+    console.error("Change password user validation error:", userError?.message)
+    ctx.response.status = 401
+    ctx.response.body = { error: "Session utgången" }
+    return
+  }
+
+  // Verify current password by attempting to sign in
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: userData.user.email!,
+    password: currentPassword,
+  })
+
+  if (signInError) {
+    console.error("Current password verification error:", signInError.message)
+    ctx.response.status = 400
+    ctx.response.body = { error: "Nuvarande lösenord är felaktigt" }
+    return
+  }
+
+  // Update to new password
+  const authSupabase = getAuthenticatedSupabase(accessToken)
+  const { error } = await authSupabase.auth.updateUser({
+    password: newPassword,
+  })
+
+  if (error) {
+    console.error("Change password error:", error.message, error.status)
+    ctx.response.status = 400
+    ctx.response.body = { error: "Kunde inte uppdatera lösenordet" }
+    return
+  }
+
+  ctx.response.body = { message: "Lösenordet har uppdaterats!" }
+})
+
 // Get current user
 router.get("/api/auth/me", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")

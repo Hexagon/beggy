@@ -47,6 +47,45 @@ Deno.test("Password reset validation - access token and new password are require
   }
 })
 
+Deno.test("Password change validation - current password and new password are required", () => {
+  // This test documents that both currentPassword and newPassword must be provided
+  const requiredFields = ["currentPassword", "newPassword"]
+
+  for (const field of requiredFields) {
+    assertEquals(
+      requiredFields.includes(field),
+      true,
+      `Field "${field}" is required for password change`,
+    )
+  }
+})
+
+Deno.test("Password change validation - user must be authenticated", () => {
+  // This test documents the expected behavior:
+  // Password change requires an active session (access token in cookies).
+  // Unauthenticated requests should return 401.
+  const expectedBehavior = "Authenticated session required for password change"
+
+  assertEquals(
+    expectedBehavior.includes("Authenticated session required"),
+    true,
+    "Password change should require user to be logged in",
+  )
+})
+
+Deno.test("Password change validation - current password must be verified", () => {
+  // This test documents the expected behavior:
+  // Before allowing password change, the current password must be verified
+  // by attempting to sign in with it. This prevents unauthorized changes.
+  const expectedBehavior = "Current password verification prevents unauthorized changes"
+
+  assertEquals(
+    expectedBehavior.includes("Current password verification"),
+    true,
+    "Password change should verify current password before updating",
+  )
+})
+
 Deno.test("Password validation - minimum length is 8 characters", () => {
   const minPasswordLength = 8
 

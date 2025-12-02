@@ -28,7 +28,54 @@
 
         <div id="settingsContainer" class="hidden">
           <h1 class="text-2xl font-bold mb-6">Inställningar</h1>
-          <div class="bg-amber-50 p-6 rounded-lg max-w-xl">
+
+          <!-- Change Password Section -->
+          <div class="max-w-xl mb-8">
+            <h2 class="text-lg font-semibold mb-4">Ändra lösenord</h2>
+            <form id="changePasswordForm" class="space-y-4">
+              <div>
+                <label for="currentPassword" class="block mb-1 font-medium"
+                >Nuvarande lösenord</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  required
+                  class="w-full p-2.5 border border-gray-300 rounded text-base"
+                >
+              </div>
+              <div>
+                <label for="newPassword" class="block mb-1 font-medium">Nytt lösenord</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  required
+                  minlength="8"
+                  class="w-full p-2.5 border border-gray-300 rounded text-base"
+                  placeholder="Minst 8 tecken"
+                >
+              </div>
+              <div>
+                <label for="confirmNewPassword" class="block mb-1 font-medium"
+                >Bekräfta nytt lösenord</label>
+                <input
+                  type="password"
+                  id="confirmNewPassword"
+                  required
+                  minlength="8"
+                  class="w-full p-2.5 border border-gray-300 rounded text-base"
+                >
+              </div>
+              <button
+                type="submit"
+                class="px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors"
+              >
+                Uppdatera lösenord
+              </button>
+            </form>
+          </div>
+
+          <!-- Account Settings Section -->
+          <div class="max-w-xl">
             <h2 class="text-lg font-semibold mb-4">Kontoinställningar</h2>
             <div class="flex gap-2.5 flex-wrap">
               <button

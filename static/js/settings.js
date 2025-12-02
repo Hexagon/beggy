@@ -34,6 +34,9 @@ function setupEventListeners() {
 
   document.getElementById("registerForm").addEventListener("submit", handleRegister)
 
+  // Change password
+  document.getElementById("changePasswordForm").addEventListener("submit", handleChangePassword)
+
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
 
@@ -159,6 +162,43 @@ async function handleLogout(e) {
     updateAuthUI()
     updatePageDisplay()
     showAlert("Du har loggats ut", "success")
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
+async function handleChangePassword(e) {
+  e.preventDefault()
+  const currentPassword = document.getElementById("currentPassword").value
+  const newPassword = document.getElementById("newPassword").value
+  const confirmNewPassword = document.getElementById("confirmNewPassword").value
+
+  // Validate password confirmation
+  if (newPassword !== confirmNewPassword) {
+    showAlert("De nya lösenorden matchar inte", "error")
+    return
+  }
+
+  if (newPassword.length < 8) {
+    showAlert("Lösenordet måste vara minst 8 tecken", "error")
+    return
+  }
+
+  try {
+    const res = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      document.getElementById("changePasswordForm").reset()
+      showAlert("Lösenordet har uppdaterats!", "success")
+    } else {
+      showAlert(data.error, "error")
+    }
   } catch {
     showAlert("Något gick fel", "error")
   }
