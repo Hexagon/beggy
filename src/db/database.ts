@@ -61,7 +61,9 @@ export function initDatabase(
   if (supabaseServiceRoleKey) {
     console.log("✅ Supabase initierad (med admin-behörigheter)")
   } else {
-    console.log("✅ Supabase initierad (utan admin-behörigheter - användare kan inte radera sina auth-konton)")
+    console.log(
+      "✅ Supabase initierad (utan admin-behörigheter - användare kan inte radera sina auth-konton)",
+    )
   }
 }
 
