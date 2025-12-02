@@ -65,17 +65,4 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 })
 
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
+// showAlert is now in utils.js
