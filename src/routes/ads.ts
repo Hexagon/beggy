@@ -7,7 +7,6 @@ import {
   CATEGORIES_CONFIG,
   COUNTIES,
   COUNTIES_CONFIG,
-  getCategoryBySlug,
 } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
@@ -209,15 +208,13 @@ router.post("/api/ads", async (ctx) => {
 
   // Validate subcategory if provided
   if (subcategory) {
-    const categoryConfig = getCategoryBySlug(category.toLowerCase().replace(/\s+/g, "-").replace(/[åä]/g, "a").replace(/ö/g, "o"))
-    if (!categoryConfig?.subcategories?.some((s) => s.name === subcategory)) {
-      // Try finding by name for backwards compatibility
-      const categoryByName = CATEGORIES_CONFIG.find((c) => c.name === category)
-      if (!categoryByName?.subcategories?.some((s) => s.name === subcategory)) {
-        ctx.response.status = 400
-        ctx.response.body = { error: "Ogiltig underkategori" }
-        return
-      }
+    // Find category by name (the form uses category names, not slugs)
+    const categoryConfig = CATEGORIES_CONFIG.find((c) => c.name === category)
+    const validSubcategory = categoryConfig?.subcategories?.some((s) => s.name === subcategory)
+    if (!validSubcategory) {
+      ctx.response.status = 400
+      ctx.response.body = { error: "Ogiltig underkategori" }
+      return
     }
   }
 
