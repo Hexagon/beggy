@@ -48,3 +48,46 @@ body.text-large .text-xl {
 body.text-large .text-2xl {
   font-size: 1.875rem; /* slightly larger */
 }
+
+/* Header Authentication State Management */
+/* All visibility is controlled by body class: user-logged-in or user-logged-out */
+
+/* Logged-out specific elements (only visible when logged out) */
+.auth-logged-out {
+  display: none;
+}
+
+body.user-logged-out .auth-logged-out {
+  display: inline-block;
+}
+
+/* Logged-in specific elements (only visible when logged in) */
+.auth-logged-in {
+  display: none;
+}
+
+body.user-logged-in .auth-logged-in {
+  display: inline-block;
+}
+
+/* Desktop navigation (hidden on mobile, flex on desktop) */
+@media (min-width: 768px) {
+  .nav-desktop {
+    display: flex !important;
+  }
+  
+  .nav-mobile-menu {
+    display: none !important;
+  }
+}
+
+/* Mobile navigation (visible on mobile, hidden on desktop) */
+@media (max-width: 767px) {
+  .nav-desktop {
+    display: none !important;
+  }
+  
+  .nav-mobile-menu {
+    display: flex !important;
+  }
+}

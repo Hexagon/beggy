@@ -12,14 +12,35 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <!-- Desktop Navigation (hidden on mobile) -->
-      <nav class="nav hidden md:flex items-center gap-5">
+      <!-- Desktop Navigation -->
+      <nav class="nav-desktop flex items-center gap-5">
         <a
           href="/ny-annons"
-          id="sellBtn"
           class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
         >Sälj</a>
-        <!-- Text Size Toggle (always visible) -->
+
+        <!-- Logged-out items (desktop) -->
+        <a
+          href="#"
+          id="loginBtn"
+          class="auth-logged-out text-dark no-underline px-3 py-2 hover:text-primary"
+        >Logga in</a>
+
+        <!-- Logged-in items (desktop) -->
+        <a
+          href="/meddelanden"
+          class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
+        >Meddelanden</a>
+        <a
+          href="/mina-annonser"
+          class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
+        >Mina annonser</a>
+        <a
+          href="/installningar"
+          class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
+        >Inställningar</a>
+
+        <!-- Text Size Toggle (always visible on desktop) -->
         <button
           id="textSizeToggle"
           class="flex items-center gap-1 px-2 py-1 text-dark hover:text-primary transition-colors"
@@ -29,37 +50,12 @@
           <span class="text-lg font-bold">A</span>
           <span class="text-sm">+</span>
         </button>
-        <a href="#" id="loginBtn" class="text-dark no-underline px-3 py-2 hover:text-primary"
-        >Logga in</a>
-      </nav>
-      <nav class="nav-logged-in hidden md:flex items-center gap-5">
-        <a
-          href="/ny-annons"
-          id="sellBtn2"
-          class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
-        >Sälj</a>
-        <a
-          href="/meddelanden"
-          class="text-dark no-underline px-3 py-2 hover:text-primary"
-        >Meddelanden</a>
-        <a href="/mina-annonser" class="text-dark no-underline px-3 py-2 hover:text-primary"
-        >Mina annonser</a>
-        <a href="/installningar" class="text-dark no-underline px-3 py-2 hover:text-primary"
-        >Inställningar</a>
-        <!-- Text Size Toggle (always visible) -->
-        <button
-          id="textSizeToggle2"
-          class="flex items-center gap-1 px-2 py-1 text-dark hover:text-primary transition-colors"
-          title="Ändra textstorlek"
-          aria-label="Ändra textstorlek"
-        >
-          <span class="text-lg font-bold">A</span>
-          <span class="text-sm">+</span>
-        </button>
+
+        <!-- Logout button (desktop) -->
         <a
           href="#"
           id="logoutBtn"
-          class="text-dark no-underline px-3 py-2 hover:text-primary"
+          class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
           title="Logga ut"
           aria-label="Logga ut"
         >
@@ -80,10 +76,10 @@
         </a>
       </nav>
 
-      <!-- Hamburger Menu (visible on mobile) -->
+      <!-- Hamburger Menu (mobile only) -->
       <button
         id="mobileMenuToggle"
-        class="md:hidden flex items-center px-2 py-1 text-dark hover:text-primary transition-colors"
+        class="nav-mobile-menu flex items-center px-2 py-1 text-dark hover:text-primary transition-colors"
         title="Meny"
         aria-label="Meny"
       >
@@ -106,34 +102,37 @@
   </div>
 
   <!-- Mobile Menu (hidden by default) -->
-  <div id="mobileMenu" class="hidden md:hidden bg-cream border-t border-stone-200 mt-4">
-    <nav class="nav-mobile max-w-6xl mx-auto px-5 py-4 flex flex-col gap-2">
+  <div id="mobileMenu" class="hidden bg-cream border-t border-stone-200 mt-4">
+    <nav class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-2">
       <a
         href="/ny-annons"
-        id="sellBtnMobile"
         class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors text-center"
       >Sälj</a>
-      <a href="#" id="loginBtnMobile" class="text-dark no-underline px-3 py-2 hover:text-primary"
+
+      <!-- Logged-out items (mobile) -->
+      <a
+        href="#"
+        id="loginBtnMobile"
+        class="auth-logged-out text-dark no-underline px-3 py-2 hover:text-primary"
       >Logga in</a>
-    </nav>
-    <nav class="nav-mobile-logged-in hidden max-w-6xl mx-auto px-5 py-4 flex flex-col gap-2">
-      <a
-        href="/ny-annons"
-        id="sellBtn2Mobile"
-        class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors text-center"
-      >Sälj</a>
+
+      <!-- Logged-in items (mobile) -->
       <a
         href="/meddelanden"
-        class="text-dark no-underline px-3 py-2 hover:text-primary"
+        class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
       >Meddelanden</a>
-      <a href="/mina-annonser" class="text-dark no-underline px-3 py-2 hover:text-primary"
+      <a
+        href="/mina-annonser"
+        class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
       >Mina annonser</a>
-      <a href="/installningar" class="text-dark no-underline px-3 py-2 hover:text-primary"
+      <a
+        href="/installningar"
+        class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
       >Inställningar</a>
       <a
         href="#"
         id="logoutBtnMobile"
-        class="text-dark no-underline px-3 py-2 hover:text-primary"
+        class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
       >Logga ut</a>
     </nav>
   </div>
