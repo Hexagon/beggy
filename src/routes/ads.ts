@@ -87,7 +87,8 @@ router.get("/api/ads", async (ctx) => {
   if (search) {
     // Escape special characters in search to prevent SQL injection
     // In PostgREST pattern matching: % is wildcard, _ matches single char, \ is escape
-    const escapedSearch = search.replace(/[\\%_]/g, '\\$&')
+    // Must escape backslash first to prevent double-escaping
+    const escapedSearch = search.replace(/\\/g, "\\\\").replace(/[%_]/g, "\\$&")
     query = query.or(`title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`)
   }
 
