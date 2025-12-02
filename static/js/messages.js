@@ -95,49 +95,14 @@ async function checkAuth() {
 }
 
 function updateAuthUI() {
-  const loggedOutNav = document.querySelector(".nav:not(.nav-logged-in)")
-  const loggedInNav = document.querySelector(".nav-logged-in")
-  const loggedOutNavMobile = document.querySelector(".nav-mobile")
-  const loggedInNavMobile = document.querySelector(".nav-mobile-logged-in")
-
   if (currentUser) {
-    // Show logged-in navigation, hide logged-out navigation
-    if (loggedOutNav) {
-      loggedOutNav.classList.add("hidden")
-      loggedOutNav.classList.remove("md:flex")
-    }
-    if (loggedInNav) {
-      loggedInNav.classList.remove("hidden")
-      loggedInNav.classList.add("md:flex")
-    }
-    
-    if (loggedOutNavMobile) {
-      loggedOutNavMobile.classList.add("hidden")
-      loggedOutNavMobile.classList.remove("flex")
-    }
-    if (loggedInNavMobile) {
-      loggedInNavMobile.classList.remove("hidden")
-      loggedInNavMobile.classList.add("flex")
-    }
+    // User is logged in - set body class
+    document.body.classList.add("user-logged-in")
+    document.body.classList.remove("user-logged-out")
   } else {
-    // Show logged-out navigation, hide logged-in navigation
-    if (loggedOutNav) {
-      loggedOutNav.classList.remove("hidden")
-      loggedOutNav.classList.add("md:flex")
-    }
-    if (loggedInNav) {
-      loggedInNav.classList.add("hidden")
-      loggedInNav.classList.remove("md:flex")
-    }
-    
-    if (loggedOutNavMobile) {
-      loggedOutNavMobile.classList.remove("hidden")
-      loggedOutNavMobile.classList.add("flex")
-    }
-    if (loggedInNavMobile) {
-      loggedInNavMobile.classList.add("hidden")
-      loggedInNavMobile.classList.remove("flex")
-    }
+    // User is logged out - set body class
+    document.body.classList.add("user-logged-out")
+    document.body.classList.remove("user-logged-in")
   }
 }
 

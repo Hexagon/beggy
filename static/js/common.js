@@ -3,7 +3,6 @@
 // Text Size Accessibility
 function initTextSizeToggle() {
   const textSizeToggle = document.getElementById("textSizeToggle")
-  const textSizeToggle2 = document.getElementById("textSizeToggle2")
   
   const isLargeText = localStorage.getItem("textSize") === "large"
   
@@ -29,15 +28,10 @@ function initTextSizeToggle() {
   if (textSizeToggle) {
     textSizeToggle.addEventListener("click", toggleHandler)
   }
-  
-  if (textSizeToggle2) {
-    textSizeToggle2.addEventListener("click", toggleHandler)
-  }
 }
 
 function updateTextSizeToggleIcon(isLarge) {
   const textSizeToggle = document.getElementById("textSizeToggle")
-  const textSizeToggle2 = document.getElementById("textSizeToggle2")
   
   const updateButton = (btn) => {
     if (!btn) return
@@ -54,7 +48,6 @@ function updateTextSizeToggleIcon(isLarge) {
   }
   
   updateButton(textSizeToggle)
-  updateButton(textSizeToggle2)
 }
 
 // Mobile Menu
@@ -71,8 +64,6 @@ function initMobileMenu() {
   // Setup mobile menu button listeners
   const loginBtnMobile = document.getElementById("loginBtnMobile")
   const logoutBtnMobile = document.getElementById("logoutBtnMobile")
-  const sellBtnMobile = document.getElementById("sellBtnMobile")
-  const sellBtn2Mobile = document.getElementById("sellBtn2Mobile")
   
   if (loginBtnMobile) {
     loginBtnMobile.addEventListener("click", (e) => {
@@ -96,59 +87,20 @@ function initMobileMenu() {
     })
   }
   
-  if (sellBtnMobile) {
-    sellBtnMobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      window.location.href = "/ny-annons"
-    })
-  }
-  
-  if (sellBtn2Mobile) {
-    sellBtn2Mobile.addEventListener("click", (e) => {
-      e.preventDefault()
-      window.location.href = "/ny-annons"
-    })
-  }
-  
-  // Close mobile menu when clicking links (except sell button which navigates)
-  const mobileLinks = mobileMenu.querySelectorAll("a:not([id*='sellBtn'])")
+  // Close mobile menu when clicking links
+  const mobileLinks = mobileMenu.querySelectorAll("a:not([id*='loginBtn']):not([id*='logoutBtn'])")
   mobileLinks.forEach(link => {
     link.addEventListener("click", () => {
-      if (!link.id.includes("loginBtn")) {
-        mobileMenu.classList.add("hidden")
-      }
+      mobileMenu.classList.add("hidden")
     })
   })
 }
 
-// Update auth UI for mobile and desktop
+// Update auth UI - set body class based on login state
 function updateAuthUICommon() {
-  const loggedOutNavMobile = document.querySelector(".nav-mobile")
-  const loggedInNavMobile = document.querySelector(".nav-mobile-logged-in")
-  
-  // Check if user is logged in by checking if logged-in nav is visible
-  const loggedInNav = document.querySelector(".nav-logged-in")
-  const isLoggedIn = loggedInNav && !loggedInNav.classList.contains("hidden")
-  
-  if (isLoggedIn) {
-    if (loggedOutNavMobile) {
-      loggedOutNavMobile.classList.add("hidden")
-      loggedOutNavMobile.classList.remove("flex")
-    }
-    if (loggedInNavMobile) {
-      loggedInNavMobile.classList.remove("hidden")
-      loggedInNavMobile.classList.add("flex")
-    }
-  } else {
-    if (loggedOutNavMobile) {
-      loggedOutNavMobile.classList.remove("hidden")
-      loggedOutNavMobile.classList.add("flex")
-    }
-    if (loggedInNavMobile) {
-      loggedInNavMobile.classList.add("hidden")
-      loggedInNavMobile.classList.remove("flex")
-    }
-  }
+  // This function is called from app.js and other page-specific JS
+  // It checks the current user state and updates the body class
+  // The CSS rules handle showing/hiding elements based on this class
 }
 
 // Initialize common features

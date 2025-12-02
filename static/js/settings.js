@@ -64,29 +64,14 @@ async function checkAuth() {
 }
 
 function updateAuthUI() {
-  const loggedOutNav = document.querySelector(".nav:not(.nav-logged-in)")
-  const loggedInNav = document.querySelector(".nav-logged-in")
-
   if (currentUser) {
-    // Show logged-in navigation, hide logged-out navigation
-    if (loggedOutNav) {
-      loggedOutNav.classList.add("hidden")
-      loggedOutNav.classList.remove("md:flex")
-    }
-    if (loggedInNav) {
-      loggedInNav.classList.remove("hidden")
-      loggedInNav.classList.add("md:flex")
-    }
+    // User is logged in - set body class
+    document.body.classList.add("user-logged-in")
+    document.body.classList.remove("user-logged-out")
   } else {
-    // Show logged-out navigation, hide logged-in navigation
-    if (loggedOutNav) {
-      loggedOutNav.classList.remove("hidden")
-      loggedOutNav.classList.add("md:flex")
-    }
-    if (loggedInNav) {
-      loggedInNav.classList.add("hidden")
-      loggedInNav.classList.remove("md:flex")
-    }
+    // User is logged out - set body class
+    document.body.classList.add("user-logged-out")
+    document.body.classList.remove("user-logged-in")
   }
 }
 
