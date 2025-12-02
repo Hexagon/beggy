@@ -297,6 +297,8 @@ router.post("/api/auth/change-password", async (ctx) => {
   }
 
   // Verify current password by attempting to sign in
+  // Note: This creates a new session, but it's necessary to verify the password
+  // The user's existing session (from cookies) remains valid and will be used for the update
   const { error: signInError } = await supabase.auth.signInWithPassword({
     email: userData.user.email!,
     password: currentPassword,
