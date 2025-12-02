@@ -144,11 +144,6 @@ function updateAuthUI() {
     }
   }
 }
-      loggedInNavMobile.classList.add("hidden")
-      loggedInNavMobile.classList.remove("flex")
-    }
-  }
-}
 
 async function handleLogin(e) {
   e.preventDefault()

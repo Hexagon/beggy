@@ -77,7 +77,7 @@ function updateAuthUI() {
       loggedInNav.classList.add("md:flex")
     }
   } else {
-    // Show logged-out navigation, hide logged-out navigation
+    // Show logged-out navigation, hide logged-in navigation
     if (loggedOutNav) {
       loggedOutNav.classList.remove("hidden")
       loggedOutNav.classList.remove("md:hidden")
