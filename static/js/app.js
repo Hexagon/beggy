@@ -159,6 +159,7 @@ function setupEventListeners() {
     currentPage = 1
     showBrowseView()
     loadAdsAndUpdateUrl()
+    renderCategoryGrid()
     updateCategoryButtonStyles()
   })
 
@@ -318,43 +319,6 @@ async function loadCategories() {
     const data = await res.json()
     categoriesConfig = data.categoriesConfig || []
 
-    // Build category grid:
-    // - "Alla kategorier" first
-    // - For categories with subcategories: show "Alla <category>" + each subcategory
-    // - For categories without subcategories: show the category itself
-    let gridHtml = `
-      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" data-subcategory="" onclick="clearCategoryFilter()">
-        📋 Alla kategorier
-      </div>
-    `
-    
-    categoriesConfig.forEach((cat) => {
-      if (cat.subcategories && cat.subcategories.length > 0) {
-        // Category has subcategories - show "Alla <category>" + each subcategory
-        gridHtml += `
-          <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
-            ${cat.icon || '📦'} Alla ${escapeHtml(cat.name)}
-          </div>
-        `
-        cat.subcategories.forEach((sub) => {
-          gridHtml += `
-            <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="${escapeHtml(sub.slug)}" onclick="filterBySubcategory('${escapeHtml(cat.slug)}', '${escapeHtml(sub.slug)}')">
-              ${cat.icon || '📦'} ${escapeHtml(sub.name)}
-            </div>
-          `
-        })
-      } else {
-        // Category without subcategories - show the category itself
-        gridHtml += `
-          <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
-            ${cat.icon || '📦'} ${escapeHtml(cat.name)}
-          </div>
-        `
-      }
-    })
-    
-    categoryGrid.innerHTML = gridHtml
-
     // Build category select dropdown:
     // - "Alla kategorier" first
     // - For categories with subcategories: show "Alla <category>" + each subcategory (with indentation)
@@ -377,11 +341,58 @@ async function loadCategories() {
     
     categorySelect.innerHTML = selectHtml
     
-    // Update category button styles to show current selection
-    updateCategoryButtonStyles()
+    // Render category grid based on current state
+    renderCategoryGrid()
   } catch (err) {
     console.error("Failed to load categories:", err)
   }
+}
+
+function renderCategoryGrid() {
+  let gridHtml = ""
+  
+  // Check if we're viewing a specific category with subcategories
+  const selectedCategory = categoriesConfig.find(c => c.slug === currentCategory)
+  const isViewingCategoryWithSubs = selectedCategory && selectedCategory.subcategories && selectedCategory.subcategories.length > 0
+  
+  if (isViewingCategoryWithSubs) {
+    // Show "Alla kategorier" button to go back
+    gridHtml += `
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" data-subcategory="" onclick="clearCategoryFilter()">
+        📋 Alla kategorier
+      </div>
+    `
+    
+    // Show "Alla <category>" button
+    gridHtml += `
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(selectedCategory.slug)}" data-subcategory="" onclick="filterByCategory('${escapeHtml(selectedCategory.slug)}')">
+        ${selectedCategory.icon || '📦'} Alla ${escapeHtml(selectedCategory.name)}
+      </div>
+    `
+    
+    // Show all subcategories
+    selectedCategory.subcategories.forEach((sub) => {
+      gridHtml += `
+        <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(selectedCategory.slug)}" data-subcategory="${escapeHtml(sub.slug)}" onclick="filterBySubcategory('${escapeHtml(selectedCategory.slug)}', '${escapeHtml(sub.slug)}')">
+          ${selectedCategory.icon || '📦'} ${escapeHtml(sub.name)}
+        </div>
+      `
+    })
+  } else {
+    // Show all main categories (default view)
+    categoriesConfig.forEach((cat) => {
+      gridHtml += `
+        <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
+          ${cat.icon || '📦'} ${escapeHtml(cat.name)}
+        </div>
+      `
+    })
+  }
+  
+  categoryGrid.innerHTML = gridHtml
+  
+  // Update category button styles to show current selection
+  updateCategoryButtonStyles()
 }
 
 function updateCategoryButtonStyles() {
@@ -452,6 +463,7 @@ function filterByCategory(categorySlug) {
   } else {
     document.getElementById("adsTitle").textContent = getCategoryName(categorySlug)
   }
+  renderCategoryGrid()
   updateCategoryButtonStyles()
 }
 
@@ -464,6 +476,7 @@ function filterBySubcategory(categorySlug, subcategorySlug) {
   loadAdsAndUpdateUrl()
   // Display the subcategory name
   document.getElementById("adsTitle").textContent = getSubcategoryName(categorySlug, subcategorySlug)
+  renderCategoryGrid()
   updateCategoryButtonStyles()
 }
 
@@ -474,6 +487,7 @@ function clearCategoryFilter() {
   currentPage = 1
   loadAdsAndUpdateUrl()
   document.getElementById("adsTitle").textContent = "Senaste annonser"
+  renderCategoryGrid()
   updateCategoryButtonStyles()
 }
 
