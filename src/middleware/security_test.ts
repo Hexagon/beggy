@@ -20,6 +20,7 @@ Deno.test("Security headers - CSP header is set", async () => {
   const csp = ctx.response.headers.get("Content-Security-Policy")
   assertExists(csp)
   assertEquals(csp?.includes("default-src 'self'"), true)
+  assertEquals(csp?.includes("https://cdn.tailwindcss.com"), true)
 })
 
 Deno.test("Security headers - X-Frame-Options is set to DENY", async () => {
