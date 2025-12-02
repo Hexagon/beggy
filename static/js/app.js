@@ -6,13 +6,12 @@ const DEFAULT_SORT = "newest"
 
 // State
 let currentUser = null
-let categories = []
-let categoriesConfig = []
-let counties = []
-let adjacentCounties = {}
+let categoriesConfig = [] // Config with slug and name
+let countiesConfig = [] // Config with slug and name
+let adjacentCountiesConfig = {} // Adjacent counties by slug
 let currentPage = 1
-let currentCategory = ""
-let currentCounty = ""
+let currentCategory = "" // slug
+let currentCounty = "" // slug
 let includeAdjacent = false
 let currentSearch = ""
 let currentSort = DEFAULT_SORT
@@ -271,10 +270,10 @@ async function loadCategories() {
   try {
     const res = await fetch("/api/categories")
     const data = await res.json()
-    categories = data.categories
     categoriesConfig = data.categoriesConfig || []
 
     // Populate category grid with "All Categories" button first
+    // Use slugs for filtering, names for display
     const allCategoriesBtn = `
       <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" onclick="clearCategoryFilter()">
         📋 Alla kategorier
@@ -283,15 +282,15 @@ async function loadCategories() {
     categoryGrid.innerHTML = allCategoriesBtn + categoriesConfig
       .map(
         (cat) => `
-      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.name)}" onclick="filterByCategory('${escapeHtml(cat.name)}')">
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
         ${cat.icon || '📦'} ${escapeHtml(cat.name)}
       </div>
     `
       )
       .join("")
 
-    // Populate category filter select
-    const options = categories.map((cat) => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("")
+    // Populate category filter select (value is slug, display is name)
+    const options = categoriesConfig.map((cat) => `<option value="${escapeHtml(cat.slug)}">${escapeHtml(cat.name)}</option>`).join("")
     categorySelect.innerHTML = '<option value="">Alla kategorier</option>' + options
     
     // Update category button styles to show current selection
@@ -322,40 +321,38 @@ async function loadCounties() {
   try {
     const res = await fetch("/api/counties")
     const data = await res.json()
-    counties = data.counties
-    adjacentCounties = data.adjacentCounties
+    countiesConfig = data.countiesConfig || []
+    adjacentCountiesConfig = data.adjacentCountiesConfig || {}
 
-    // Populate county filter select (escape HTML to prevent XSS)
-    const options = counties.map((county) => `<option value="${escapeHtml(county)}">${escapeHtml(county)}</option>`).join("")
+    // Populate county filter select (value is slug, display is name)
+    const options = countiesConfig.map((county) => `<option value="${escapeHtml(county.slug)}">${escapeHtml(county.name)}</option>`).join("")
     countySelect.innerHTML = '<option value="">Alla län</option>' + options
   } catch (err) {
     console.error("Failed to load counties:", err)
   }
 }
 
-function getCategoryIcon(category) {
-  const icons = {
-    Fordon: "🚗",
-    Elektronik: "📱",
-    Möbler: "🛋️",
-    Kläder: "👕",
-    "Sport & Fritid": "⚽",
-    "Hem & Hushåll": "🏠",
-    "Barn & Baby": "👶",
-    Djur: "🐕",
-    Hobby: "🎨",
-    Övrigt: "📦",
-  }
-  return icons[category] || "📦"
+function getCategoryIcon(categorySlug) {
+  const cat = categoriesConfig.find(c => c.slug === categorySlug)
+  return cat?.icon || "📦"
 }
 
-function filterByCategory(category) {
-  currentCategory = category
-  categorySelect.value = category
+function getCategoryName(categorySlug) {
+  const cat = categoriesConfig.find(c => c.slug === categorySlug)
+  return cat?.name || categorySlug
+}
+
+function getCountyName(countySlug) {
+  const county = countiesConfig.find(c => c.slug === countySlug)
+  return county?.name || countySlug
+function filterByCategory(categorySlug) {
+  currentCategory = categorySlug
+  categorySelect.value = categorySlug
   currentPage = 1
   showBrowseView()
   loadAdsAndUpdateUrl()
-  document.getElementById("adsTitle").textContent = category
+  // Display the name, not the slug
+  document.getElementById("adsTitle").textContent = getCategoryName(categorySlug)
   updateCategoryButtonStyles()
 }
 
@@ -436,14 +433,14 @@ async function loadAds() {
     renderAds(data.ads)
     renderPagination(data.pagination)
 
-    // Update title
+    // Update title - use display names, not slugs
     if (currentSearch) {
       document.getElementById("adsTitle").textContent = `Sökresultat för "${currentSearch}"`
     } else if (currentCounty) {
       const adjacentText = includeAdjacent ? " + angränsande" : ""
-      document.getElementById("adsTitle").textContent = `Annonser i ${currentCounty}${adjacentText}`
+      document.getElementById("adsTitle").textContent = `Annonser i ${getCountyName(currentCounty)}${adjacentText}`
     } else if (currentCategory) {
-      document.getElementById("adsTitle").textContent = currentCategory
+      document.getElementById("adsTitle").textContent = getCategoryName(currentCategory)
     } else {
       document.getElementById("adsTitle").textContent = "Senaste annonser"
     }
@@ -465,6 +462,9 @@ function renderAds(ads) {
       .map(
         (ad) => {
           const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          // Use display names from API (_name fields), fallback to slug
+          const categoryDisplay = ad.category_name || ad.category
+          const countyDisplay = ad.county_name || ad.county
           return `
       <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-2" onclick="openAdDetail(${ad.id})">
         ${
@@ -476,7 +476,7 @@ function renderAds(ads) {
           <div class="text-base font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
           <div class="text-lg text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
           <div class="text-sm text-stone-500">
-            ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""} • ${formatRelativeTime(ad.created_at)}
+            ${escapeHtml(categoryDisplay)}${countyDisplay ? " • " + escapeHtml(countyDisplay) : ""} • ${formatRelativeTime(ad.created_at)}
           </div>
         </div>
       </div>
@@ -491,6 +491,9 @@ function renderAds(ads) {
       .map(
         (ad) => {
           const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          // Use display names from API (_name fields), fallback to slug
+          const categoryDisplay = ad.category_name || ad.category
+          const countyDisplay = ad.county_name || ad.county
           return `
       <div class="bg-amber-50 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
         ${
@@ -502,7 +505,7 @@ function renderAds(ads) {
           <div class="text-lg font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
           <div class="text-xl text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
           <div class="text-sm text-stone-500">
-            ${escapeHtml(ad.category)}${ad.county ? " • " + escapeHtml(ad.county) : ""} • ${formatRelativeTime(ad.created_at)}
+            ${escapeHtml(categoryDisplay)}${countyDisplay ? " • " + escapeHtml(countyDisplay) : ""} • ${formatRelativeTime(ad.created_at)}
           </div>
         </div>
       </div>

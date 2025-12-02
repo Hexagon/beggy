@@ -128,6 +128,10 @@ Deno.test("All county slugs are URL-safe", () => {
 Deno.test("ADJACENT_COUNTIES_CONFIG keys match county slugs", () => {
   const countySlugs = new Set(COUNTIES_CONFIG.map((c) => c.slug))
   for (const slug of Object.keys(ADJACENT_COUNTIES_CONFIG)) {
-    assertEquals(countySlugs.has(slug), true, `Adjacent county key "${slug}" should exist in COUNTIES_CONFIG`)
+    assertEquals(
+      countySlugs.has(slug),
+      true,
+      `Adjacent county key "${slug}" should exist in COUNTIES_CONFIG`,
+    )
   }
 })

@@ -2,9 +2,8 @@
 
 // State
 let currentUser = null
-let categories = []
-let categoriesConfig = []
-let counties = []
+let categoriesConfig = [] // Config with slug and name
+let countiesConfig = [] // Config with slug and name
 let selectedImages = []
 let currentConversationId = null
 
@@ -194,11 +193,10 @@ async function loadCategories() {
   try {
     const res = await fetch("/api/categories")
     const data = await res.json()
-    categories = data.categories
     categoriesConfig = data.categoriesConfig || []
 
-    // Populate category select
-    const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
+    // Populate category select (value is slug, display is name)
+    const options = categoriesConfig.map((cat) => `<option value="${escapeHtml(cat.slug)}">${escapeHtml(cat.name)}</option>`).join("")
     adCategorySelect.innerHTML = '<option value="">Välj kategori</option>' + options
     
     // Add change handler for category to show subcategories
@@ -210,14 +208,14 @@ async function loadCategories() {
 
 // Handle category change to show/hide subcategories
 function handleCategoryChange() {
-  const selectedCategory = adCategorySelect.value
-  const categoryConfig = categoriesConfig.find(c => c.name === selectedCategory)
+  const selectedCategorySlug = adCategorySelect.value
+  const categoryConfig = categoriesConfig.find(c => c.slug === selectedCategorySlug)
   
   if (categoryConfig && categoryConfig.subcategories && categoryConfig.subcategories.length > 0) {
-    // Show subcategory container and populate options
+    // Show subcategory container and populate options (value is slug, display is name)
     subcategoryContainer.classList.remove("hidden")
     const options = categoryConfig.subcategories.map(
-      sub => `<option value="${escapeHtml(sub.name)}">${escapeHtml(sub.name)}</option>`
+      sub => `<option value="${escapeHtml(sub.slug)}">${escapeHtml(sub.name)}</option>`
     ).join("")
     adSubcategorySelect.innerHTML = '<option value="">Välj underkategori (valfritt)</option>' + options
   } else {
@@ -232,10 +230,10 @@ async function loadCounties() {
   try {
     const res = await fetch("/api/counties")
     const data = await res.json()
-    counties = data.counties
+    countiesConfig = data.countiesConfig || []
 
-    // Populate county select (escape HTML to prevent XSS)
-    const options = counties.map((county) => `<option value="${escapeHtml(county)}">${escapeHtml(county)}</option>`).join("")
+    // Populate county select (value is slug, display is name)
+    const options = countiesConfig.map((county) => `<option value="${escapeHtml(county.slug)}">${escapeHtml(county.name)}</option>`).join("")
     adCountySelect.innerHTML = '<option value="">Välj län</option>' + options
   } catch (err) {
     console.error("Failed to load counties:", err)

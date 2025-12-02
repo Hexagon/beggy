@@ -1,15 +1,20 @@
 import { Router } from "@oak/oak"
 import { getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
 import {
-  ADJACENT_COUNTIES,
   ADJACENT_COUNTIES_CONFIG,
-  CATEGORIES,
   CATEGORIES_CONFIG,
-  COUNTIES,
   COUNTIES_CONFIG,
+  getAdjacentCountySlugs,
+  getCategoryBySlug,
+  getCountyBySlug,
+  getSubcategoryBySlug,
 } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
+
+// Helper arrays of valid slugs
+const CATEGORY_SLUGS = CATEGORIES_CONFIG.map((c) => c.slug)
+const COUNTY_SLUGS = COUNTIES_CONFIG.map((c) => c.slug)
 
 const router = new Router()
 const MAX_IMAGES_PER_AD = 5
@@ -70,10 +75,10 @@ router.get("/api/ads", async (ctx) => {
 
   if (county) {
     if (includeAdjacent) {
-      // Include selected county and its adjacent counties
-      const adjacentCounties = ADJACENT_COUNTIES[county] || []
-      const allCounties = [county, ...adjacentCounties]
-      query = query.in("county", allCounties)
+      // Include selected county and its adjacent counties (using slugs)
+      const adjacentCountySlugs = getAdjacentCountySlugs(county)
+      const allCountySlugs = [county, ...adjacentCountySlugs]
+      query = query.in("county", allCountySlugs)
     } else {
       query = query.eq("county", county)
     }
@@ -100,15 +105,25 @@ router.get("/api/ads", async (ctx) => {
         ? supabase.storage.from("ad-images").getPublicUrl(firstImage.storage_path).data.publicUrl
         : null
 
+      // Get display names from slugs
+      const categoryConfig = getCategoryBySlug(ad.category)
+      const countyConfig = getCountyBySlug(ad.county)
+      const subcategoryConfig = ad.subcategory
+        ? getSubcategoryBySlug(ad.category, ad.subcategory)
+        : null
+
       return {
         id: ad.id,
         user_id: ad.user_id,
         title: ad.title,
         description: ad.description,
         price: ad.price,
-        category: ad.category,
-        subcategory: ad.subcategory,
-        county: ad.county,
+        category: ad.category, // slug
+        category_name: categoryConfig?.name || ad.category, // display name
+        subcategory: ad.subcategory, // slug
+        subcategory_name: subcategoryConfig?.name || ad.subcategory, // display name
+        county: ad.county, // slug
+        county_name: countyConfig?.name || ad.county, // display name
         state: ad.state,
         created_at: ad.created_at,
         updated_at: ad.updated_at,
@@ -155,15 +170,25 @@ router.get("/api/ads/:id", async (ctx) => {
     return
   }
 
+  // Get display names from slugs
+  const categoryConfig = getCategoryBySlug(ad.category)
+  const countyConfig = getCountyBySlug(ad.county)
+  const subcategoryConfig = ad.subcategory
+    ? getSubcategoryBySlug(ad.category, ad.subcategory)
+    : null
+
   ctx.response.body = {
     id: ad.id,
     user_id: ad.user_id,
     title: ad.title,
     description: ad.description,
     price: ad.price,
-    category: ad.category,
-    subcategory: ad.subcategory,
-    county: ad.county,
+    category: ad.category, // slug
+    category_name: categoryConfig?.name || ad.category, // display name
+    subcategory: ad.subcategory, // slug
+    subcategory_name: subcategoryConfig?.name || ad.subcategory, // display name
+    county: ad.county, // slug
+    county_name: countyConfig?.name || ad.county, // display name
     state: ad.state,
     allow_messages: ad.allow_messages !== false, // default to true for backwards compatibility
     created_at: ad.created_at,
@@ -192,7 +217,16 @@ router.post("/api/ads", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, subcategory, county, contact_phone, allow_messages } = body
+  const {
+    title,
+    description,
+    price,
+    category,
+    subcategory,
+    county,
+    contact_phone,
+    allow_messages,
+  } = body
 
   if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
@@ -200,25 +234,25 @@ router.post("/api/ads", async (ctx) => {
     return
   }
 
-  if (!CATEGORIES.includes(category)) {
+  // Validate category slug
+  if (!CATEGORY_SLUGS.includes(category)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltig kategori" }
     return
   }
 
-  // Validate subcategory if provided
+  // Validate subcategory slug if provided
   if (subcategory) {
-    // Find category by name (the form uses category names, not slugs)
-    const categoryConfig = CATEGORIES_CONFIG.find((c) => c.name === category)
-    const validSubcategory = categoryConfig?.subcategories?.some((s) => s.name === subcategory)
-    if (!validSubcategory) {
+    const subcategoryConfig = getSubcategoryBySlug(category, subcategory)
+    if (!subcategoryConfig) {
       ctx.response.status = 400
       ctx.response.body = { error: "Ogiltig underkategori" }
       return
     }
   }
 
-  if (!COUNTIES.includes(county)) {
+  // Validate county slug
+  if (!COUNTY_SLUGS.includes(county)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltigt län" }
     return
@@ -239,7 +273,9 @@ router.post("/api/ads", async (ctx) => {
 
   if (!hasMessages && !hasPhone) {
     ctx.response.status = 400
-    ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)" }
+    ctx.response.body = {
+      error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)",
+    }
     return
   }
 
@@ -263,9 +299,9 @@ router.post("/api/ads", async (ctx) => {
       title,
       description,
       price,
-      category,
-      subcategory: subcategory || null,
-      county,
+      category, // slug
+      subcategory: subcategory || null, // slug
+      county, // slug
       contact_phone: trimmedPhone || null,
       allow_messages: allow_messages !== false, // default to true
       state: "ok",
@@ -311,18 +347,40 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, subcategory, county, contact_phone, allow_messages, state } = body
+  const {
+    title,
+    description,
+    price,
+    category,
+    subcategory,
+    county,
+    contact_phone,
+    allow_messages,
+    state,
+  } = body
 
-  if (category && !CATEGORIES.includes(category)) {
+  // Validate category slug if provided
+  if (category && !CATEGORY_SLUGS.includes(category)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltig kategori" }
     return
   }
 
-  if (county && !COUNTIES.includes(county)) {
+  // Validate county slug if provided
+  if (county && !COUNTY_SLUGS.includes(county)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltigt län" }
     return
+  }
+
+  // Validate subcategory slug if provided (requires category context)
+  if (subcategory && category) {
+    const subcategoryConfig = getSubcategoryBySlug(category, subcategory)
+    if (!subcategoryConfig) {
+      ctx.response.status = 400
+      ctx.response.body = { error: "Ogiltig underkategori" }
+      return
+    }
   }
 
   // Trim whitespace from contact fields
@@ -335,7 +393,9 @@ router.put("/api/ads/:id", async (ctx) => {
 
     if (!hasMessages && !hasPhone) {
       ctx.response.status = 400
-      ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)" }
+      ctx.response.body = {
+        error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)",
+      }
       return
     }
   }
@@ -352,9 +412,9 @@ router.put("/api/ads/:id", async (ctx) => {
   if (title !== undefined) updates.title = title
   if (description !== undefined) updates.description = description
   if (price !== undefined) updates.price = price
-  if (category !== undefined) updates.category = category
-  if (subcategory !== undefined) updates.subcategory = subcategory || null
-  if (county !== undefined) updates.county = county
+  if (category !== undefined) updates.category = category // slug
+  if (subcategory !== undefined) updates.subcategory = subcategory || null // slug
+  if (county !== undefined) updates.county = county // slug
   if (contact_phone !== undefined) updates.contact_phone = trimmedPhone || null
   if (allow_messages !== undefined) updates.allow_messages = allow_messages
   // User can only change state to "ok" or "sold"
@@ -542,7 +602,7 @@ router.delete("/api/images/:id", async (ctx) => {
 // Get categories (with full config including subcategories)
 router.get("/api/categories", (ctx) => {
   ctx.response.body = {
-    categories: CATEGORIES,
+    // Only return the config with slugs - frontend should use slugs
     categoriesConfig: CATEGORIES_CONFIG,
   }
 })
@@ -550,9 +610,8 @@ router.get("/api/categories", (ctx) => {
 // Get counties (with full config including slugs)
 router.get("/api/counties", (ctx) => {
   ctx.response.body = {
-    counties: COUNTIES,
+    // Only return the config with slugs - frontend should use slugs
     countiesConfig: COUNTIES_CONFIG,
-    adjacentCounties: ADJACENT_COUNTIES,
     adjacentCountiesConfig: ADJACENT_COUNTIES_CONFIG,
   }
 })
@@ -584,21 +643,33 @@ router.get("/api/my-ads", async (ctx) => {
   }
 
   ctx.response.body = {
-    ads: (ads || []).map((ad) => ({
-      id: ad.id,
-      user_id: ad.user_id,
-      title: ad.title,
-      description: ad.description,
-      price: ad.price,
-      category: ad.category,
-      subcategory: ad.subcategory,
-      county: ad.county,
-      state: ad.state,
-      created_at: ad.created_at,
-      updated_at: ad.updated_at,
-      expires_at: ad.expires_at,
-      image_count: ad.images?.length || 0,
-    })),
+    ads: (ads || []).map((ad) => {
+      // Get display names from slugs
+      const categoryConfig = getCategoryBySlug(ad.category)
+      const countyConfig = getCountyBySlug(ad.county)
+      const subcategoryConfig = ad.subcategory
+        ? getSubcategoryBySlug(ad.category, ad.subcategory)
+        : null
+
+      return {
+        id: ad.id,
+        user_id: ad.user_id,
+        title: ad.title,
+        description: ad.description,
+        price: ad.price,
+        category: ad.category, // slug
+        category_name: categoryConfig?.name || ad.category, // display name
+        subcategory: ad.subcategory, // slug
+        subcategory_name: subcategoryConfig?.name || ad.subcategory, // display name
+        county: ad.county, // slug
+        county_name: countyConfig?.name || ad.county, // display name
+        state: ad.state,
+        created_at: ad.created_at,
+        updated_at: ad.updated_at,
+        expires_at: ad.expires_at,
+        image_count: ad.images?.length || 0,
+      }
+    }),
   }
 })
 

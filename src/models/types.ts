@@ -52,16 +52,13 @@ export interface Message {
   created_at: string
 }
 
-// Re-export from config for backwards compatibility
+// Re-export from config
 export {
-  ADJACENT_COUNTIES,
   ADJACENT_COUNTIES_CONFIG,
-  CATEGORIES,
   CATEGORIES_CONFIG,
   type Category,
-  type County,
-  COUNTIES,
   COUNTIES_CONFIG,
+  type County,
   getAdjacentCountySlugs,
   getCategoryByName,
   getCategoryBySlug,
