@@ -8,7 +8,11 @@ import { errorMiddleware } from "./src/middleware/error.ts"
 await setupEnv({ dotEnv: { enabled: true } })
 
 // Initialize Supabase
-initDatabase(getEnv("SUPABASE_URL"), getEnv("SUPABASE_ANON_KEY"))
+initDatabase(
+  getEnv("SUPABASE_URL"),
+  getEnv("SUPABASE_ANON_KEY"),
+  getEnv("SUPABASE_SERVICE_ROLE_KEY"),
+)
 
 const app = new Application()
 

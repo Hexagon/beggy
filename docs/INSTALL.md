@@ -26,6 +26,7 @@ cd beggy
 1. Go to **Project Settings** > **API**
 2. Copy the **Project URL** (e.g., `https://xxxxx.supabase.co`)
 3. Copy the **anon/public** key
+4. Copy the **service_role** key (required for account deletion to work properly)
 
 ### Create Database Tables
 
@@ -62,6 +63,7 @@ cp .env.template .env
 # Supabase Configuration
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-actual-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-actual-service-role-key-here
 
 # Server Configuration
 PORT=8000
@@ -84,11 +86,17 @@ variables!
 
 ### Required Variables
 
-| Variable            | Description                       | Example                     |
-| ------------------- | --------------------------------- | --------------------------- |
-| `SUPABASE_URL`      | Your Supabase project URL         | `https://xxxxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous key       | `eyJhbGciOiJIUzI1NiIs...`   |
-| `ENCRYPTION_SECRET` | Secret key for message encryption | Random 32+ character string |
+| Variable                      | Description                                    | Example                     |
+| ----------------------------- | ---------------------------------------------- | --------------------------- |
+| `SUPABASE_URL`                | Your Supabase project URL                      | `https://xxxxx.supabase.co` |
+| `SUPABASE_ANON_KEY`           | Your Supabase anonymous key                    | `eyJhbGciOiJIUzI1NiIs...`   |
+| `SUPABASE_SERVICE_ROLE_KEY`   | Your Supabase service role key (for deletions) | `eyJhbGciOiJIUzI1NiIs...`   |
+| `ENCRYPTION_SECRET`           | Secret key for message encryption              | Random 32+ character string |
+
+**Security Note:** The `SUPABASE_SERVICE_ROLE_KEY` bypasses Row Level Security and should be kept
+secure. It's required for the account deletion feature to work properly (deleting both profile and
+auth user). Without it, only the profile will be deleted when a user deletes their account, leaving
+the auth.users record intact.
 
 ### Optional Variables
 
@@ -104,6 +112,7 @@ variables!
 ```bash
 export SUPABASE_URL="https://your-project.supabase.co"
 export SUPABASE_ANON_KEY="your-anon-key"
+export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 export ENCRYPTION_SECRET="your-secret-key"
 ```
 

@@ -1,5 +1,5 @@
 import { Router } from "@oak/oak"
-import { getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
+import { getAdminSupabase, getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 
 const router = new Router()
@@ -428,8 +428,23 @@ router.delete("/api/auth/account", async (ctx) => {
   // Delete profile
   await authSupabase.from("profiles").delete().eq("id", userId)
 
-  // Note: Deleting from auth.users requires admin privileges
-  // The user should be deleted via Supabase dashboard or a server-side admin function
+  // Delete user from auth.users (requires admin privileges)
+  try {
+    const adminSupabase = getAdminSupabase()
+    const { error: deleteUserError } = await adminSupabase.auth.admin.deleteUser(userId)
+    if (deleteUserError) {
+      console.error("Delete user from auth error:", deleteUserError.message)
+      // Continue anyway - profile is already deleted
+    }
+  } catch (error) {
+    console.error(
+      "Admin Supabase not available - service role key not configured or invalid:",
+      error,
+    )
+    // Profile is deleted, but auth user remains
+    // This is acceptable if service role key is not configured
+  }
+
   await supabase.auth.signOut()
 
   await ctx.cookies.delete("access_token")

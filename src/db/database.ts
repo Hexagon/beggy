@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js"
 let supabase: SupabaseClient | null = null
 let supabaseUrl: string | null = null
 let supabaseKey: string | null = null
+let supabaseServiceRoleKey: string | null = null
 
 export function getSupabase(): SupabaseClient {
   if (!supabase) {
@@ -27,9 +28,22 @@ export function getAuthenticatedSupabase(accessToken: string): SupabaseClient {
   })
 }
 
+export function getAdminSupabase(): SupabaseClient {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error("Supabase admin not initialized - service role key required")
+  }
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
+}
+
 export function initDatabase(
   _supabaseUrl: string | null = null,
   _supabaseKey: string | null = null,
+  _supabaseServiceRoleKey: string | null = null,
 ): void {
   if (!_supabaseUrl || !_supabaseKey) {
     throw new Error(
@@ -39,11 +53,16 @@ export function initDatabase(
   } else {
     supabaseUrl = _supabaseUrl
     supabaseKey = _supabaseKey
+    supabaseServiceRoleKey = _supabaseServiceRoleKey
   }
 
   supabase = createClient(supabaseUrl, supabaseKey)
 
-  console.log("✅ Supabase initierad")
+  if (supabaseServiceRoleKey) {
+    console.log("✅ Supabase initierad (med admin-behörigheter)")
+  } else {
+    console.log("✅ Supabase initierad (utan admin-behörigheter - användare kan inte radera sina auth-konton)")
+  }
 }
 
 // Database Schema
