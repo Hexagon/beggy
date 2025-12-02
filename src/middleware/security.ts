@@ -13,7 +13,7 @@ export async function securityHeadersMiddleware(ctx: Context, next: Next): Promi
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for inline scripts in HTML templates
+      "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com", // unsafe-inline needed for inline scripts in HTML templates; cdn.tailwindcss.com for Tailwind CSS
       "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for Tailwind and inline styles
       "img-src 'self' data: https:", // Allow images from Supabase storage and data URIs
       "font-src 'self'",
