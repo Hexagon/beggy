@@ -11,6 +11,12 @@ let existingImages = []
 let currentConversationId = null
 const MAX_IMAGES = 5
 
+// Promise resolvers for coordinating async loading
+let categoriesLoaded = null
+let countiesLoaded = null
+const categoriesReadyPromise = new Promise(resolve => { categoriesLoaded = resolve })
+const countiesReadyPromise = new Promise(resolve => { countiesLoaded = resolve })
+
 // DOM Elements
 const adCategorySelect = document.getElementById("adCategory")
 const adSubcategorySelect = document.getElementById("adSubcategory")
@@ -233,14 +239,14 @@ async function loadAdForEdit() {
     document.getElementById("loadingContainer").classList.add("hidden")
     document.getElementById("editAdContainer").classList.remove("hidden")
 
-    // Populate form (wait for categories/counties to load)
-    setTimeout(() => populateForm(ad), 100)
+    // Populate form (will wait for categories/counties to load)
+    await populateForm(ad)
   } catch (err) {
     showError("Kunde inte ladda annonsen")
   }
 }
 
-function populateForm(ad) {
+async function populateForm(ad) {
   document.getElementById("adTitle").value = ad.title || ""
   document.getElementById("adPrice").value = ad.price || 0
   document.getElementById("adDescription").value = ad.description || ""
@@ -254,30 +260,19 @@ function populateForm(ad) {
   document.getElementById("adContactPhone").value = ad.seller_contact_phone || ""
   document.getElementById("adContactPhone").disabled = !hasPhone
   
-  // Set category (may need to wait for options to load)
-  if (adCategorySelect.options.length > 1) {
-    adCategorySelect.value = ad.category || ""
-    handleCategoryChange()
-    // Set subcategory after category change handler
-    if (ad.subcategory && adSubcategorySelect) {
-      adSubcategorySelect.value = ad.subcategory
-    }
-  } else {
-    setTimeout(() => {
-      adCategorySelect.value = ad.category || ""
-      handleCategoryChange()
-      if (ad.subcategory && adSubcategorySelect) {
-        adSubcategorySelect.value = ad.subcategory
-      }
-    }, 200)
+  // Wait for categories and counties to be loaded before setting values
+  await Promise.all([categoriesReadyPromise, countiesReadyPromise])
+  
+  // Set category (options should now be loaded)
+  adCategorySelect.value = ad.category || ""
+  handleCategoryChange()
+  // Set subcategory after category change handler populates the subcategory options
+  if (ad.subcategory && adSubcategorySelect) {
+    adSubcategorySelect.value = ad.subcategory
   }
   
-  // Set county
-  if (adCountySelect.options.length > 1) {
-    adCountySelect.value = ad.county || ""
-  } else {
-    setTimeout(() => { adCountySelect.value = ad.county || "" }, 200)
-  }
+  // Set county (options should now be loaded)
+  adCountySelect.value = ad.county || ""
 
   // Show existing images
   renderExistingImages()
@@ -347,16 +342,11 @@ async function loadCategories() {
     // Add change handler for category to show subcategories
     adCategorySelect.addEventListener("change", handleCategoryChange)
     
-    // Set current value if ad is loaded (ad.category is already a slug from API)
-    if (currentAd) {
-      adCategorySelect.value = currentAd.category || ""
-      handleCategoryChange()
-      if (currentAd.subcategory && adSubcategorySelect) {
-        adSubcategorySelect.value = currentAd.subcategory
-      }
-    }
+    // Signal that categories are ready (populateForm will set the values)
+    if (categoriesLoaded) categoriesLoaded()
   } catch (err) {
     console.error("Failed to load categories:", err)
+    if (categoriesLoaded) categoriesLoaded() // Resolve even on error to prevent deadlock
   }
 }
 
@@ -390,12 +380,11 @@ async function loadCounties() {
     const options = countiesConfig.map((county) => `<option value="${escapeHtml(county.slug)}">${escapeHtml(county.name)}</option>`).join("")
     adCountySelect.innerHTML = '<option value="">Välj län</option>' + options
     
-    // Set current value if ad is loaded (ad.county is already a slug from API)
-    if (currentAd) {
-      adCountySelect.value = currentAd.county || ""
-    }
+    // Signal that counties are ready (populateForm will set the values)
+    if (countiesLoaded) countiesLoaded()
   } catch (err) {
     console.error("Failed to load counties:", err)
+    if (countiesLoaded) countiesLoaded() // Resolve even on error to prevent deadlock
   }
 }
 
