@@ -345,6 +345,8 @@ function getCategoryName(categorySlug) {
 function getCountyName(countySlug) {
   const county = countiesConfig.find(c => c.slug === countySlug)
   return county?.name || countySlug
+}
+
 function filterByCategory(categorySlug) {
   currentCategory = categorySlug
   categorySelect.value = categorySlug
