@@ -88,8 +88,11 @@ function setupEventListeners() {
 
   document.getElementById("forgotPasswordForm").addEventListener("submit", handleForgotPassword)
 
-  // Logout
-  document.getElementById("logoutBtn").addEventListener("click", handleLogout)
+  // Logout - element may be hidden by CSS when logged out, but event listener still works
+  const logoutBtn = document.getElementById("logoutBtn")
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", handleLogout)
+  }
 
   // Report ad
   document.getElementById("reportForm").addEventListener("submit", handleReportAd)
@@ -193,15 +196,12 @@ async function checkAuth() {
     const res = await fetch("/api/auth/me")
     if (res.ok) {
       currentUser = await res.json()
-      updateAuthUI()
-    } else {
-      // Not logged in
-      updateAuthUI()
     }
   } catch {
-    // Not logged in
-    updateAuthUI()
+    // Not logged in - currentUser remains null
   }
+  // Always update UI after checking auth
+  updateAuthUI()
 }
 
 function updateAuthUI() {
