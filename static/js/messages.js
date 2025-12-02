@@ -1,7 +1,7 @@
 // Beggy - Messages Page JavaScript
 
 // State
-let currentUser = null
+// Note: window.currentUser is defined in utils.js as window.currentUser
 let currentConversationId = null
 
 // Initialize
@@ -77,12 +77,12 @@ function setupEventListeners() {
   })
 }
 
-// Auth functions
+// Auth functions - custom implementations that manage page display
 async function checkAuth() {
   try {
     const res = await fetch("/api/auth/me")
     if (res.ok) {
-      currentUser = await res.json()
+      window.currentUser = await res.json()
       updateAuthUI()
       document.getElementById("loginOverlay").classList.add("hidden")
       loadConversations()
@@ -95,7 +95,7 @@ async function checkAuth() {
 }
 
 function updateAuthUI() {
-  if (currentUser) {
+  if (window.currentUser) {
     // User is logged in - set body class
     document.body.classList.add("user-logged-in")
     document.body.classList.remove("user-logged-out")
@@ -328,75 +328,7 @@ async function handleSendMessage(e) {
   }
 }
 
-// Modal helpers
-function openModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.remove("hidden")
-  modal.classList.add("block")
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.add("hidden")
-  modal.classList.remove("block")
-}
-
-// Utility functions
-function escapeHtml(text) {
-  if (!text) return ""
-  const div = document.createElement("div")
-  div.textContent = text
-  return div.innerHTML
-}
-
-function formatDate(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(dateString))
-}
-
-function formatDateTime(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateString))
-}
-
-function formatRelativeTime(dateString) {
-  const now = new Date()
-  const date = new Date(dateString)
-  const diffMs = now - date
-  const diffSec = Math.floor(diffMs / 1000)
-  const diffMin = Math.floor(diffSec / 60)
-  const diffHour = Math.floor(diffMin / 60)
-  const diffDay = Math.floor(diffHour / 24)
-
-  if (diffMin < 1) return "just nu"
-  if (diffMin < 60) return `${diffMin}m`
-  if (diffHour < 24) return `${diffHour}h`
-  if (diffDay < 7) return `${diffDay}d`
-  return formatDate(dateString)
-}
-
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded shadow-lg ${type === "success" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
+// Utility functions (openModal, closeModal, escapeHtml, showAlert, etc.) are now in utils.js
 
 // Make functions available globally
 window.openModal = openModal

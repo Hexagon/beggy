@@ -1,7 +1,7 @@
 // Beggy - Settings Page JavaScript
 
 // State
-let currentUser = null
+// Note: window.currentUser is defined in utils.js as window.currentUser
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
@@ -49,12 +49,12 @@ function setupEventListeners() {
   })
 }
 
-// Auth functions
+// Auth functions - custom implementations that manage page display
 async function checkAuth() {
   try {
     const res = await fetch("/api/auth/me")
     if (res.ok) {
-      currentUser = await res.json()
+      window.currentUser = await res.json()
       updateAuthUI()
     }
   } catch {
@@ -64,7 +64,7 @@ async function checkAuth() {
 }
 
 function updateAuthUI() {
-  if (currentUser) {
+  if (window.currentUser) {
     // User is logged in - set body class
     document.body.classList.add("user-logged-in")
     document.body.classList.remove("user-logged-out")
@@ -79,7 +79,7 @@ function updatePageDisplay() {
   const loginPrompt = document.getElementById("loginPrompt")
   const settingsContainer = document.getElementById("settingsContainer")
   
-  if (currentUser) {
+  if (window.currentUser) {
     loginPrompt.classList.add("hidden")
     settingsContainer.classList.remove("hidden")
   } else {
@@ -153,7 +153,7 @@ async function handleLogout(e) {
   e.preventDefault()
   try {
     await fetch("/api/auth/logout", { method: "POST" })
-    currentUser = null
+    window.currentUser = null
     updateAuthUI()
     updatePageDisplay()
     showAlert("Du har loggats ut", "success")
@@ -241,7 +241,7 @@ async function deleteMyAccount() {
     const res = await fetch("/api/auth/account", { method: "DELETE" })
 
     if (res.ok) {
-      currentUser = null
+      window.currentUser = null
       updateAuthUI()
       showAlert("Ditt konto har raderats", "success")
       window.location.href = "/"
@@ -253,33 +253,7 @@ async function deleteMyAccount() {
   }
 }
 
-// Modal helpers
-function openModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.remove("hidden")
-  modal.classList.add("block")
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.add("hidden")
-  modal.classList.remove("block")
-}
-
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
+// Utility functions (openModal, closeModal, escapeHtml, showAlert, etc.) are now in utils.js
 
 // Make functions available globally for onclick handlers
 window.openModal = openModal

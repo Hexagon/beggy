@@ -1,7 +1,7 @@
 // Beggy - Edit Ad Page JavaScript
 
 // State
-let currentUser = null
+// Note: window.currentUser is defined in utils.js as window.currentUser
 let currentAdId = null
 let currentAd = null
 let categoriesConfig = [] // Config with slug and name
@@ -96,12 +96,12 @@ function setupEventListeners() {
   })
 }
 
-// Auth functions
+// Auth functions - custom implementations that manage page display
 async function checkAuth() {
   try {
     const res = await fetch("/api/auth/me")
     if (res.ok) {
-      currentUser = await res.json()
+      window.currentUser = await res.json()
       updateAuthUI()
       loadAdForEdit()
     } else {
@@ -117,7 +117,7 @@ async function checkAuth() {
 }
 
 function updateAuthUI() {
-  if (currentUser) {
+  if (window.currentUser) {
     // User is logged in - set body class
     document.body.classList.add("user-logged-in")
     document.body.classList.remove("user-logged-out")
@@ -187,7 +187,7 @@ async function handleLogout(e) {
   e.preventDefault()
   try {
     await fetch("/api/auth/logout", { method: "POST" })
-    currentUser = null
+    window.currentUser = null
     updateAuthUI()
     window.location.href = "/"
   } catch {
@@ -208,7 +208,7 @@ async function loadAdForEdit() {
     const ad = await res.json()
     
     // Check ownership
-    if (ad.user_id !== currentUser.id) {
+    if (ad.user_id !== window.currentUser.id) {
       showError("Du har inte behörighet att redigera denna annons")
       return
     }
@@ -501,41 +501,7 @@ async function handleEditAd(e) {
   }
 }
 
-// Modal helpers
-function openModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.remove("hidden")
-  modal.classList.add("block")
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.add("hidden")
-  modal.classList.remove("block")
-}
-
-// Utility functions
-function escapeHtml(text) {
-  if (!text) return ""
-  const div = document.createElement("div")
-  div.textContent = text
-  return div.innerHTML
-}
-
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
+// Utility functions (openModal, closeModal, escapeHtml, showAlert, etc.) are now in utils.js
 
 // Make functions available globally for onclick handlers
 window.openModal = openModal
