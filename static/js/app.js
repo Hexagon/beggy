@@ -25,6 +25,7 @@ const categoryGrid = document.getElementById("categoryGrid")
 const categorySelect = document.getElementById("categorySelect")
 const countySelect = document.getElementById("countySelect")
 const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox")
+const includeAdjacentCheckboxMobile = document.getElementById("includeAdjacentCheckboxMobile")
 const searchInput = document.getElementById("searchInput")
 const pagination = document.getElementById("pagination")
 const sortSelect = document.getElementById("sortSelect")
@@ -39,6 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCounties()
   loadStateFromUrl()
   setupEventListeners()
+  initTextSizeToggle()
+  initMobileMenu()
   
   // Force mute all videos (browser policy often requires this for autoplay)
   document.querySelectorAll("video").forEach(v => v.muted = true)
@@ -46,6 +49,100 @@ document.addEventListener("DOMContentLoaded", () => {
   updateViewModeButtons()
   updateViewMode()
 })
+
+// Text Size Accessibility
+function initTextSizeToggle() {
+  const textSizeToggle = document.getElementById("textSizeToggle")
+  const isLargeText = localStorage.getItem("textSize") === "large"
+  
+  if (isLargeText) {
+    document.body.classList.add("text-large")
+    updateTextSizeToggleIcon(true)
+  }
+  
+  textSizeToggle.addEventListener("click", () => {
+    const isCurrentlyLarge = document.body.classList.contains("text-large")
+    
+    if (isCurrentlyLarge) {
+      document.body.classList.remove("text-large")
+      localStorage.setItem("textSize", "normal")
+      updateTextSizeToggleIcon(false)
+    } else {
+      document.body.classList.add("text-large")
+      localStorage.setItem("textSize", "large")
+      updateTextSizeToggleIcon(true)
+    }
+  })
+}
+
+function updateTextSizeToggleIcon(isLarge) {
+  const textSizeToggle = document.getElementById("textSizeToggle")
+  if (isLarge) {
+    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">-</span>'
+    textSizeToggle.title = "Minska textstorlek"
+    textSizeToggle.setAttribute("aria-label", "Minska textstorlek")
+  } else {
+    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">+</span>'
+    textSizeToggle.title = "Öka textstorlek"
+    textSizeToggle.setAttribute("aria-label", "Öka textstorlek")
+  }
+}
+
+// Mobile Menu
+function initMobileMenu() {
+  const mobileMenuToggle = document.getElementById("mobileMenuToggle")
+  const mobileMenu = document.getElementById("mobileMenu")
+  
+  mobileMenuToggle.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden")
+  })
+  
+  // Setup mobile menu button listeners
+  const loginBtnMobile = document.getElementById("loginBtnMobile")
+  const logoutBtnMobile = document.getElementById("logoutBtnMobile")
+  const sellBtnMobile = document.getElementById("sellBtnMobile")
+  const sellBtn2Mobile = document.getElementById("sellBtn2Mobile")
+  
+  if (loginBtnMobile) {
+    loginBtnMobile.addEventListener("click", (e) => {
+      e.preventDefault()
+      mobileMenu.classList.add("hidden")
+      openModal("loginModal")
+    })
+  }
+  
+  if (logoutBtnMobile) {
+    logoutBtnMobile.addEventListener("click", (e) => {
+      e.preventDefault()
+      mobileMenu.classList.add("hidden")
+      handleLogout(e)
+    })
+  }
+  
+  if (sellBtnMobile) {
+    sellBtnMobile.addEventListener("click", (e) => {
+      e.preventDefault()
+      window.location.href = "/ny-annons"
+    })
+  }
+  
+  if (sellBtn2Mobile) {
+    sellBtn2Mobile.addEventListener("click", (e) => {
+      e.preventDefault()
+      window.location.href = "/ny-annons"
+    })
+  }
+  
+  // Close mobile menu when clicking links (except sell button which navigates)
+  const mobileLinks = mobileMenu.querySelectorAll("a:not([id*='sellBtn'])")
+  mobileLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      if (!link.id.includes("loginBtn")) {
+        mobileMenu.classList.add("hidden")
+      }
+    })
+  })
+}
 
 // Event Listeners
 function setupEventListeners() {
@@ -140,9 +237,22 @@ function setupEventListeners() {
   // Include adjacent counties checkbox
   includeAdjacentCheckbox.addEventListener("change", () => {
     includeAdjacent = includeAdjacentCheckbox.checked
+    if (includeAdjacentCheckboxMobile) {
+      includeAdjacentCheckboxMobile.checked = includeAdjacent
+    }
     currentPage = 1
     loadAdsAndUpdateUrl()
   })
+  
+  // Mobile adjacent checkbox
+  if (includeAdjacentCheckboxMobile) {
+    includeAdjacentCheckboxMobile.addEventListener("change", () => {
+      includeAdjacent = includeAdjacentCheckboxMobile.checked
+      includeAdjacentCheckbox.checked = includeAdjacent
+      currentPage = 1
+      loadAdsAndUpdateUrl()
+    })
+  }
 
   // Category filter
   categorySelect.addEventListener("change", () => {
@@ -200,17 +310,37 @@ async function checkAuth() {
 function updateAuthUI() {
   const loggedOutNav = document.querySelector(".nav:not(.nav-logged-in)")
   const loggedInNav = document.querySelector(".nav-logged-in")
+  const loggedOutNavMobile = document.querySelector(".nav-mobile")
+  const loggedInNavMobile = document.querySelector(".nav-mobile-logged-in")
 
   if (currentUser) {
     loggedOutNav.classList.add("hidden")
     loggedOutNav.classList.remove("flex")
     loggedInNav.classList.remove("hidden")
     loggedInNav.classList.add("flex")
+    
+    if (loggedOutNavMobile) {
+      loggedOutNavMobile.classList.add("hidden")
+      loggedOutNavMobile.classList.remove("flex")
+    }
+    if (loggedInNavMobile) {
+      loggedInNavMobile.classList.remove("hidden")
+      loggedInNavMobile.classList.add("flex")
+    }
   } else {
     loggedOutNav.classList.remove("hidden")
     loggedOutNav.classList.add("flex")
     loggedInNav.classList.add("hidden")
     loggedInNav.classList.remove("flex")
+    
+    if (loggedOutNavMobile) {
+      loggedOutNavMobile.classList.remove("hidden")
+      loggedOutNavMobile.classList.add("flex")
+    }
+    if (loggedInNavMobile) {
+      loggedInNavMobile.classList.add("hidden")
+      loggedInNavMobile.classList.remove("flex")
+    }
   }
 }
 

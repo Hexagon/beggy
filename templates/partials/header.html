@@ -1,5 +1,5 @@
 <header class="bg-cream py-4 sticky top-0 z-50 border-b border-stone-200">
-  <div class="max-w-6xl mx-auto px-5 flex items-center justify-between flex-wrap gap-2.5">
+  <div class="max-w-6xl mx-auto px-5 flex items-center justify-between gap-2.5">
     <div class="flex items-baseline">
       <a href="/" class="text-2xl font-bold text-primary-dark no-underline relative">
         Beggy
@@ -7,37 +7,75 @@
           class="absolute -top-2 -right-7 text-xs text-cream font-bold bg-orange-400 px-1.5 pt-px pb-0.5 rounded transform rotate-6"
         >beta</span>
       </a>
-      <span class="text-xs text-stone-500 font-medium ml-9">Köp och sälj begagnat</span>
+      <span class="hidden sm:inline-block text-xs text-stone-500 font-medium ml-9">Köp och sälj begagnat</span>
     </div>
-    <nav class="nav flex items-center gap-5">
-      <a
-        href="/ny-annons"
-        id="sellBtn"
-        class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
-      >Sälj</a>
-      <a href="#" id="loginBtn" class="text-dark no-underline px-3 py-2 hover:text-primary"
-      >Logga in</a>
-    </nav>
-    <nav class="nav nav-logged-in hidden items-center gap-5">
-      <a
-        href="/ny-annons"
-        id="sellBtn2"
-        class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
-      >Sälj</a>
-      <a
-        href="/meddelanden"
-        class="text-dark no-underline px-3 py-2 hover:text-primary"
-      >Meddelanden</a>
-      <a href="/mina-annonser" class="text-dark no-underline px-3 py-2 hover:text-primary"
-      >Mina annonser</a>
-      <a href="/installningar" class="text-dark no-underline px-3 py-2 hover:text-primary"
-      >Inställningar</a>
-      <a
-        href="#"
-        id="logoutBtn"
-        class="text-dark no-underline px-3 py-2 hover:text-primary"
-        title="Logga ut"
-        aria-label="Logga ut"
+    
+    <div class="flex items-center gap-3">
+      <!-- Text Size Toggle (always visible) -->
+      <button
+        id="textSizeToggle"
+        class="flex items-center gap-1 px-2 py-1 text-dark hover:text-primary transition-colors"
+        title="Ändra textstorlek"
+        aria-label="Ändra textstorlek"
+      >
+        <span class="text-lg font-bold">A</span>
+        <span class="text-sm">+</span>
+      </button>
+      
+      <!-- Desktop Navigation (hidden on mobile) -->
+      <nav class="nav hidden md:flex items-center gap-5">
+        <a
+          href="/ny-annons"
+          id="sellBtn"
+          class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
+        >Sälj</a>
+        <a href="#" id="loginBtn" class="text-dark no-underline px-3 py-2 hover:text-primary"
+        >Logga in</a>
+      </nav>
+      <nav class="nav nav-logged-in hidden md:flex items-center gap-5">
+        <a
+          href="/ny-annons"
+          id="sellBtn2"
+          class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
+        >Sälj</a>
+        <a
+          href="/meddelanden"
+          class="text-dark no-underline px-3 py-2 hover:text-primary"
+        >Meddelanden</a>
+        <a href="/mina-annonser" class="text-dark no-underline px-3 py-2 hover:text-primary"
+        >Mina annonser</a>
+        <a href="/installningar" class="text-dark no-underline px-3 py-2 hover:text-primary"
+        >Inställningar</a>
+        <a
+          href="#"
+          id="logoutBtn"
+          class="text-dark no-underline px-3 py-2 hover:text-primary"
+          title="Logga ut"
+          aria-label="Logga ut"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+            />
+          </svg>
+        </a>
+      </nav>
+      
+      <!-- Hamburger Menu (visible on mobile) -->
+      <button
+        id="mobileMenuToggle"
+        class="md:hidden flex items-center px-2 py-1 text-dark hover:text-primary transition-colors"
+        title="Meny"
+        aria-label="Meny"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -50,10 +88,43 @@
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
           />
         </svg>
-      </a>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Mobile Menu (hidden by default) -->
+  <div id="mobileMenu" class="hidden md:hidden bg-cream border-t border-stone-200 mt-4">
+    <nav class="nav-mobile max-w-6xl mx-auto px-5 py-4 flex flex-col gap-2">
+      <a
+        href="/ny-annons"
+        id="sellBtnMobile"
+        class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors text-center"
+      >Sälj</a>
+      <a href="#" id="loginBtnMobile" class="text-dark no-underline px-3 py-2 hover:text-primary"
+      >Logga in</a>
+    </nav>
+    <nav class="nav-mobile-logged-in hidden max-w-6xl mx-auto px-5 py-4 flex flex-col gap-2">
+      <a
+        href="/ny-annons"
+        id="sellBtn2Mobile"
+        class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors text-center"
+      >Sälj</a>
+      <a
+        href="/meddelanden"
+        class="text-dark no-underline px-3 py-2 hover:text-primary"
+      >Meddelanden</a>
+      <a href="/mina-annonser" class="text-dark no-underline px-3 py-2 hover:text-primary"
+      >Mina annonser</a>
+      <a href="/installningar" class="text-dark no-underline px-3 py-2 hover:text-primary"
+      >Inställningar</a>
+      <a
+        href="#"
+        id="logoutBtnMobile"
+        class="text-dark no-underline px-3 py-2 hover:text-primary"
+      >Logga ut</a>
     </nav>
   </div>
 </header>

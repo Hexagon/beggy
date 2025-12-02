@@ -8,6 +8,8 @@ let currentConversationId = null
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth()
   setupEventListeners()
+  initTextSizeToggle()
+  initMobileMenu()
   
   // Check for conversation ID in URL
   const urlParams = new URLSearchParams(window.location.search)
@@ -16,6 +18,110 @@ document.addEventListener("DOMContentLoaded", () => {
     openChat(convId)
   }
 })
+
+// Text Size Accessibility (same as app.js)
+function initTextSizeToggle() {
+  const textSizeToggle = document.getElementById("textSizeToggle")
+  if (!textSizeToggle) return
+  
+  const isLargeText = localStorage.getItem("textSize") === "large"
+  
+  if (isLargeText) {
+    document.body.classList.add("text-large")
+    updateTextSizeToggleIcon(true)
+  }
+  
+  textSizeToggle.addEventListener("click", () => {
+    const isCurrentlyLarge = document.body.classList.contains("text-large")
+    
+    if (isCurrentlyLarge) {
+      document.body.classList.remove("text-large")
+      localStorage.setItem("textSize", "normal")
+      updateTextSizeToggleIcon(false)
+    } else {
+      document.body.classList.add("text-large")
+      localStorage.setItem("textSize", "large")
+      updateTextSizeToggleIcon(true)
+    }
+  })
+}
+
+function updateTextSizeToggleIcon(isLarge) {
+  const textSizeToggle = document.getElementById("textSizeToggle")
+  if (!textSizeToggle) return
+  
+  if (isLarge) {
+    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">-</span>'
+    textSizeToggle.title = "Minska textstorlek"
+    textSizeToggle.setAttribute("aria-label", "Minska textstorlek")
+  } else {
+    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">+</span>'
+    textSizeToggle.title = "Öka textstorlek"
+    textSizeToggle.setAttribute("aria-label", "Öka textstorlek")
+  }
+}
+
+// Mobile Menu (same as app.js)
+function initMobileMenu() {
+  const mobileMenuToggle = document.getElementById("mobileMenuToggle")
+  const mobileMenu = document.getElementById("mobileMenu")
+  
+  if (!mobileMenuToggle || !mobileMenu) return
+  
+  mobileMenuToggle.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden")
+  })
+  
+  // Setup mobile menu button listeners
+  const loginBtnMobile = document.getElementById("loginBtnMobile")
+  const logoutBtnMobile = document.getElementById("logoutBtnMobile")
+  
+  if (loginBtnMobile) {
+    loginBtnMobile.addEventListener("click", (e) => {
+      e.preventDefault()
+      mobileMenu.classList.add("hidden")
+      openModal("loginModal")
+    })
+  }
+  
+  if (logoutBtnMobile) {
+    logoutBtnMobile.addEventListener("click", (e) => {
+      e.preventDefault()
+      mobileMenu.classList.add("hidden")
+      handleLogout(e)
+    })
+  }
+  
+  // Close mobile menu when clicking links
+  const mobileLinks = mobileMenu.querySelectorAll("a")
+  mobileLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      if (!link.id.includes("loginBtn")) {
+        mobileMenu.classList.add("hidden")
+      }
+    })
+  })
+}
+
+// Mobile chat navigation
+function closeChatOnMobile() {
+  const chatColumn = document.getElementById("chatColumn")
+  const conversationsColumn = document.getElementById("conversationsColumn")
+  
+  // Hide chat and show conversations on mobile
+  if (window.innerWidth < 1024) {
+    chatColumn.classList.add("hidden")
+    chatColumn.classList.remove("flex")
+    conversationsColumn.classList.remove("hidden")
+  }
+  
+  // Update URL to remove conversation ID
+  const url = new URL(window.location)
+  url.searchParams.delete("id")
+  window.history.pushState({}, "", url)
+  
+  currentConversationId = null
+}
 
 // Event Listeners
 function setupEventListeners() {
@@ -77,17 +183,37 @@ async function checkAuth() {
 function updateAuthUI() {
   const loggedOutNav = document.querySelector(".nav:not(.nav-logged-in)")
   const loggedInNav = document.querySelector(".nav-logged-in")
+  const loggedOutNavMobile = document.querySelector(".nav-mobile")
+  const loggedInNavMobile = document.querySelector(".nav-mobile-logged-in")
 
   if (currentUser) {
     loggedOutNav.classList.add("hidden")
     loggedOutNav.classList.remove("flex")
     loggedInNav.classList.remove("hidden")
     loggedInNav.classList.add("flex")
+    
+    if (loggedOutNavMobile) {
+      loggedOutNavMobile.classList.add("hidden")
+      loggedOutNavMobile.classList.remove("flex")
+    }
+    if (loggedInNavMobile) {
+      loggedInNavMobile.classList.remove("hidden")
+      loggedInNavMobile.classList.add("flex")
+    }
   } else {
     loggedOutNav.classList.remove("hidden")
     loggedOutNav.classList.add("flex")
     loggedInNav.classList.add("hidden")
     loggedInNav.classList.remove("flex")
+    
+    if (loggedOutNavMobile) {
+      loggedOutNavMobile.classList.remove("hidden")
+      loggedOutNavMobile.classList.add("flex")
+    }
+    if (loggedInNavMobile) {
+      loggedInNavMobile.classList.add("hidden")
+      loggedInNavMobile.classList.remove("flex")
+    }
   }
 }
 
@@ -209,6 +335,15 @@ async function openChat(conversationId) {
   document.getElementById("chatContainer").classList.add("hidden")
   document.getElementById("chatLoading").classList.remove("hidden")
   
+  // Mobile: Show chat column and hide conversations column
+  const chatColumn = document.getElementById("chatColumn")
+  const conversationsColumn = document.getElementById("conversationsColumn")
+  chatColumn.classList.remove("hidden")
+  chatColumn.classList.add("flex")
+  if (window.innerWidth < 1024) { // lg breakpoint
+    conversationsColumn.classList.add("hidden")
+  }
+  
   // Refresh list to update active state
   loadConversations()
 
@@ -222,6 +357,15 @@ async function openChat(conversationId) {
     // Update header
     const header = document.getElementById("chatHeader")
     header.innerHTML = `
+      <button
+        id="mobileBackBtn"
+        class="lg:hidden flex items-center gap-2 text-stone-600 hover:text-primary"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Tillbaka
+      </button>
       <div>
         <h2 class="text-lg font-semibold text-dark">
             <a href="/annons/${data.conversation.ad_id}" class="hover:underline">${escapeHtml(data.conversation.ad_title)}</a>
@@ -232,6 +376,12 @@ async function openChat(conversationId) {
       </div>
       ${data.conversation.expires_at ? `<div class="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded border border-yellow-200">⚠️ Utgår: ${formatDate(data.conversation.expires_at)}</div>` : ""}
     `
+    
+    // Add back button handler
+    const backBtn = document.getElementById("mobileBackBtn")
+    if (backBtn) {
+      backBtn.addEventListener("click", closeChatOnMobile)
+    }
 
     // Update messages
     const messagesDiv = document.getElementById("chatMessages")
