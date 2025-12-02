@@ -58,7 +58,7 @@ body.text-large .text-2xl {
 }
 
 body.user-logged-out .auth-logged-out {
-  display: flex;
+  display: revert;
 }
 
 /* Logged-in specific elements (only visible when logged in) */
@@ -67,7 +67,7 @@ body.user-logged-out .auth-logged-out {
 }
 
 body.user-logged-in .auth-logged-in {
-  display: flex;
+  display: revert;
 }
 
 /* Desktop navigation (hidden on mobile, flex on desktop) */
