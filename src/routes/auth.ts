@@ -313,7 +313,7 @@ router.post("/api/auth/change-password", async (ctx) => {
   // Update to new password using the session from sign-in
   // We need to create a new client with this session because updateUser() requires an active session
   const authSupabase = getAuthenticatedSupabase(signInData.session.access_token)
-  
+
   // Set the session so updateUser() has the required session context
   const { error: sessionError } = await authSupabase.auth.setSession({
     access_token: signInData.session.access_token,
