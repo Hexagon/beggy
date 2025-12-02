@@ -23,6 +23,7 @@ fungerade förr i tiden - enkelt och användarvänligt.
 - 📖 [Installationsguide](docs/INSTALL.md) - Kom igång med lokal utveckling
 - 🤝 [Bidra till projektet](docs/CONTRIBUTING.md) - Riktlinjer för bidrag
 - ⚖️ [Juridiska krav](docs/legal.md) - BBS-lagen, GDPR och cookies
+- 🔒 [Säkerhetsgranskning](docs/SECURITY_REVIEW.md) - Säkerhetsåtgärder och best practices
 - 🤖 [AI-agentinstruktioner](docs/agents.md) - För AI-assisterad utveckling
 
 ## Teknisk stack
