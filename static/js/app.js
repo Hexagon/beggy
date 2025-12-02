@@ -25,6 +25,7 @@ const categoryGrid = document.getElementById("categoryGrid")
 const categorySelect = document.getElementById("categorySelect")
 const countySelect = document.getElementById("countySelect")
 const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox")
+const includeAdjacentCheckboxMobile = document.getElementById("includeAdjacentCheckboxMobile")
 const searchInput = document.getElementById("searchInput")
 const pagination = document.getElementById("pagination")
 const sortSelect = document.getElementById("sortSelect")
@@ -140,9 +141,22 @@ function setupEventListeners() {
   // Include adjacent counties checkbox
   includeAdjacentCheckbox.addEventListener("change", () => {
     includeAdjacent = includeAdjacentCheckbox.checked
+    if (includeAdjacentCheckboxMobile) {
+      includeAdjacentCheckboxMobile.checked = includeAdjacent
+    }
     currentPage = 1
     loadAdsAndUpdateUrl()
   })
+  
+  // Mobile adjacent checkbox
+  if (includeAdjacentCheckboxMobile) {
+    includeAdjacentCheckboxMobile.addEventListener("change", () => {
+      includeAdjacent = includeAdjacentCheckboxMobile.checked
+      includeAdjacentCheckbox.checked = includeAdjacent
+      currentPage = 1
+      loadAdsAndUpdateUrl()
+    })
+  }
 
   // Category filter
   categorySelect.addEventListener("change", () => {
@@ -200,17 +214,37 @@ async function checkAuth() {
 function updateAuthUI() {
   const loggedOutNav = document.querySelector(".nav:not(.nav-logged-in)")
   const loggedInNav = document.querySelector(".nav-logged-in")
+  const loggedOutNavMobile = document.querySelector(".nav-mobile")
+  const loggedInNavMobile = document.querySelector(".nav-mobile-logged-in")
 
   if (currentUser) {
     loggedOutNav.classList.add("hidden")
     loggedOutNav.classList.remove("flex")
     loggedInNav.classList.remove("hidden")
     loggedInNav.classList.add("flex")
+    
+    if (loggedOutNavMobile) {
+      loggedOutNavMobile.classList.add("hidden")
+      loggedOutNavMobile.classList.remove("flex")
+    }
+    if (loggedInNavMobile) {
+      loggedInNavMobile.classList.remove("hidden")
+      loggedInNavMobile.classList.add("flex")
+    }
   } else {
     loggedOutNav.classList.remove("hidden")
     loggedOutNav.classList.add("flex")
     loggedInNav.classList.add("hidden")
     loggedInNav.classList.remove("flex")
+    
+    if (loggedOutNavMobile) {
+      loggedOutNavMobile.classList.remove("hidden")
+      loggedOutNavMobile.classList.add("flex")
+    }
+    if (loggedInNavMobile) {
+      loggedInNavMobile.classList.add("hidden")
+      loggedInNavMobile.classList.remove("flex")
+    }
   }
 }
 

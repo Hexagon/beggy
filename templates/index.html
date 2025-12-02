@@ -27,7 +27,7 @@
           >
             <option value="">Alla län</option>
           </select>
-          <label class="flex items-center gap-2 px-3 py-2 text-sm text-stone-600">
+          <label class="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-stone-600">
             <input type="checkbox" id="includeAdjacentCheckbox" class="w-4 h-4">
             Angränsande län
           </label>
@@ -37,13 +37,18 @@
           >
             Sök
           </button>
-          <!-- Category select hidden from main row but kept for JavaScript functionality -->
+          <!-- Category select shown on mobile, hidden on desktop -->
           <select
             id="categorySelect"
-            class="hidden"
+            class="block sm:hidden px-4 py-3 border border-stone-300 rounded text-base bg-white w-full"
           >
             <option value="">Alla kategorier</option>
           </select>
+          <!-- Checkbox for mobile -->
+          <label class="flex sm:hidden items-center gap-2 px-3 py-2 text-sm text-stone-600 w-full">
+            <input type="checkbox" id="includeAdjacentCheckboxMobile" class="w-4 h-4">
+            Angränsande län
+          </label>
         </div>
       </section>
 
@@ -112,8 +117,8 @@
           </div>
         </section>
 
-        <!-- Categories (hidden by default) -->
-        <section class="mb-8 hidden" id="categoriesSection">
+        <!-- Categories (hidden by default, hidden on mobile) -->
+        <section class="mb-8 hidden sm:block" id="categoriesSection">
           <div
             class="category-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5"
             id="categoryGrid"

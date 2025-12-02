@@ -13,9 +13,10 @@
 
     <main class="flex-1 flex min-h-0">
       <div class="w-full max-w-6xl mx-auto px-5 py-8 flex gap-6 h-full">
-        <!-- Left Column: Chat Area (or Landing) -->
+        <!-- Left Column: Chat Area (or Landing) - Hidden on mobile until conversation selected -->
         <div
-          class="flex-1 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]"
+          id="chatColumn"
+          class="hidden lg:flex flex-1 flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]"
         >
           <div id="chatContainer" class="hidden flex flex-col h-full">
             <!-- Chat Header -->
@@ -23,6 +24,16 @@
               id="chatHeader"
               class="p-4 border-b border-stone-200 bg-stone-50 flex justify-between items-center"
             >
+              <!-- Mobile back button -->
+              <button
+                id="mobileBackBtn"
+                class="lg:hidden flex items-center gap-2 text-stone-600 hover:text-primary"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Tillbaka
+              </button>
               <!-- Content injected by JS -->
             </div>
 
@@ -58,7 +69,8 @@
           >
             <div class="text-6xl mb-4">💬</div>
             <h2 class="text-xl font-semibold mb-2">Dina meddelanden</h2>
-            <p>Välj en konversation i listan till höger för att börja chatta.</p>
+            <p class="hidden lg:block">Välj en konversation i listan till höger för att börja chatta.</p>
+            <p class="lg:hidden">Välj en konversation i listan för att börja chatta.</p>
           </div>
 
           <!-- Loading State -->
@@ -74,9 +86,10 @@
           </div>
         </div>
 
-        <!-- Right Column: Conversations List -->
+        <!-- Right Column: Conversations List - Full width on mobile -->
         <div
-          class="w-80 flex-shrink-0 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]"
+          id="conversationsColumn"
+          class="w-full lg:w-80 flex-shrink-0 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]"
         >
           <div class="p-4 border-b border-stone-200 bg-stone-50">
             <h2 class="font-semibold text-lg">Konversationer</h2>
