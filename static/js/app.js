@@ -11,6 +11,7 @@ let countiesConfig = [] // Config with slug and name
 let adjacentCountiesConfig = {} // Adjacent counties by slug
 let currentPage = 1
 let currentCategory = "" // slug
+let currentSubcategory = "" // slug
 let currentCounty = "" // slug
 let includeAdjacent = false
 let currentSearch = ""
@@ -130,9 +131,20 @@ function setupEventListeners() {
 
   // Category filter
   categorySelect.addEventListener("change", () => {
-    currentCategory = categorySelect.value
+    const value = categorySelect.value
+    // Handle "category:subcategory" format for subcategories
+    if (value.includes(":")) {
+      const [cat, sub] = value.split(":")
+      currentCategory = cat
+      currentSubcategory = sub
+    } else {
+      currentCategory = value
+      currentSubcategory = ""
+    }
     currentPage = 1
+    showBrowseView()
     loadAdsAndUpdateUrl()
+    updateCategoryButtonStyles()
   })
 
   // Sort select
@@ -260,26 +272,64 @@ async function loadCategories() {
     const data = await res.json()
     categoriesConfig = data.categoriesConfig || []
 
-    // Populate category grid with "All Categories" button first
-    // Use slugs for filtering, names for display
-    const allCategoriesBtn = `
-      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" onclick="clearCategoryFilter()">
+    // Build category grid:
+    // - "Alla kategorier" first
+    // - For categories with subcategories: show "Alla <category>" + each subcategory
+    // - For categories without subcategories: show the category itself
+    let gridHtml = `
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" data-subcategory="" onclick="clearCategoryFilter()">
         📋 Alla kategorier
       </div>
     `
-    categoryGrid.innerHTML = allCategoriesBtn + categoriesConfig
-      .map(
-        (cat) => `
-      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
-        ${cat.icon || '📦'} ${escapeHtml(cat.name)}
-      </div>
-    `
-      )
-      .join("")
+    
+    categoriesConfig.forEach((cat) => {
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        // Category has subcategories - show "Alla <category>" + each subcategory
+        gridHtml += `
+          <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
+            ${cat.icon || '📦'} Alla ${escapeHtml(cat.name)}
+          </div>
+        `
+        cat.subcategories.forEach((sub) => {
+          gridHtml += `
+            <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="${escapeHtml(sub.slug)}" onclick="filterBySubcategory('${escapeHtml(cat.slug)}', '${escapeHtml(sub.slug)}')">
+              ${cat.icon || '📦'} ${escapeHtml(sub.name)}
+            </div>
+          `
+        })
+      } else {
+        // Category without subcategories - show the category itself
+        gridHtml += `
+          <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.slug)}" data-subcategory="" onclick="filterByCategory('${escapeHtml(cat.slug)}')">
+            ${cat.icon || '📦'} ${escapeHtml(cat.name)}
+          </div>
+        `
+      }
+    })
+    
+    categoryGrid.innerHTML = gridHtml
 
-    // Populate category filter select (value is slug, display is name)
-    const options = categoriesConfig.map((cat) => `<option value="${escapeHtml(cat.slug)}">${escapeHtml(cat.name)}</option>`).join("")
-    categorySelect.innerHTML = '<option value="">Alla kategorier</option>' + options
+    // Build category select dropdown:
+    // - "Alla kategorier" first
+    // - For categories with subcategories: show "Alla <category>" + each subcategory (with indentation)
+    // - For categories without subcategories: show the category itself
+    let selectHtml = '<option value="">Alla kategorier</option>'
+    
+    categoriesConfig.forEach((cat) => {
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        // Category has subcategories
+        selectHtml += `<option value="${escapeHtml(cat.slug)}">Alla ${escapeHtml(cat.name)}</option>`
+        cat.subcategories.forEach((sub) => {
+          // Use special value format for subcategories: "category:subcategory"
+          selectHtml += `<option value="${escapeHtml(cat.slug)}:${escapeHtml(sub.slug)}">  ${escapeHtml(sub.name)}</option>`
+        })
+      } else {
+        // Category without subcategories
+        selectHtml += `<option value="${escapeHtml(cat.slug)}">${escapeHtml(cat.name)}</option>`
+      }
+    })
+    
+    categorySelect.innerHTML = selectHtml
     
     // Update category button styles to show current selection
     updateCategoryButtonStyles()
@@ -292,7 +342,8 @@ function updateCategoryButtonStyles() {
   const buttons = document.querySelectorAll(".category-btn")
   buttons.forEach((btn) => {
     const btnCategory = btn.dataset.category
-    const isSelected = btnCategory === currentCategory
+    const btnSubcategory = btn.dataset.subcategory || ""
+    const isSelected = btnCategory === currentCategory && btnSubcategory === currentSubcategory
     
     // Remove previous selection styling
     btn.classList.remove("text-primary", "font-semibold", "bg-stone-100")
@@ -330,6 +381,12 @@ function getCategoryName(categorySlug) {
   return cat?.name || categorySlug
 }
 
+function getSubcategoryName(categorySlug, subcategorySlug) {
+  const cat = categoriesConfig.find(c => c.slug === categorySlug)
+  const sub = cat?.subcategories?.find(s => s.slug === subcategorySlug)
+  return sub?.name || subcategorySlug
+}
+
 function getCountyName(countySlug) {
   const county = countiesConfig.find(c => c.slug === countySlug)
   return county?.name || countySlug
@@ -337,17 +394,36 @@ function getCountyName(countySlug) {
 
 function filterByCategory(categorySlug) {
   currentCategory = categorySlug
+  currentSubcategory = ""
   categorySelect.value = categorySlug
   currentPage = 1
   showBrowseView()
   loadAdsAndUpdateUrl()
-  // Display the name, not the slug
-  document.getElementById("adsTitle").textContent = getCategoryName(categorySlug)
+  // Display "Alla <category>" for categories with subcategories
+  const cat = categoriesConfig.find(c => c.slug === categorySlug)
+  if (cat?.subcategories && cat.subcategories.length > 0) {
+    document.getElementById("adsTitle").textContent = `Alla ${getCategoryName(categorySlug)}`
+  } else {
+    document.getElementById("adsTitle").textContent = getCategoryName(categorySlug)
+  }
+  updateCategoryButtonStyles()
+}
+
+function filterBySubcategory(categorySlug, subcategorySlug) {
+  currentCategory = categorySlug
+  currentSubcategory = subcategorySlug
+  categorySelect.value = `${categorySlug}:${subcategorySlug}`
+  currentPage = 1
+  showBrowseView()
+  loadAdsAndUpdateUrl()
+  // Display the subcategory name
+  document.getElementById("adsTitle").textContent = getSubcategoryName(categorySlug, subcategorySlug)
   updateCategoryButtonStyles()
 }
 
 function clearCategoryFilter() {
   currentCategory = ""
+  currentSubcategory = ""
   categorySelect.value = ""
   currentPage = 1
   loadAdsAndUpdateUrl()
@@ -361,6 +437,7 @@ function loadStateFromUrl() {
   
   currentSearch = params.get("search") || ""
   currentCategory = params.get("category") || ""
+  currentSubcategory = params.get("subcategory") || ""
   currentCounty = params.get("county") || ""
   includeAdjacent = params.get("adjacent") === "true"
   currentSort = params.get("sort") || DEFAULT_SORT
@@ -368,7 +445,12 @@ function loadStateFromUrl() {
   
   // Update UI elements to reflect state
   searchInput.value = currentSearch
-  categorySelect.value = currentCategory
+  // Set category select value (format: "category" or "category:subcategory")
+  if (currentSubcategory) {
+    categorySelect.value = `${currentCategory}:${currentSubcategory}`
+  } else {
+    categorySelect.value = currentCategory
+  }
   countySelect.value = currentCounty
   includeAdjacentCheckbox.checked = includeAdjacent
   sortSelect.value = currentSort
@@ -385,6 +467,7 @@ function updateUrl() {
   
   if (currentSearch) params.set("search", currentSearch)
   if (currentCategory) params.set("category", currentCategory)
+  if (currentSubcategory) params.set("subcategory", currentSubcategory)
   if (currentCounty) params.set("county", currentCounty)
   if (includeAdjacent) params.set("adjacent", "true")
   if (currentSort && currentSort !== DEFAULT_SORT) params.set("sort", currentSort)
@@ -414,6 +497,7 @@ async function loadAds() {
       if (includeAdjacent) params.append("includeAdjacent", "true")
     }
     if (currentCategory) params.append("category", currentCategory)
+    if (currentSubcategory) params.append("subcategory", currentSubcategory)
     if (currentSearch) params.append("search", currentSearch)
     if (currentSort) params.append("sort", currentSort)
 
@@ -429,8 +513,15 @@ async function loadAds() {
     } else if (currentCounty) {
       const adjacentText = includeAdjacent ? " + angränsande" : ""
       document.getElementById("adsTitle").textContent = `Annonser i ${getCountyName(currentCounty)}${adjacentText}`
+    } else if (currentSubcategory) {
+      document.getElementById("adsTitle").textContent = getSubcategoryName(currentCategory, currentSubcategory)
     } else if (currentCategory) {
-      document.getElementById("adsTitle").textContent = getCategoryName(currentCategory)
+      const cat = categoriesConfig.find(c => c.slug === currentCategory)
+      if (cat?.subcategories && cat.subcategories.length > 0) {
+        document.getElementById("adsTitle").textContent = `Alla ${getCategoryName(currentCategory)}`
+      } else {
+        document.getElementById("adsTitle").textContent = getCategoryName(currentCategory)
+      }
     } else {
       document.getElementById("adsTitle").textContent = "Senaste annonser"
     }
@@ -674,7 +765,7 @@ function updateViewModeButtons() {
 // Landing/Browse view management
 function updateViewMode() {
   // Check if any filters are active (state variables are populated from URL params in loadStateFromUrl)
-  const hasFilters = currentSearch || currentCategory || currentCounty
+  const hasFilters = currentSearch || currentCategory || currentSubcategory || currentCounty
   
   if (hasFilters || isBrowseMode) {
     showBrowseView()
@@ -715,6 +806,7 @@ function showAlert(message, type) {
 
 // Make functions available globally for onclick handlers
 window.filterByCategory = filterByCategory
+window.filterBySubcategory = filterBySubcategory
 window.clearCategoryFilter = clearCategoryFilter
 window.openAdDetail = openAdDetail
 window.goToPage = goToPage
