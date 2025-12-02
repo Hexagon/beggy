@@ -123,6 +123,70 @@ router.post("/api/auth/logout", async (ctx) => {
   ctx.response.body = { message: "Utloggad!" }
 })
 
+// Forgot password - send reset email
+router.post("/api/auth/forgot-password", async (ctx) => {
+  const body = await ctx.request.body.json()
+  const { email } = body
+
+  if (!email) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "E-post krävs" }
+    return
+  }
+
+  const supabase = getSupabase()
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${ctx.request.url.origin}/aterstall-losenord`,
+  })
+
+  if (error) {
+    console.error("Forgot password error:", error.message, error.status)
+    // Don't reveal if email exists or not for security
+    ctx.response.body = {
+      message: "Om e-postadressen finns i vårt system kommer du få ett återställningsmail.",
+    }
+    return
+  }
+
+  ctx.response.body = {
+    message: "Om e-postadressen finns i vårt system kommer du få ett återställningsmail.",
+  }
+})
+
+// Reset password - update password with token
+router.post("/api/auth/reset-password", async (ctx) => {
+  const body = await ctx.request.body.json()
+  const { accessToken, newPassword } = body
+
+  if (!accessToken || !newPassword) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Åtkomsttoken och nytt lösenord krävs" }
+    return
+  }
+
+  if (newPassword.length < 8) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    return
+  }
+
+  const supabase = getAuthenticatedSupabase(accessToken)
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  })
+
+  if (error) {
+    console.error("Reset password error:", error.message, error.status)
+    ctx.response.status = 400
+    ctx.response.body = { error: "Kunde inte uppdatera lösenordet. Länken kan ha gått ut." }
+    return
+  }
+
+  ctx.response.body = { message: "Lösenordet har uppdaterats!" }
+})
+
 // Get current user
 router.get("/api/auth/me", async (ctx) => {
   const accessToken = await ctx.cookies.get("access_token")

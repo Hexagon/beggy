@@ -59,4 +59,10 @@ router.get("/installningar", async (ctx) => {
   ctx.response.body = await renderTemplate("settings.html")
 })
 
+// Reset password page
+router.get("/aterstall-losenord", async (ctx) => {
+  ctx.response.type = "text/html"
+  ctx.response.body = await renderTemplate("reset-password.html")
+})
+
 export { router as pagesRouter }

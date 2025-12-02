@@ -72,6 +72,21 @@ function setupEventListeners() {
 
   document.getElementById("registerForm").addEventListener("submit", handleRegister)
 
+  // Forgot password
+  document.getElementById("showForgotPassword").addEventListener("click", (e) => {
+    e.preventDefault()
+    closeModal("loginModal")
+    openModal("forgotPasswordModal")
+  })
+
+  document.getElementById("backToLogin").addEventListener("click", (e) => {
+    e.preventDefault()
+    closeModal("forgotPasswordModal")
+    openModal("loginModal")
+  })
+
+  document.getElementById("forgotPasswordForm").addEventListener("submit", handleForgotPassword)
+
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
 
@@ -260,6 +275,31 @@ async function handleLogout(e) {
     currentUser = null
     updateAuthUI()
     showAlert("Du har loggats ut", "success")
+  } catch {
+    showAlert("Något gick fel", "error")
+  }
+}
+
+async function handleForgotPassword(e) {
+  e.preventDefault()
+  const email = document.getElementById("forgotPasswordEmail").value
+
+  try {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      closeModal("forgotPasswordModal")
+      document.getElementById("forgotPasswordForm").reset()
+      showAlert(data.message, "success")
+    } else {
+      showAlert(data.error, "error")
+    }
   } catch {
     showAlert("Något gick fel", "error")
   }
