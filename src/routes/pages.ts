@@ -59,9 +59,4 @@ router.get("/installningar", async (ctx) => {
   ctx.response.body = await renderTemplate("settings.html")
 })
 
-router.get("/installningar", async (ctx) => {
-  ctx.response.type = "text/html"
-  ctx.response.body = await renderTemplate("settings.html")
-})
-
 export { router as pagesRouter }

@@ -1,6 +1,13 @@
 import { Router } from "@oak/oak"
 import { getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
-import { ADJACENT_COUNTIES, CATEGORIES, COUNTIES } from "../models/types.ts"
+import {
+  ADJACENT_COUNTIES,
+  ADJACENT_COUNTIES_CONFIG,
+  CATEGORIES,
+  CATEGORIES_CONFIG,
+  COUNTIES,
+  COUNTIES_CONFIG,
+} from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
 
@@ -12,6 +19,7 @@ const AD_EXPIRY_DAYS = 30
 router.get("/api/ads", async (ctx) => {
   const params = ctx.request.url.searchParams
   const category = params.get("category")
+  const subcategory = params.get("subcategory")
   const county = params.get("county")
   const includeAdjacent = params.get("includeAdjacent") === "true"
   const search = params.get("search")
@@ -56,6 +64,10 @@ router.get("/api/ads", async (ctx) => {
     query = query.eq("category", category)
   }
 
+  if (subcategory) {
+    query = query.eq("subcategory", subcategory)
+  }
+
   if (county) {
     if (includeAdjacent) {
       // Include selected county and its adjacent counties
@@ -95,6 +107,7 @@ router.get("/api/ads", async (ctx) => {
         description: ad.description,
         price: ad.price,
         category: ad.category,
+        subcategory: ad.subcategory,
         county: ad.county,
         state: ad.state,
         created_at: ad.created_at,
@@ -149,6 +162,7 @@ router.get("/api/ads/:id", async (ctx) => {
     description: ad.description,
     price: ad.price,
     category: ad.category,
+    subcategory: ad.subcategory,
     county: ad.county,
     state: ad.state,
     allow_messages: ad.allow_messages !== false, // default to true for backwards compatibility
@@ -157,7 +171,6 @@ router.get("/api/ads/:id", async (ctx) => {
     expires_at: ad.expires_at,
     seller_username: ad.profiles?.username || "Användare",
     seller_contact_phone: ad.contact_phone,
-    seller_contact_email: ad.contact_email,
     images: (ad.images || []).map((
       img: { id: number; filename: string; storage_path: string },
     ) => ({
@@ -179,7 +192,7 @@ router.post("/api/ads", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, county, contact_phone, contact_email, allow_messages } = body
+  const { title, description, price, category, subcategory, county, contact_phone, allow_messages } = body
 
   if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
@@ -191,6 +204,18 @@ router.post("/api/ads", async (ctx) => {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltig kategori" }
     return
+  }
+
+  // Validate subcategory if provided
+  if (subcategory) {
+    // Find category by name (the form uses category names, not slugs)
+    const categoryConfig = CATEGORIES_CONFIG.find((c) => c.name === category)
+    const validSubcategory = categoryConfig?.subcategories?.some((s) => s.name === subcategory)
+    if (!validSubcategory) {
+      ctx.response.status = 400
+      ctx.response.body = { error: "Ogiltig underkategori" }
+      return
+    }
   }
 
   if (!COUNTIES.includes(county)) {
@@ -207,16 +232,14 @@ router.post("/api/ads", async (ctx) => {
 
   // Trim whitespace from contact fields
   const trimmedPhone = typeof contact_phone === "string" ? contact_phone.trim() : null
-  const trimmedEmail = typeof contact_email === "string" ? contact_email.trim() : null
 
   // Validate that at least one contact method is enabled
   const hasMessages = allow_messages !== false // default to true
   const hasPhone = !!trimmedPhone
-  const hasEmail = !!trimmedEmail
-  
-  if (!hasMessages && !hasPhone && !hasEmail) {
+
+  if (!hasMessages && !hasPhone) {
     ctx.response.status = 400
-    ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden, telefon eller e-post)" }
+    ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)" }
     return
   }
 
@@ -241,9 +264,9 @@ router.post("/api/ads", async (ctx) => {
       description,
       price,
       category,
+      subcategory: subcategory || null,
       county,
       contact_phone: trimmedPhone || null,
-      contact_email: trimmedEmail || null,
       allow_messages: allow_messages !== false, // default to true
       state: "ok",
       expires_at: expiresAt.toISOString(),
@@ -288,7 +311,7 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, county, contact_phone, contact_email, allow_messages, state } = body
+  const { title, description, price, category, subcategory, county, contact_phone, allow_messages, state } = body
 
   if (category && !CATEGORIES.includes(category)) {
     ctx.response.status = 400
@@ -304,17 +327,15 @@ router.put("/api/ads/:id", async (ctx) => {
 
   // Trim whitespace from contact fields
   const trimmedPhone = typeof contact_phone === "string" ? contact_phone.trim() : contact_phone
-  const trimmedEmail = typeof contact_email === "string" ? contact_email.trim() : contact_email
 
   // Validate that at least one contact method is enabled when updating contact settings
-  if (allow_messages !== undefined || contact_phone !== undefined || contact_email !== undefined) {
+  if (allow_messages !== undefined || contact_phone !== undefined) {
     const hasMessages = allow_messages !== false // default to true if not specified
     const hasPhone = !!trimmedPhone
-    const hasEmail = !!trimmedEmail
-    
-    if (!hasMessages && !hasPhone && !hasEmail) {
+
+    if (!hasMessages && !hasPhone) {
       ctx.response.status = 400
-      ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden, telefon eller e-post)" }
+      ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)" }
       return
     }
   }
@@ -332,9 +353,9 @@ router.put("/api/ads/:id", async (ctx) => {
   if (description !== undefined) updates.description = description
   if (price !== undefined) updates.price = price
   if (category !== undefined) updates.category = category
+  if (subcategory !== undefined) updates.subcategory = subcategory || null
   if (county !== undefined) updates.county = county
   if (contact_phone !== undefined) updates.contact_phone = trimmedPhone || null
-  if (contact_email !== undefined) updates.contact_email = trimmedEmail || null
   if (allow_messages !== undefined) updates.allow_messages = allow_messages
   // User can only change state to "ok" or "sold"
   if (state !== undefined && ["ok", "sold"].includes(state)) updates.state = state
@@ -518,14 +539,22 @@ router.delete("/api/images/:id", async (ctx) => {
   ctx.response.body = { message: "Bild raderad!" }
 })
 
-// Get categories
+// Get categories (with full config including subcategories)
 router.get("/api/categories", (ctx) => {
-  ctx.response.body = { categories: CATEGORIES }
+  ctx.response.body = {
+    categories: CATEGORIES,
+    categoriesConfig: CATEGORIES_CONFIG,
+  }
 })
 
-// Get counties
+// Get counties (with full config including slugs)
 router.get("/api/counties", (ctx) => {
-  ctx.response.body = { counties: COUNTIES, adjacentCounties: ADJACENT_COUNTIES }
+  ctx.response.body = {
+    counties: COUNTIES,
+    countiesConfig: COUNTIES_CONFIG,
+    adjacentCounties: ADJACENT_COUNTIES,
+    adjacentCountiesConfig: ADJACENT_COUNTIES_CONFIG,
+  }
 })
 
 // Get user's ads
@@ -562,6 +591,7 @@ router.get("/api/my-ads", async (ctx) => {
       description: ad.description,
       price: ad.price,
       category: ad.category,
+      subcategory: ad.subcategory,
       county: ad.county,
       state: ad.state,
       created_at: ad.created_at,

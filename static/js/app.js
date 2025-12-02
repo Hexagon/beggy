@@ -7,6 +7,7 @@ const DEFAULT_SORT = "newest"
 // State
 let currentUser = null
 let categories = []
+let categoriesConfig = []
 let counties = []
 let adjacentCounties = {}
 let currentPage = 1
@@ -271,6 +272,7 @@ async function loadCategories() {
     const res = await fetch("/api/categories")
     const data = await res.json()
     categories = data.categories
+    categoriesConfig = data.categoriesConfig || []
 
     // Populate category grid with "All Categories" button first
     const allCategoriesBtn = `
@@ -278,18 +280,18 @@ async function loadCategories() {
         📋 Alla kategorier
       </div>
     `
-    categoryGrid.innerHTML = allCategoriesBtn + categories
+    categoryGrid.innerHTML = allCategoriesBtn + categoriesConfig
       .map(
         (cat) => `
-      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${cat}" onclick="filterByCategory('${cat}')">
-        ${getCategoryIcon(cat)} ${cat}
+      <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="${escapeHtml(cat.name)}" onclick="filterByCategory('${escapeHtml(cat.name)}')">
+        ${cat.icon || '📦'} ${escapeHtml(cat.name)}
       </div>
     `
       )
       .join("")
 
     // Populate category filter select
-    const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
+    const options = categories.map((cat) => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("")
     categorySelect.innerHTML = '<option value="">Alla kategorier</option>' + options
     
     // Update category button styles to show current selection
