@@ -116,6 +116,22 @@ router.post("/api/auth/login", async (ctx) => {
     return
   }
 
+  // Check if profile exists (user may have deleted their account)
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", data.user.id)
+    .maybeSingle()
+
+  if (profileError || !profile) {
+    console.error("Profile check error:", profileError?.message)
+    // Sign out the auth session since profile doesn't exist
+    await supabase.auth.signOut()
+    ctx.response.status = 401
+    ctx.response.body = { error: "Kontot har raderats" }
+    return
+  }
+
   // Set session token as cookie
   await ctx.cookies.set("access_token", data.session.access_token, {
     httpOnly: true,
@@ -198,6 +214,30 @@ router.post("/api/auth/reset-password", async (ctx) => {
   }
 
   const supabase = getAuthenticatedSupabase(accessToken)
+
+  // Verify the user exists and get their ID
+  const { data: userData, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !userData.user) {
+    console.error("Reset password user validation error:", userError?.message)
+    ctx.response.status = 400
+    ctx.response.body = { error: "Kunde inte uppdatera lösenordet. Länken kan ha gått ut." }
+    return
+  }
+
+  // Check if profile exists (user may have deleted their account)
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", userData.user.id)
+    .maybeSingle()
+
+  if (profileError || !profile) {
+    console.error("Profile check error during password reset:", profileError?.message)
+    ctx.response.status = 400
+    ctx.response.body = { error: "Kontot har raderats. Länken kan ha gått ut." }
+    return
+  }
 
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
