@@ -11,6 +11,8 @@ import {
 } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
+import { sendNotFound, sendServerError, sendUnauthorized, sendBadRequest, sendCreated } from "../utils/response-helpers.ts"
+import { enrichAdWithDisplayNames, getFirstImageUrl } from "../utils/ad-helpers.ts"
 
 // Helper arrays of valid slugs
 const CATEGORY_SLUGS = CATEGORIES_CONFIG.map((c) => c.slug)
@@ -96,42 +98,17 @@ router.get("/api/ads", async (ctx) => {
 
   if (error) {
     console.error("Get ads error:", error.message, error.code)
-    ctx.response.status = 500
-    ctx.response.body = { error: "Kunde inte hämta annonser" }
+    sendServerError(ctx, "Kunde inte hämta annonser")
     return
   }
 
   ctx.response.body = {
     ads: (ads || []).map((ad) => {
-      // Get first image URL if exists
-      const firstImage = ad.images && ad.images.length > 0 ? ad.images[0] : null
-      const firstImageUrl = firstImage
-        ? supabase.storage.from("ad-images").getPublicUrl(firstImage.storage_path).data.publicUrl
-        : null
-
-      // Get display names from slugs
-      const categoryConfig = getCategoryBySlug(ad.category)
-      const countyConfig = getCountyBySlug(ad.county)
-      const subcategoryConfig = ad.subcategory
-        ? getSubcategoryBySlug(ad.category, ad.subcategory)
-        : null
+      const firstImageUrl = getFirstImageUrl(supabase, ad.images)
+      const enrichedAd = enrichAdWithDisplayNames(ad)
 
       return {
-        id: ad.id,
-        user_id: ad.user_id,
-        title: ad.title,
-        description: ad.description,
-        price: ad.price,
-        category: ad.category, // slug
-        category_name: categoryConfig?.name || ad.category, // display name
-        subcategory: ad.subcategory, // slug
-        subcategory_name: subcategoryConfig?.name || ad.subcategory, // display name
-        county: ad.county, // slug
-        county_name: countyConfig?.name || ad.county, // display name
-        state: ad.state,
-        created_at: ad.created_at,
-        updated_at: ad.updated_at,
-        expires_at: ad.expires_at,
+        ...enrichedAd,
         image_count: ad.images?.length || 0,
         first_image_url: firstImageUrl,
       }
@@ -161,43 +138,21 @@ router.get("/api/ads/:id", async (ctx) => {
     .single()
 
   if (error || !ad) {
-    ctx.response.status = 404
-    ctx.response.body = { error: "Annonsen hittades inte" }
+    sendNotFound(ctx, "Annonsen hittades inte")
     return
   }
 
   // Only show ads that are "ok" or owned by the current user
   const isOwner = user?.id === ad.user_id
   if (ad.state !== "ok" && !isOwner) {
-    ctx.response.status = 404
-    ctx.response.body = { error: "Annonsen hittades inte" }
+    sendNotFound(ctx, "Annonsen hittades inte")
     return
   }
 
-  // Get display names from slugs
-  const categoryConfig = getCategoryBySlug(ad.category)
-  const countyConfig = getCountyBySlug(ad.county)
-  const subcategoryConfig = ad.subcategory
-    ? getSubcategoryBySlug(ad.category, ad.subcategory)
-    : null
+  const enrichedAd = enrichAdWithDisplayNames(ad)
 
   ctx.response.body = {
-    id: ad.id,
-    user_id: ad.user_id,
-    title: ad.title,
-    description: ad.description,
-    price: ad.price,
-    category: ad.category, // slug
-    category_name: categoryConfig?.name || ad.category, // display name
-    subcategory: ad.subcategory, // slug
-    subcategory_name: subcategoryConfig?.name || ad.subcategory, // display name
-    county: ad.county, // slug
-    county_name: countyConfig?.name || ad.county, // display name
-    state: ad.state,
-    allow_messages: ad.allow_messages !== false, // default to true for backwards compatibility
-    created_at: ad.created_at,
-    updated_at: ad.updated_at,
-    expires_at: ad.expires_at,
+    ...enrichedAd,
     seller_username: ad.profiles?.username || "Användare",
     seller_contact_phone: ad.contact_phone,
     images: (ad.images || []).map((
@@ -215,8 +170,7 @@ router.post("/api/ads", async (ctx) => {
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
-    ctx.response.status = 401
-    ctx.response.body = { error: "Du måste vara inloggad för att skapa annonser" }
+    sendUnauthorized(ctx, "Du måste vara inloggad för att skapa annonser")
     return
   }
 
@@ -233,15 +187,13 @@ router.post("/api/ads", async (ctx) => {
   } = body
 
   if (!title || !description || price === undefined || !category || !county) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Titel, beskrivning, pris, kategori och län krävs" }
+    sendBadRequest(ctx, "Titel, beskrivning, pris, kategori och län krävs")
     return
   }
 
   // Validate category slug
   if (!CATEGORY_SLUGS.includes(category)) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Ogiltig kategori" }
+    sendBadRequest(ctx, "Ogiltig kategori")
     return
   }
 
@@ -249,22 +201,19 @@ router.post("/api/ads", async (ctx) => {
   if (subcategory) {
     const subcategoryConfig = getSubcategoryBySlug(category, subcategory)
     if (!subcategoryConfig) {
-      ctx.response.status = 400
-      ctx.response.body = { error: "Ogiltig underkategori" }
+      sendBadRequest(ctx, "Ogiltig underkategori")
       return
     }
   }
 
   // Validate county slug
   if (!COUNTY_SLUGS.includes(county)) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Ogiltigt län" }
+    sendBadRequest(ctx, "Ogiltigt län")
     return
   }
 
   if (typeof price !== "number" || price < 0) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Ogiltigt pris" }
+    sendBadRequest(ctx, "Ogiltigt pris")
     return
   }
 
@@ -276,17 +225,13 @@ router.post("/api/ads", async (ctx) => {
   const hasPhone = !!trimmedPhone
 
   if (!hasMessages && !hasPhone) {
-    ctx.response.status = 400
-    ctx.response.body = {
-      error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)",
-    }
+    sendBadRequest(ctx, "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)")
     return
   }
 
   // Check for forbidden words
   if (containsForbiddenWords({ title, description })) {
-    ctx.response.status = 400
-    ctx.response.body = { error: "Annonsen innehåller otillåtna ord. Vänligen ändra texten." }
+    sendBadRequest(ctx, "Annonsen innehåller otillåtna ord. Vänligen ändra texten.")
     return
   }
 
@@ -316,16 +261,14 @@ router.post("/api/ads", async (ctx) => {
 
   if (error) {
     console.error("Create ad error:", error.message, error.code)
-    ctx.response.status = 500
-    ctx.response.body = { error: "Kunde inte skapa annons" }
+    sendServerError(ctx, "Kunde inte skapa annons")
     return
   }
 
-  ctx.response.status = 201
-  ctx.response.body = {
+  sendCreated(ctx, {
     message: "Annons skapad!",
     id: data.id,
-  }
+  })
 })
 
 // Update ad
