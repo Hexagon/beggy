@@ -1,7 +1,7 @@
 // Beggy - Ad Detail Page JavaScript
 
 // State
-let currentUser = null
+// Note: currentUser is defined in utils.js as window.currentUser
 let currentAdId = null
 let currentReportAdId = null
 let currentConversationId = null
@@ -64,12 +64,12 @@ function setupEventListeners() {
   })
 }
 
-// Auth functions
+// Auth functions - custom implementations that reload ad after auth changes
 async function checkAuth() {
   try {
     const res = await fetch("/api/auth/me")
     if (res.ok) {
-      currentUser = await res.json()
+      window.currentUser = await res.json()
       updateAuthUI()
     }
   } catch {
@@ -78,7 +78,7 @@ async function checkAuth() {
 }
 
 function updateAuthUI() {
-  if (currentUser) {
+  if (window.currentUser) {
     // User is logged in - set body class
     document.body.classList.add("user-logged-in")
     document.body.classList.remove("user-logged-out")
@@ -149,7 +149,7 @@ async function handleLogout(e) {
   e.preventDefault()
   try {
     await fetch("/api/auth/logout", { method: "POST" })
-    currentUser = null
+    window.currentUser = null
     updateAuthUI()
     loadAdDetail() // Reload to hide contact button
     showAlert("Du har loggats ut", "success")
@@ -176,15 +176,15 @@ async function loadAdDetail() {
     const content = document.getElementById("adDetailContent")
     
     // Check if user can contact seller (logged in, not own ad, and messages are enabled)
-    const canContact = currentUser && currentUser.id !== ad.user_id && ad.state === "ok" && ad.allow_messages !== false
-    const isOwner = currentUser && currentUser.id === ad.user_id
+    const canContact = window.currentUser && window.currentUser.id !== ad.user_id && ad.state === "ok" && ad.allow_messages !== false
+    const isOwner = window.currentUser && window.currentUser.id === ad.user_id
     
     // Only show "Logga in" or "Kontakta säljaren" button if on-site messages are enabled
     let contactButton = ""
     if (ad.allow_messages !== false) {
       if (canContact) {
         contactButton = `<button class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" onclick="startConversation(${ad.id})">Kontakta säljaren</button>`
-      } else if (!currentUser && ad.state === "ok") {
+      } else if (!window.currentUser && ad.state === "ok") {
         contactButton = `<button class="px-4 py-2 bg-stone-300 text-stone-500 rounded cursor-not-allowed" disabled>Logga in för att kontakta</button>`
       }
     }
@@ -273,16 +273,7 @@ async function loadAdDetail() {
   }
 }
 
-function getStateLabel(state) {
-  const labels = {
-    ok: "Aktiv",
-    sold: "Såld",
-    expired: "Utgången",
-    reported: "Under granskning",
-    deleted: "Borttagen"
-  }
-  return labels[state] || state
-}
+// getStateLabel is now in utils.js
 
 // Report ad (BBS law compliance)
 function openReportModal(adId) {
@@ -342,81 +333,7 @@ async function startConversation(adId) {
   }
 }
 
-// Modal helpers
-function openModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.remove("hidden")
-  modal.classList.add("block")
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.add("hidden")
-  modal.classList.remove("block")
-}
-
-// Utility functions
-function escapeHtml(text) {
-  if (!text) return ""
-  const div = document.createElement("div")
-  div.textContent = text
-  return div.innerHTML
-}
-
-function sanitizeUrl(url) {
-  if (!url) return ""
-  // Only allow http(s) URLs and encode the result
-  try {
-    const parsed = new URL(url)
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return ""
-    }
-    return encodeURI(decodeURI(url))
-  } catch {
-    return ""
-  }
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("sv-SE", {
-    style: "currency",
-    currency: "SEK",
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
-function formatDate(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(dateString))
-}
-
-function formatDateTime(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateString))
-}
-
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
+// Modal and utility functions are now in utils.js
 
 // Share functions
 function shareToFacebook() {

@@ -5,7 +5,7 @@ const DEFAULT_VIEW_MODE = "list"
 const DEFAULT_SORT = "newest"
 
 // State
-let currentUser = null
+// Note: currentUser is defined in utils.js as window.currentUser
 let categoriesConfig = [] // Config with slug and name
 let countiesConfig = [] // Config with slug and name
 let adjacentCountiesConfig = {} // Adjacent counties by slug
@@ -190,111 +190,7 @@ function setupEventListeners() {
   })
 }
 
-// Auth functions
-async function checkAuth() {
-  try {
-    const res = await fetch("/api/auth/me")
-    if (res.ok) {
-      currentUser = await res.json()
-    }
-  } catch {
-    // Not logged in - currentUser remains null
-  }
-  // Always update UI after checking auth
-  updateAuthUI()
-}
-
-function updateAuthUI() {
-  if (currentUser) {
-    // User is logged in - set body class
-    document.body.classList.add("user-logged-in")
-    document.body.classList.remove("user-logged-out")
-  } else {
-    // User is logged out - set body class
-    document.body.classList.add("user-logged-out")
-    document.body.classList.remove("user-logged-in")
-  }
-}
-
-async function handleLogin(e) {
-  e.preventDefault()
-  const email = document.getElementById("loginEmail").value
-  const password = document.getElementById("loginPassword").value
-
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      closeModal("loginModal")
-      document.getElementById("loginForm").reset()
-      await checkAuth()
-      showAlert("Välkommen tillbaka!", "success")
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
-
-async function handleRegister(e) {
-  e.preventDefault()
-  const username = document.getElementById("regUsername").value
-  const email = document.getElementById("regEmail").value
-  const password = document.getElementById("regPassword").value
-  const confirmPassword = document.getElementById("regConfirmPassword").value
-  const acceptTerms = document.getElementById("regAcceptTerms").checked
-
-  // Validate password confirmation
-  if (password !== confirmPassword) {
-    showAlert("Lösenorden matchar inte", "error")
-    return
-  }
-
-  // Validate terms acceptance
-  if (!acceptTerms) {
-    showAlert("Du måste godkänna integritetspolicyn och användarvillkoren", "error")
-    return
-  }
-
-  try {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password, acceptTerms }),
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      closeModal("registerModal")
-      document.getElementById("registerForm").reset()
-      openModal("registerSuccessModal")
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
-
-async function handleLogout(e) {
-  e.preventDefault()
-  try {
-    await fetch("/api/auth/logout", { method: "POST" })
-    currentUser = null
-    updateAuthUI()
-    showAlert("Du har loggats ut", "success")
-  } catch {
-    showAlert("Något gick fel", "error")
-  }
-}
+// Auth functions are now in utils.js
 
 async function handleForgotPassword(e) {
   e.preventDefault()
@@ -744,72 +640,7 @@ async function handleReportAd(e) {
   }
 }
 
-// Modal helpers
-function openModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.remove("hidden")
-  modal.classList.add("block")
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id)
-  modal.classList.add("hidden")
-  modal.classList.remove("block")
-}
-
-// Utility functions
-function escapeHtml(text) {
-  if (!text) return ""
-  const div = document.createElement("div")
-  div.textContent = text
-  return div.innerHTML
-}
-
-function sanitizeUrl(url) {
-  if (!url) return ""
-  // Only allow http(s) URLs and encode the result
-  try {
-    const parsed = new URL(url)
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return ""
-    }
-    return encodeURI(decodeURI(url))
-  } catch {
-    return ""
-  }
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("sv-SE", {
-    style: "currency",
-    currency: "SEK",
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
-function formatDate(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(dateString))
-}
-
-function formatRelativeTime(dateString) {
-  const now = new Date()
-  const date = new Date(dateString)
-  const diffMs = now - date
-  const diffSec = Math.floor(diffMs / 1000)
-  const diffMin = Math.floor(diffSec / 60)
-  const diffHour = Math.floor(diffMin / 60)
-  const diffDay = Math.floor(diffHour / 24)
-
-  if (diffMin < 1) return "just nu"
-  if (diffMin < 60) return `${diffMin} minut${diffMin === 1 ? "" : "er"} sedan`
-  if (diffHour < 24) return `${diffHour} timm${diffHour === 1 ? "e" : "ar"} sedan`
-  if (diffDay < 7) return `${diffDay} dag${diffDay === 1 ? "" : "ar"} sedan`
-  return formatDate(dateString)
-}
+// Modal and utility functions are now in utils.js
 
 function setViewMode(mode) {
   viewMode = mode
@@ -858,20 +689,7 @@ function showBrowseView() {
   loadAds()
 }
 
-function showAlert(message, type) {
-  // Remove existing alerts
-  document.querySelectorAll(".alert").forEach((el) => el.remove())
-
-  const alert = document.createElement("div")
-  alert.className = `alert fixed top-20 right-5 z-[1001] min-w-[250px] p-4 rounded ${type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`
-  alert.textContent = message
-
-  document.body.appendChild(alert)
-
-  setTimeout(() => {
-    alert.remove()
-  }, 3000)
-}
+// showAlert is now in utils.js
 
 // Make functions available globally for onclick handlers
 window.filterByCategory = filterByCategory
@@ -909,12 +727,4 @@ async function startConversation(adId) {
   }
 }
 
-function formatDateTime(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateString))
-}
+// formatDateTime is now in utils.js
