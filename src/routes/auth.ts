@@ -30,6 +30,32 @@ router.post("/api/auth/register", async (ctx) => {
 
   const supabase = getSupabase()
 
+  // Check if user already exists by email
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle()
+
+  if (existingProfile) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "En användare med denna e-postadress finns redan." }
+    return
+  }
+
+  // Check if username is already taken
+  const { data: existingUsername } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle()
+
+  if (existingUsername) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Användarnamnet är redan taget." }
+    return
+  }
+
   // Create user with Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -62,7 +88,7 @@ router.post("/api/auth/register", async (ctx) => {
   }
 
   ctx.response.status = 201
-  ctx.response.body = { message: "Konto skapat! Du kan nu logga in." }
+  ctx.response.body = { message: "Konto skapat! Kolla din e-post för att bekräfta kontot." }
 })
 
 // Login
@@ -121,6 +147,70 @@ router.post("/api/auth/logout", async (ctx) => {
   await ctx.cookies.delete("refresh_token")
 
   ctx.response.body = { message: "Utloggad!" }
+})
+
+// Forgot password - send reset email
+router.post("/api/auth/forgot-password", async (ctx) => {
+  const body = await ctx.request.body.json()
+  const { email } = body
+
+  if (!email) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "E-post krävs" }
+    return
+  }
+
+  const supabase = getSupabase()
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${ctx.request.url.origin}/aterstall-losenord`,
+  })
+
+  if (error) {
+    console.error("Forgot password error:", error.message, error.status)
+    // Don't reveal if email exists or not for security
+    ctx.response.body = {
+      message: "Om e-postadressen finns i vårt system kommer du få ett återställningsmail.",
+    }
+    return
+  }
+
+  ctx.response.body = {
+    message: "Om e-postadressen finns i vårt system kommer du få ett återställningsmail.",
+  }
+})
+
+// Reset password - update password with token
+router.post("/api/auth/reset-password", async (ctx) => {
+  const body = await ctx.request.body.json()
+  const { accessToken, newPassword } = body
+
+  if (!accessToken || !newPassword) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Åtkomsttoken och nytt lösenord krävs" }
+    return
+  }
+
+  if (newPassword.length < 8) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Lösenordet måste vara minst 8 tecken" }
+    return
+  }
+
+  const supabase = getAuthenticatedSupabase(accessToken)
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  })
+
+  if (error) {
+    console.error("Reset password error:", error.message, error.status)
+    ctx.response.status = 400
+    ctx.response.body = { error: "Kunde inte uppdatera lösenordet. Länken kan ha gått ut." }
+    return
+  }
+
+  ctx.response.body = { message: "Lösenordet har uppdaterats!" }
 })
 
 // Get current user
