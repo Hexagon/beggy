@@ -38,15 +38,21 @@ function setupEventListeners() {
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
 
-  // Messages
-  document.getElementById("messagesBtn").addEventListener("click", (e) => {
-    e.preventDefault()
-    loadConversations()
-    openModal("conversationsModal")
-  })
+  // Messages - only add listener if element exists (not present on all pages)
+  const messagesBtn = document.getElementById("messagesBtn")
+  if (messagesBtn) {
+    messagesBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      loadConversations()
+      openModal("conversationsModal")
+    })
+  }
 
-  // Chat form
-  document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
+  // Chat form - only add listener if element exists (not present on all pages)
+  const chatForm = document.getElementById("chatForm")
+  if (chatForm) {
+    chatForm.addEventListener("submit", handleSendMessage)
+  }
 
   // Close modals on outside click
   window.addEventListener("click", (e) => {
