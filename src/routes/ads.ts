@@ -11,7 +11,13 @@ import {
 } from "../models/types.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
-import { sendNotFound, sendServerError, sendUnauthorized, sendBadRequest, sendCreated } from "../utils/response-helpers.ts"
+import {
+  sendBadRequest,
+  sendCreated,
+  sendNotFound,
+  sendServerError,
+  sendUnauthorized,
+} from "../utils/response-helpers.ts"
 import { enrichAdWithDisplayNames, getFirstImageUrl } from "../utils/ad-helpers.ts"
 
 // Helper arrays of valid slugs

@@ -24,7 +24,10 @@ export function sendUnauthorized(ctx: Context, message = "Du måste vara inlogga
   sendError(ctx, 401, message)
 }
 
-export function sendForbidden(ctx: Context, message = "Du har inte behörighet att utföra denna åtgärd"): void {
+export function sendForbidden(
+  ctx: Context,
+  message = "Du har inte behörighet att utföra denna åtgärd",
+): void {
   sendError(ctx, 403, message)
 }
 
