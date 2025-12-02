@@ -247,6 +247,7 @@ async function handleRegister(e) {
   const email = document.getElementById("regEmail").value
   const password = document.getElementById("regPassword").value
   const confirmPassword = document.getElementById("regConfirmPassword").value
+  const acceptTerms = document.getElementById("regAcceptTerms").checked
 
   // Validate password confirmation
   if (password !== confirmPassword) {
@@ -254,11 +255,17 @@ async function handleRegister(e) {
     return
   }
 
+  // Validate terms acceptance
+  if (!acceptTerms) {
+    showAlert("Du måste godkänna integritetspolicyn och användarvillkoren", "error")
+    return
+  }
+
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, acceptTerms }),
     })
 
     const data = await res.json()

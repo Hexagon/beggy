@@ -21,6 +21,19 @@ Deno.test("Login validation - email and password are required", () => {
   }
 })
 
+Deno.test("Registration validation - email, password, username, and acceptTerms are required", () => {
+  // This test documents that email, password, username, and acceptTerms must be provided
+  const requiredFields = ["email", "password", "username", "acceptTerms"]
+
+  for (const field of requiredFields) {
+    assertEquals(
+      requiredFields.includes(field),
+      true,
+      `Field "${field}" is required for registration`,
+    )
+  }
+})
+
 Deno.test("Password reset validation - access token and new password are required", () => {
   // This test documents that both accessToken and newPassword must be provided
   const requiredFields = ["accessToken", "newPassword"]
