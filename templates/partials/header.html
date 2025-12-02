@@ -11,17 +11,6 @@
     </div>
     
     <div class="flex items-center gap-3">
-      <!-- Text Size Toggle (always visible) -->
-      <button
-        id="textSizeToggle"
-        class="flex items-center gap-1 px-2 py-1 text-dark hover:text-primary transition-colors"
-        title="Ändra textstorlek"
-        aria-label="Ändra textstorlek"
-      >
-        <span class="text-lg font-bold">A</span>
-        <span class="text-sm">+</span>
-      </button>
-      
       <!-- Desktop Navigation (hidden on mobile) -->
       <nav class="nav hidden md:flex items-center gap-5">
         <a
@@ -29,10 +18,20 @@
           id="sellBtn"
           class="inline-block px-5 py-2.5 bg-primary text-white rounded text-base no-underline hover:bg-primary-dark transition-colors"
         >Sälj</a>
+        <!-- Text Size Toggle (always visible) -->
+        <button
+          id="textSizeToggle"
+          class="flex items-center gap-1 px-2 py-1 text-dark hover:text-primary transition-colors"
+          title="Ändra textstorlek"
+          aria-label="Ändra textstorlek"
+        >
+          <span class="text-lg font-bold">A</span>
+          <span class="text-sm">+</span>
+        </button>
         <a href="#" id="loginBtn" class="text-dark no-underline px-3 py-2 hover:text-primary"
         >Logga in</a>
       </nav>
-      <nav class="nav nav-logged-in hidden md:flex items-center gap-5">
+      <nav class="nav-logged-in hidden md:flex items-center gap-5">
         <a
           href="/ny-annons"
           id="sellBtn2"
@@ -46,6 +45,16 @@
         >Mina annonser</a>
         <a href="/installningar" class="text-dark no-underline px-3 py-2 hover:text-primary"
         >Inställningar</a>
+        <!-- Text Size Toggle (always visible) -->
+        <button
+          id="textSizeToggle2"
+          class="flex items-center gap-1 px-2 py-1 text-dark hover:text-primary transition-colors"
+          title="Ändra textstorlek"
+          aria-label="Ändra textstorlek"
+        >
+          <span class="text-lg font-bold">A</span>
+          <span class="text-sm">+</span>
+        </button>
         <a
           href="#"
           id="logoutBtn"

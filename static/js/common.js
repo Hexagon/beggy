@@ -3,7 +3,7 @@
 // Text Size Accessibility
 function initTextSizeToggle() {
   const textSizeToggle = document.getElementById("textSizeToggle")
-  if (!textSizeToggle) return
+  const textSizeToggle2 = document.getElementById("textSizeToggle2")
   
   const isLargeText = localStorage.getItem("textSize") === "large"
   
@@ -12,7 +12,7 @@ function initTextSizeToggle() {
     updateTextSizeToggleIcon(true)
   }
   
-  textSizeToggle.addEventListener("click", () => {
+  const toggleHandler = () => {
     const isCurrentlyLarge = document.body.classList.contains("text-large")
     
     if (isCurrentlyLarge) {
@@ -24,22 +24,37 @@ function initTextSizeToggle() {
       localStorage.setItem("textSize", "large")
       updateTextSizeToggleIcon(true)
     }
-  })
+  }
+  
+  if (textSizeToggle) {
+    textSizeToggle.addEventListener("click", toggleHandler)
+  }
+  
+  if (textSizeToggle2) {
+    textSizeToggle2.addEventListener("click", toggleHandler)
+  }
 }
 
 function updateTextSizeToggleIcon(isLarge) {
   const textSizeToggle = document.getElementById("textSizeToggle")
-  if (!textSizeToggle) return
+  const textSizeToggle2 = document.getElementById("textSizeToggle2")
   
-  if (isLarge) {
-    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">-</span>'
-    textSizeToggle.title = "Minska textstorlek"
-    textSizeToggle.setAttribute("aria-label", "Minska textstorlek")
-  } else {
-    textSizeToggle.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">+</span>'
-    textSizeToggle.title = "Öka textstorlek"
-    textSizeToggle.setAttribute("aria-label", "Öka textstorlek")
+  const updateButton = (btn) => {
+    if (!btn) return
+    
+    if (isLarge) {
+      btn.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">-</span>'
+      btn.title = "Minska textstorlek"
+      btn.setAttribute("aria-label", "Minska textstorlek")
+    } else {
+      btn.innerHTML = '<span class="text-lg font-bold">A</span><span class="text-sm">+</span>'
+      btn.title = "Öka textstorlek"
+      btn.setAttribute("aria-label", "Öka textstorlek")
+    }
   }
+  
+  updateButton(textSizeToggle)
+  updateButton(textSizeToggle2)
 }
 
 // Mobile Menu
