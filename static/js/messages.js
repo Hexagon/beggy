@@ -331,6 +331,4 @@ async function handleSendMessage(e) {
 // Utility functions (openModal, closeModal, escapeHtml, showAlert, etc.) are now in utils.js
 
 // Make functions available globally
-window.openModal = openModal
-window.closeModal = closeModal
 window.openChat = openChat

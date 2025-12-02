@@ -370,8 +370,6 @@ async function copyAdLink() {
 }
 
 // Make functions available globally for onclick handlers
-window.openModal = openModal
-window.closeModal = closeModal
 window.openReportModal = openReportModal
 window.startConversation = startConversation
 window.shareToFacebook = shareToFacebook

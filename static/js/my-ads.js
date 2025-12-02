@@ -249,7 +249,5 @@ async function deleteAd(id) {
 // Utility functions (openModal, closeModal, escapeHtml, showAlert, etc.) are now in utils.js
 
 // Make functions available globally for onclick handlers
-window.openModal = openModal
-window.closeModal = closeModal
 window.markAsSold = markAsSold
 window.deleteAd = deleteAd

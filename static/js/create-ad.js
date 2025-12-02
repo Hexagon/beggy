@@ -356,7 +356,5 @@ async function handleCreateAd(e) {
 // Modal and utility functions are now in utils.js
 
 // Make functions available globally for onclick handlers
-window.openModal = openModal
-window.closeModal = closeModal
 window.removeImage = removeImage
 window.togglePhoneInput = togglePhoneInput

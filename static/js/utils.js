@@ -234,7 +234,7 @@ function showAlert(message, type) {
 
 function getStateLabel(state) {
   switch (state) {
-    case "active":
+    case "ok":
       return "Aktiv"
     case "sold":
       return "Såld"
@@ -244,3 +244,7 @@ function getStateLabel(state) {
       return state
   }
 }
+
+// Make functions globally available for onclick handlers in HTML
+window.openModal = openModal
+window.closeModal = closeModal

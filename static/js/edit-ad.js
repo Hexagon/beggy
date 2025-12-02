@@ -504,8 +504,6 @@ async function handleEditAd(e) {
 // Utility functions (openModal, closeModal, escapeHtml, showAlert, etc.) are now in utils.js
 
 // Make functions available globally for onclick handlers
-window.openModal = openModal
-window.closeModal = closeModal
 window.removeNewImage = removeNewImage
 window.deleteExistingImage = deleteExistingImage
 window.togglePhoneInput = togglePhoneInput
