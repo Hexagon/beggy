@@ -437,7 +437,10 @@ router.delete("/api/auth/account", async (ctx) => {
       // Continue anyway - profile is already deleted
     }
   } catch (error) {
-    console.error("Admin Supabase not available:", error)
+    console.error(
+      "Admin Supabase not available - service role key not configured or invalid:",
+      error,
+    )
     // Profile is deleted, but auth user remains
     // This is acceptable if service role key is not configured
   }
