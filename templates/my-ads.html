@@ -16,7 +16,10 @@
         <a href="/" class="text-primary no-underline mb-4 inline-block">&larr; Tillbaka</a>
 
         <div id="loadingState" class="py-12 text-center">
-          <div class="inline-block w-8 h-8 border-4 border-stone-200 border-t-primary rounded-full animate-spin"></div>
+          <div
+            class="inline-block w-8 h-8 border-4 border-stone-200 border-t-primary rounded-full animate-spin"
+          >
+          </div>
           <p class="text-stone-500 mt-4">Laddar...</p>
         </div>
 
@@ -38,9 +41,7 @@
       </div>
     </main>
 
-    {{> modals }}
-
-    {{> footer }}
+    {{> modals }} {{> footer }}
 
     <script src="/js/my-ads.js"></script>
   </body>

@@ -13,20 +13,24 @@
 
     <main class="flex-1 flex min-h-0">
       <div class="w-full max-w-6xl mx-auto px-5 py-8 flex gap-6 h-full">
-        
         <!-- Left Column: Chat Area (or Landing) -->
-        <div class="flex-1 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]">
+        <div
+          class="flex-1 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]"
+        >
           <div id="chatContainer" class="hidden flex flex-col h-full">
             <!-- Chat Header -->
-            <div id="chatHeader" class="p-4 border-b border-stone-200 bg-stone-50 flex justify-between items-center">
+            <div
+              id="chatHeader"
+              class="p-4 border-b border-stone-200 bg-stone-50 flex justify-between items-center"
+            >
               <!-- Content injected by JS -->
             </div>
-            
+
             <!-- Messages Area -->
             <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
               <!-- Messages injected by JS -->
             </div>
-            
+
             <!-- Input Area -->
             <div class="p-4 border-t border-stone-200 bg-stone-50">
               <form id="chatForm" class="flex gap-2">
@@ -48,32 +52,45 @@
           </div>
 
           <!-- Empty State (Landing) -->
-          <div id="chatEmptyState" class="flex flex-col items-center justify-center h-full text-stone-500 p-8 text-center">
+          <div
+            id="chatEmptyState"
+            class="flex flex-col items-center justify-center h-full text-stone-500 p-8 text-center"
+          >
             <div class="text-6xl mb-4">💬</div>
             <h2 class="text-xl font-semibold mb-2">Dina meddelanden</h2>
             <p>Välj en konversation i listan till höger för att börja chatta.</p>
           </div>
-          
+
           <!-- Loading State -->
-           <div id="chatLoading" class="hidden flex flex-col items-center justify-center h-full text-stone-500">
-            <div class="inline-block w-8 h-8 border-4 border-stone-200 border-t-primary rounded-full animate-spin mb-4"></div>
+          <div
+            id="chatLoading"
+            class="hidden flex flex-col items-center justify-center h-full text-stone-500"
+          >
+            <div
+              class="inline-block w-8 h-8 border-4 border-stone-200 border-t-primary rounded-full animate-spin mb-4"
+            >
+            </div>
             <p>Laddar konversation...</p>
           </div>
         </div>
 
         <!-- Right Column: Conversations List -->
-        <div class="w-80 flex-shrink-0 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]">
+        <div
+          class="w-80 flex-shrink-0 flex flex-col bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden h-[calc(100vh-140px)]"
+        >
           <div class="p-4 border-b border-stone-200 bg-stone-50">
             <h2 class="font-semibold text-lg">Konversationer</h2>
           </div>
           <div id="conversationsList" class="flex-1 overflow-y-auto divide-y divide-stone-100">
             <!-- Conversations injected by JS -->
-             <div class="p-8 text-center text-stone-500">
-                <div class="inline-block w-6 h-6 border-2 border-stone-200 border-t-primary rounded-full animate-spin"></div>
-             </div>
+            <div class="p-8 text-center text-stone-500">
+              <div
+                class="inline-block w-6 h-6 border-2 border-stone-200 border-t-primary rounded-full animate-spin"
+              >
+              </div>
+            </div>
           </div>
         </div>
-
       </div>
     </main>
 
@@ -82,17 +99,20 @@
     <!-- Login Prompt Modal (reusing generic modal structure or creating specific one if needed, 
          but usually we redirect or show a full page prompt. 
          For consistency with my-ads, let's handle auth check in JS and redirect or show prompt) -->
-    <div id="loginOverlay" class="fixed inset-0 bg-white z-[60] hidden flex items-center justify-center">
-        <div class="text-center">
-            <h1 class="text-2xl font-bold mb-4">Meddelanden</h1>
-            <p class="text-stone-500 mb-4">Du måste vara inloggad för att se dina meddelanden.</p>
-            <button
-            onclick="openModal('loginModal')"
-            class="px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors"
-            >
-            Logga in
-            </button>
-        </div>
+    <div
+      id="loginOverlay"
+      class="fixed inset-0 bg-white z-[60] hidden flex items-center justify-center"
+    >
+      <div class="text-center">
+        <h1 class="text-2xl font-bold mb-4">Meddelanden</h1>
+        <p class="text-stone-500 mb-4">Du måste vara inloggad för att se dina meddelanden.</p>
+        <button
+          onclick="openModal('loginModal')"
+          class="px-5 py-2.5 bg-primary text-white rounded cursor-pointer text-base hover:bg-primary-dark transition-colors"
+        >
+          Logga in
+        </button>
+      </div>
     </div>
 
     <script src="/js/messages.js"></script>

@@ -79,22 +79,23 @@ openssl rand -base64 32
 deno eval "console.log(crypto.randomUUID() + crypto.randomUUID())"
 ```
 
-The `.env` file is automatically loaded when you start the application - no need to manually export variables!
+The `.env` file is automatically loaded when you start the application - no need to manually export
+variables!
 
 ### Required Variables
 
-| Variable            | Description                        | Example                     |
-| ------------------- | ---------------------------------- | --------------------------- |
-| `SUPABASE_URL`      | Your Supabase project URL          | `https://xxxxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous key        | `eyJhbGciOiJIUzI1NiIs...`   |
-| `ENCRYPTION_SECRET` | Secret key for message encryption  | Random 32+ character string |
+| Variable            | Description                       | Example                     |
+| ------------------- | --------------------------------- | --------------------------- |
+| `SUPABASE_URL`      | Your Supabase project URL         | `https://xxxxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Your Supabase anonymous key       | `eyJhbGciOiJIUzI1NiIs...`   |
+| `ENCRYPTION_SECRET` | Secret key for message encryption | Random 32+ character string |
 
 ### Optional Variables
 
-| Variable | Description                            | Default |
-| -------- | -------------------------------------- | ------- |
-| `PORT`   | Server port                            | `8000`  |
-| `DEV`    | Enable development mode (no caching)   | `false` |
+| Variable | Description                          | Default |
+| -------- | ------------------------------------ | ------- |
+| `PORT`   | Server port                          | `8000`  |
+| `DEV`    | Enable development mode (no caching) | `false` |
 
 ### Alternative Methods
 

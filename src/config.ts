@@ -126,7 +126,10 @@ export function getCategoryByName(name: string): Category | undefined {
 /**
  * Get subcategory by slug within a category.
  */
-export function getSubcategoryBySlug(categorySlug: string, subcategorySlug: string): SubCategory | undefined {
+export function getSubcategoryBySlug(
+  categorySlug: string,
+  subcategorySlug: string,
+): SubCategory | undefined {
   const category = getCategoryBySlug(categorySlug)
   return category?.subcategories?.find((s) => s.slug === subcategorySlug)
 }
@@ -151,4 +154,3 @@ export function getCountyByName(name: string): County | undefined {
 export function getAdjacentCountySlugs(slug: string): string[] {
   return ADJACENT_COUNTIES_CONFIG[slug] || []
 }
-

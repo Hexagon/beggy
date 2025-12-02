@@ -217,7 +217,16 @@ router.post("/api/ads", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, subcategory, county, contact_phone, allow_messages } = body
+  const {
+    title,
+    description,
+    price,
+    category,
+    subcategory,
+    county,
+    contact_phone,
+    allow_messages,
+  } = body
 
   if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
@@ -264,7 +273,9 @@ router.post("/api/ads", async (ctx) => {
 
   if (!hasMessages && !hasPhone) {
     ctx.response.status = 400
-    ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)" }
+    ctx.response.body = {
+      error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)",
+    }
     return
   }
 
@@ -336,7 +347,17 @@ router.put("/api/ads/:id", async (ctx) => {
   }
 
   const body = await ctx.request.body.json()
-  const { title, description, price, category, subcategory, county, contact_phone, allow_messages, state } = body
+  const {
+    title,
+    description,
+    price,
+    category,
+    subcategory,
+    county,
+    contact_phone,
+    allow_messages,
+    state,
+  } = body
 
   // Validate category slug if provided
   if (category && !CATEGORY_SLUGS.includes(category)) {
@@ -372,7 +393,9 @@ router.put("/api/ads/:id", async (ctx) => {
 
     if (!hasMessages && !hasPhone) {
       ctx.response.status = 400
-      ctx.response.body = { error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)" }
+      ctx.response.body = {
+        error: "Du måste välja minst ett kontaktsätt (meddelanden eller telefon)",
+      }
       return
     }
   }
