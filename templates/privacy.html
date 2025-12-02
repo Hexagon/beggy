@@ -8,147 +8,157 @@
       content="Läs Beggys integritetspolicy enligt GDPR. Vi skyddar dina personuppgifter. Du kan enkelt exportera eller radera all din data när som helst."
     >
   </head>
-  <body class="bg-white text-stone-800 leading-relaxed">
-    {{> header-simple }}
+  <body class="bg-white text-dark leading-relaxed">
+    {{> header }}
 
     <main class="min-h-[calc(100vh-200px)] py-8">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="bg-amber-50 p-8 rounded-lg max-w-3xl mx-auto">
-          <h1 class="text-2xl font-bold mb-6">Integritetspolicy (GDPR)</h1>
-          <p class="italic text-stone-500 mb-6">Senast uppdaterad: 2025-11-30</p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <!-- Sidebar -->
+          <div class="md:col-span-1">
+            {{> help-sidebar }}
+          </div>
+          
+          <!-- Content -->
+          <div class="md:col-span-3">
+            <div class="bg-cream p-8 rounded-lg">
+              <h1 class="text-2xl font-bold mb-6">Integritetspolicy (GDPR)</h1>
+              <p class="italic text-stone-500 mb-6">Senast uppdaterad: 2025-11-30</p>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">1. Personuppgiftsansvarig</h2>
-          <p class="mb-4">
-            Beggy är ett öppet källkodsprojekt. Som användare av en självhostad instans är
-            operatören av den instansen personuppgiftsansvarig. För den officiella instansen på
-            beggy.se gäller denna policy.
-          </p>
+              <h2 class="text-xl font-semibold mt-6 mb-3">1. Personuppgiftsansvarig</h2>
+              <p class="mb-4">
+                Beggy är ett öppet källkodsprojekt. Som användare av en självhostad instans är
+                operatören av den instansen personuppgiftsansvarig. För den officiella instansen på
+                beggy.se gäller denna policy.
+              </p>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">2. Vilka uppgifter samlar vi in?</h2>
-          <p class="mb-4">Vi samlar in följande uppgifter:</p>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li>
-              <strong>Vid registrering:</strong> E-postadress och användarnamn
-            </li>
-            <li>
-              <strong>Vid annonsering:</strong> Annonsinnehåll, bilder, län, samt valfri
-              kontaktinformation (telefon/e-post) som visas på annonsen
-            </li>
-            <li>
-              <strong>Automatiskt:</strong> IP-adress (endast i serverloggar), sessionsinformation
-            </li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">2. Vilka uppgifter samlar vi in?</h2>
+              <p class="mb-4">Vi samlar in följande uppgifter:</p>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li>
+                  <strong>Vid registrering:</strong> E-postadress och användarnamn
+                </li>
+                <li>
+                  <strong>Vid annonsering:</strong> Annonsinnehåll, bilder, län, samt valfri
+                  kontaktinformation (telefon/e-post) som visas på annonsen
+                </li>
+                <li>
+                  <strong>Automatiskt:</strong> IP-adress (endast i serverloggar), sessionsinformation
+                </li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">3. Rättslig grund för behandling</h2>
-          <p class="mb-4">Vi behandlar dina personuppgifter baserat på:</p>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li><strong>Avtal:</strong> För att tillhandahålla tjänsten (artikel 6.1.b GDPR)</li>
-            <li>
-              <strong>Berättigat intresse:</strong> För säkerhet och missbruksskydd (artikel 6.1.f
-              GDPR)
-            </li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">3. Rättslig grund för behandling</h2>
+              <p class="mb-4">Vi behandlar dina personuppgifter baserat på:</p>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li><strong>Avtal:</strong> För att tillhandahålla tjänsten (artikel 6.1.b GDPR)</li>
+                <li>
+                  <strong>Berättigat intresse:</strong> För säkerhet och missbruksskydd (artikel 6.1.f
+                  GDPR)
+                </li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">4. Hur använder vi uppgifterna?</h2>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li>För att skapa och hantera ditt konto</li>
-            <li>För att visa dina annonser för andra användare</li>
-            <li>För att möjliggöra kontakt mellan köpare och säljare</li>
-            <li>För att förhindra missbruk av tjänsten</li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">4. Hur använder vi uppgifterna?</h2>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li>För att skapa och hantera ditt konto</li>
+                <li>För att visa dina annonser för andra användare</li>
+                <li>För att möjliggöra kontakt mellan köpare och säljare</li>
+                <li>För att förhindra missbruk av tjänsten</li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">5. Delning av uppgifter</h2>
-          <p class="mb-4">
-            Vi delar <strong>inte</strong> dina uppgifter med tredje part, förutom:
-          </p>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li>När det krävs enligt lag (t.ex. vid polisutredning)</li>
-            <li>Information som du själv väljer att publicera i annonser</li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">5. Delning av uppgifter</h2>
+              <p class="mb-4">
+                Vi delar <strong>inte</strong> dina uppgifter med tredje part, förutom:
+              </p>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li>När det krävs enligt lag (t.ex. vid polisutredning)</li>
+                <li>Information som du själv väljer att publicera i annonser</li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">6. Lagring och radering</h2>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li>Kontoinformation lagras så länge kontot är aktivt</li>
-            <li>Annonser raderas automatiskt efter att du tagit bort dem</li>
-            <li>Serverloggar rensas efter 30 dagar</li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">6. Lagring och radering</h2>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li>Kontoinformation lagras så länge kontot är aktivt</li>
+                <li>Annonser raderas automatiskt efter att du tagit bort dem</li>
+                <li>Serverloggar rensas efter 30 dagar</li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">7. Dina rättigheter enligt GDPR</h2>
-          <p class="mb-4">Du har rätt att:</p>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li><strong>Få tillgång till</strong> dina personuppgifter</li>
-            <li><strong>Rätta</strong> felaktiga uppgifter</li>
-            <li>
-              <strong>Radera</strong> ditt konto och all tillhörande data ("rätten att bli glömd")
-            </li>
-            <li><strong>Exportera</strong> dina uppgifter i maskinläsbart format (JSON)</li>
-            <li><strong>Invända</strong> mot viss behandling</li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">7. Dina rättigheter enligt GDPR</h2>
+              <p class="mb-4">Du har rätt att:</p>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li><strong>Få tillgång till</strong> dina personuppgifter</li>
+                <li><strong>Rätta</strong> felaktiga uppgifter</li>
+                <li>
+                  <strong>Radera</strong> ditt konto och all tillhörande data ("rätten att bli glömd")
+                </li>
+                <li><strong>Exportera</strong> dina uppgifter i maskinläsbart format (JSON)</li>
+                <li><strong>Invända</strong> mot viss behandling</li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">
-            8. Så exporterar eller raderar du din data
-          </h2>
-          <p class="mb-4">
-            Du kan exportera eller radera ditt konto och all tillhörande data genom att:
-          </p>
-          <ol class="list-decimal pl-6 mb-4 space-y-1">
-            <li>Logga in på ditt konto</li>
-            <li>Klicka på "Mina annonser"</li>
-            <li>Scrolla ner till "Kontoinställningar"</li>
-            <li>
-              Klicka på "Exportera mina data" för att ladda ner alla dina uppgifter i JSON-format
-            </li>
-            <li>Klicka på "Radera mitt konto" för att permanent radera allt</li>
-          </ol>
-          <p class="mb-4">
-            All din data, inklusive annonser och bilder, raderas permanent och kan inte återställas
-            vid radering.
-          </p>
+              <h2 class="text-xl font-semibold mt-6 mb-3">
+                8. Så exporterar eller raderar du din data
+              </h2>
+              <p class="mb-4">
+                Du kan exportera eller radera ditt konto och all tillhörande data genom att:
+              </p>
+              <ol class="list-decimal pl-6 mb-4 space-y-1">
+                <li>Logga in på ditt konto</li>
+                <li>Klicka på "Mina annonser"</li>
+                <li>Scrolla ner till "Kontoinställningar"</li>
+                <li>
+                  Klicka på "Exportera mina data" för att ladda ner alla dina uppgifter i JSON-format
+                </li>
+                <li>Klicka på "Radera mitt konto" för att permanent radera allt</li>
+              </ol>
+              <p class="mb-4">
+                All din data, inklusive annonser och bilder, raderas permanent och kan inte återställas
+                vid radering.
+              </p>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">9. Cookies</h2>
-          <p class="mb-4">Vi använder endast tekniskt nödvändiga cookies:</p>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li><strong>access_token:</strong> För att hålla dig inloggad (7 dagar)</li>
-            <li><strong>refresh_token:</strong> För att förnya din session (30 dagar)</li>
-          </ul>
-          <p class="mb-4">
-            Vi använder inga spårningscookies, analyticscookies eller tredjepartscookies. Eftersom
-            endast nödvändiga cookies för autentisering används krävs inget samtycke.
-          </p>
+              <h2 class="text-xl font-semibold mt-6 mb-3">9. Cookies</h2>
+              <p class="mb-4">Vi använder endast tekniskt nödvändiga cookies:</p>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li><strong>access_token:</strong> För att hålla dig inloggad (7 dagar)</li>
+                <li><strong>refresh_token:</strong> För att förnya din session (30 dagar)</li>
+              </ul>
+              <p class="mb-4">
+                Vi använder inga spårningscookies, analyticscookies eller tredjepartscookies. Eftersom
+                endast nödvändiga cookies för autentisering används krävs inget samtycke.
+              </p>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">10. Säkerhet</h2>
-          <p class="mb-4">Vi skyddar dina uppgifter genom:</p>
-          <ul class="list-disc pl-6 mb-4 space-y-1">
-            <li>Säker lösenordshantering via Supabase Auth</li>
-            <li>HTTPS-kryptering för all trafik</li>
-            <li>Säkra sessionscookies med HttpOnly-flagga</li>
-            <li>End-to-end krypterade chatmeddelanden (AES-256-GCM)</li>
-          </ul>
+              <h2 class="text-xl font-semibold mt-6 mb-3">10. Säkerhet</h2>
+              <p class="mb-4">Vi skyddar dina uppgifter genom:</p>
+              <ul class="list-disc pl-6 mb-4 space-y-1">
+                <li>Säker lösenordshantering via Supabase Auth</li>
+                <li>HTTPS-kryptering för all trafik</li>
+                <li>Säkra sessionscookies med HttpOnly-flagga</li>
+                <li>End-to-end krypterade chatmeddelanden (AES-256-GCM)</li>
+              </ul>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">11. Ändringar i policyn</h2>
-          <p class="mb-4">
-            Vid väsentliga ändringar i denna policy meddelar vi användare via e-post eller på
-            webbplatsen.
-          </p>
+              <h2 class="text-xl font-semibold mt-6 mb-3">11. Ändringar i policyn</h2>
+              <p class="mb-4">
+                Vid väsentliga ändringar i denna policy meddelar vi användare via e-post eller på
+                webbplatsen.
+              </p>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">12. Klagomål</h2>
-          <p class="mb-4">
-            Om du anser att vi behandlar dina uppgifter felaktigt har du rätt att lämna klagomål
-            till Integritetsskyddsmyndigheten (IMY): <a
-              href="https://www.imy.se"
-              target="_blank"
-              class="text-primary hover:underline"
-            >www.imy.se</a>
-          </p>
+              <h2 class="text-xl font-semibold mt-6 mb-3">12. Klagomål</h2>
+              <p class="mb-4">
+                Om du anser att vi behandlar dina uppgifter felaktigt har du rätt att lämna klagomål
+                till Integritetsskyddsmyndigheten (IMY): <a
+                  href="https://www.imy.se"
+                  target="_blank"
+                  class="text-primary hover:underline"
+                >www.imy.se</a>
+              </p>
 
-          <h2 class="text-xl font-semibold mt-6 mb-3">13. Kontakt</h2>
-          <p class="mb-4">
-            För frågor om personuppgiftsbehandling, kontakta oss via GitHub: <a
-              href="https://github.com/Hexagon/beggy"
-              target="_blank"
-              class="text-primary hover:underline"
-            >github.com/Hexagon/beggy</a>
-          </p>
+              <h2 class="text-xl font-semibold mt-6 mb-3">13. Kontakt</h2>
+              <p class="mb-4">
+                För frågor om personuppgiftsbehandling, kontakta oss via GitHub: <a
+                  href="https://github.com/Hexagon/beggy"
+                  target="_blank"
+                  class="text-primary hover:underline"
+                >github.com/Hexagon/beggy</a>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </main>

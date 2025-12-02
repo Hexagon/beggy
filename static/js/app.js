@@ -38,6 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCounties()
   loadStateFromUrl()
   setupEventListeners()
+  
+  // Force mute all videos (browser policy often requires this for autoplay)
+  document.querySelectorAll("video").forEach(v => v.muted = true)
+
   updateViewModeButtons()
   updateViewMode()
 })
@@ -81,15 +85,17 @@ function setupEventListeners() {
     window.location.href = "/ny-annons"
   })
 
-  // Messages
-  document.getElementById("messagesBtn").addEventListener("click", (e) => {
-    e.preventDefault()
-    loadConversations()
-    openModal("conversationsModal")
-  })
+  // Messages - Navigate to messages page
+  const messagesBtn = document.getElementById("messagesBtn")
+  if (messagesBtn) {
+    // It's a link now, so default behavior is fine, but if we want to prevent default and use JS navigation we can.
+    // Actually, since it's an <a> tag with href="/meddelanden", we don't need a listener unless we want to do something special.
+    // The previous listener prevented default and opened modal. We should REMOVE that listener.
+    // But since I'm replacing the file content or editing it, I should just remove the old listener block.
+  }
 
-  // Chat form
-  document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
+  // Chat form - REMOVE (handled in messages page)
+  // document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
 
   // Report ad
   document.getElementById("reportForm").addEventListener("submit", handleReportAd)
@@ -458,7 +464,7 @@ function renderAds(ads) {
         (ad) => {
           const safeImageUrl = sanitizeUrl(ad.first_image_url)
           return `
-      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-3" onclick="openAdDetail(${ad.id})">
+      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-2" onclick="openAdDetail(${ad.id})">
         ${
           safeImageUrl
             ? `<div class="w-24 h-24 flex-shrink-0 rounded overflow-hidden"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
@@ -721,46 +727,12 @@ window.openModal = openModal
 window.closeModal = closeModal
 window.openReportModal = openReportModal
 window.startConversation = startConversation
-window.openChat = openChat
 window.setViewMode = setViewMode
 window.showBrowseView = showBrowseView
 
 // Conversation/Chat functions
-let currentConversationId = null
-
-async function loadConversations() {
-  try {
-    const res = await fetch("/api/conversations")
-    const data = await res.json()
-
-    const list = document.getElementById("conversationsList")
-
-    if (!data.conversations || data.conversations.length === 0) {
-      list.innerHTML = "<p class='text-gray-500'>Du har inga meddelanden ännu.</p>"
-      return
-    }
-
-    list.innerHTML = data.conversations
-      .map(
-        (conv) => `
-      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0 cursor-pointer hover:bg-gray-50" onclick="openChat(${conv.id})">
-        <div class="flex-1">
-          <strong>${escapeHtml(conv.ad_title)}</strong><br>
-          <span class="text-gray-500 text-sm">
-            ${conv.is_buyer ? "Med: " + escapeHtml(conv.seller_username) : "Från: " + escapeHtml(conv.buyer_username)}
-          </span><br>
-          <span class="text-xs text-gray-400">${conv.message_count} meddelande${conv.message_count !== 1 ? "n" : ""}</span>
-          ${conv.expires_at ? `<br><span class="text-xs text-yellow-600">⚠️ Utgår: ${formatDate(conv.expires_at)}</span>` : ""}
-        </div>
-        <span class="text-gray-400">→</span>
-      </div>
-    `
-      )
-      .join("")
-  } catch {
-    showAlert("Kunde inte ladda meddelanden", "error")
-  }
-}
+// Note: Most chat logic is now in messages.js for the dedicated messages page.
+// app.js only handles starting a new conversation from an ad.
 
 async function startConversation(adId) {
   try {
@@ -771,88 +743,13 @@ async function startConversation(adId) {
     const data = await res.json()
 
     if (res.ok) {
-      closeModal("adDetailModal")
-      await openChat(data.conversation_id)
+      // Redirect to messages page with the new conversation open
+      window.location.href = `/meddelanden?id=${data.conversation_id}`
     } else {
       showAlert(data.error, "error")
     }
   } catch {
     showAlert("Något gick fel", "error")
-  }
-}
-
-async function openChat(conversationId) {
-  currentConversationId = conversationId
-
-  try {
-    const res = await fetch(`/api/conversations/${conversationId}/messages`)
-    const data = await res.json()
-
-    // Update header
-    const header = document.getElementById("chatHeader")
-    header.innerHTML = `
-      <h2 class="text-xl font-semibold">${escapeHtml(data.conversation.ad_title)}</h2>
-      <p class="text-gray-500 text-sm">
-        ${data.conversation.is_buyer ? "Säljare: " + escapeHtml(data.conversation.seller_username) : "Köpare: " + escapeHtml(data.conversation.buyer_username)}
-        ${data.conversation.expires_at ? `<br><span class="text-yellow-600">⚠️ Konversationen utgår: ${formatDate(data.conversation.expires_at)}</span>` : ""}
-      </p>
-    `
-
-    // Update messages
-    const messagesDiv = document.getElementById("chatMessages")
-    if (data.messages.length === 0) {
-      messagesDiv.innerHTML = '<p class="text-gray-500 text-center">Inga meddelanden ännu. Skriv något!</p>'
-    } else {
-      messagesDiv.innerHTML = data.messages
-        .map(
-          (msg) => `
-        <div class="mb-3 ${msg.is_own ? "text-right" : "text-left"}">
-          <div class="inline-block max-w-[80%] p-3 rounded-lg ${msg.is_own ? "bg-primary text-white" : "bg-gray-200"}">
-            <p class="text-sm">${escapeHtml(msg.content)}</p>
-          </div>
-          <p class="text-xs text-gray-400 mt-1">${msg.is_own ? "Du" : escapeHtml(msg.sender_username)} • ${formatDateTime(msg.created_at)}</p>
-        </div>
-      `
-        )
-        .join("")
-      
-      // Scroll to bottom
-      messagesDiv.scrollTop = messagesDiv.scrollHeight
-    }
-
-    closeModal("conversationsModal")
-    openModal("chatModal")
-  } catch {
-    showAlert("Kunde inte ladda konversationen", "error")
-  }
-}
-
-async function handleSendMessage(e) {
-  e.preventDefault()
-
-  const input = document.getElementById("chatInput")
-  const content = input.value.trim()
-
-  if (!content) return
-
-  try {
-    const res = await fetch(`/api/conversations/${currentConversationId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      input.value = ""
-      // Reload messages
-      await openChat(currentConversationId)
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Kunde inte skicka meddelande", "error")
   }
 }
 

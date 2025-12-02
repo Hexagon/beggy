@@ -38,16 +38,6 @@ function setupEventListeners() {
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
 
-  // Messages
-  document.getElementById("messagesBtn").addEventListener("click", (e) => {
-    e.preventDefault()
-    loadConversations()
-    openModal("conversationsModal")
-  })
-
-  // Chat form
-  document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
-
   // Close modals on outside click
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal")) {
@@ -91,12 +81,15 @@ function updateAuthUI() {
 function updatePageDisplay() {
   const loginPrompt = document.getElementById("loginPrompt")
   const myAdsContainer = document.getElementById("myAdsContainer")
+  const loadingState = document.getElementById("loadingState")
   
   if (currentUser) {
+    loadingState.classList.add("hidden")
     loginPrompt.classList.add("hidden")
     myAdsContainer.classList.remove("hidden")
     loadMyAds()
   } else {
+    loadingState.classList.add("hidden")
     loginPrompt.classList.remove("hidden")
     myAdsContainer.classList.add("hidden")
   }
@@ -179,31 +172,47 @@ async function loadMyAds() {
     const list = document.getElementById("myAdsList")
 
     if (data.ads.length === 0) {
-      list.innerHTML = "<p class='text-gray-500'>Du har inga annonser ännu.</p>"
+      list.innerHTML = "<p class='text-stone-500 py-8 text-center'>Du har inga annonser ännu.</p>"
       return
     }
 
     list.innerHTML = data.ads
       .map(
-        (ad) => `
-      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0 bg-amber-50 rounded mb-2">
-        <div class="flex-1">
-          <a href="/annons/${ad.id}" class="text-primary font-semibold">${escapeHtml(ad.title)}</a><br>
-          <span class="${ad.state === "sold" ? "text-green-600 font-bold" : ad.state === "expired" ? "text-yellow-600" : "text-primary"}">${getStateLabel(ad.state)}</span>
-          • ${formatPrice(ad.price)}
-          ${ad.expires_at ? `<br><span class="text-xs text-gray-400">Utgår: ${formatDate(ad.expires_at)}</span>` : ""}
-        </div>
-        <div class="flex gap-2.5">
-          <a href="/annons/${ad.id}/redigera" class="px-2.5 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 no-underline">Redigera</a>
+        (ad) => {
+          const safeImageUrl = sanitizeUrl(ad.first_image_url)
+          return `
+      <div class="flex py-4 hover:bg-stone-50 transition-colors group">
+        <div class="w-20 h-20 flex-shrink-0 rounded overflow-hidden bg-stone-200 mr-4">
           ${
-            ad.state === "ok"
-              ? `<button class="px-2.5 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700" onclick="markAsSold(${ad.id})">Markera såld</button>`
-              : ""
+            safeImageUrl
+              ? `<img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover">`
+              : '<div class="flex items-center justify-center h-full text-stone-400 text-2xl">📦</div>'
           }
-          <button class="px-2.5 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700" onclick="deleteAd(${ad.id})">Radera</button>
+        </div>
+        <div class="flex-1 min-w-0 flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <a href="/annons/${ad.id}" class="text-lg font-semibold text-dark hover:text-primary no-underline mb-1 block">${escapeHtml(ad.title)}</a>
+              <div class="text-base font-bold text-primary">${formatPrice(ad.price)}</div>
+            </div>
+            <div class="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+              <a href="/annons/${ad.id}/redigera" class="px-3 py-1.5 text-sm bg-white text-stone-700 border border-stone-300 rounded hover:bg-stone-50 no-underline shadow-sm">Redigera</a>
+              ${
+                ad.state === "ok"
+                  ? `<button class="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 shadow-sm" onclick="markAsSold(${ad.id})">Markera såld</button>`
+                  : ""
+              }
+              <button class="px-3 py-1.5 text-sm bg-white text-red-600 border border-red-200 rounded hover:bg-red-50 shadow-sm" onclick="deleteAd(${ad.id})">Ta bort</button>
+            </div>
+          </div>
+          <div class="text-sm text-stone-500 mt-1 flex items-center gap-2">
+            <span class="${ad.state === "sold" ? "text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded" : ad.state === "expired" ? "text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded" : "text-stone-600 bg-stone-100 px-2 py-0.5 rounded"}">${getStateLabel(ad.state)}</span>
+            ${ad.expires_at ? `<span>• Utgår: ${formatDate(ad.expires_at)}</span>` : ""}
+          </div>
         </div>
       </div>
     `
+        }
       )
       .join("")
   } catch {
@@ -254,116 +263,6 @@ function getStateLabel(state) {
   return labels[state] || state
 }
 
-// Conversation/Chat functions
-async function loadConversations() {
-  try {
-    const res = await fetch("/api/conversations")
-    const data = await res.json()
-
-    const list = document.getElementById("conversationsList")
-
-    if (!data.conversations || data.conversations.length === 0) {
-      list.innerHTML = "<p class='text-gray-500'>Du har inga meddelanden ännu.</p>"
-      return
-    }
-
-    list.innerHTML = data.conversations
-      .map(
-        (conv) => `
-      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0 cursor-pointer hover:bg-gray-50" onclick="openChat(${conv.id})">
-        <div class="flex-1">
-          <strong>${escapeHtml(conv.ad_title)}</strong><br>
-          <span class="text-gray-500 text-sm">
-            ${conv.is_buyer ? "Med: " + escapeHtml(conv.seller_username) : "Från: " + escapeHtml(conv.buyer_username)}
-          </span><br>
-          <span class="text-xs text-gray-400">${conv.message_count} meddelande${conv.message_count !== 1 ? "n" : ""}</span>
-          ${conv.expires_at ? `<br><span class="text-xs text-yellow-600">⚠️ Utgår: ${formatDate(conv.expires_at)}</span>` : ""}
-        </div>
-        <span class="text-gray-400">→</span>
-      </div>
-    `
-      )
-      .join("")
-  } catch {
-    showAlert("Kunde inte ladda meddelanden", "error")
-  }
-}
-
-async function openChat(conversationId) {
-  currentConversationId = conversationId
-
-  try {
-    const res = await fetch(`/api/conversations/${conversationId}/messages`)
-    const data = await res.json()
-
-    // Update header
-    const header = document.getElementById("chatHeader")
-    header.innerHTML = `
-      <h2 class="text-xl font-semibold">${escapeHtml(data.conversation.ad_title)}</h2>
-      <p class="text-gray-500 text-sm">
-        ${data.conversation.is_buyer ? "Säljare: " + escapeHtml(data.conversation.seller_username) : "Köpare: " + escapeHtml(data.conversation.buyer_username)}
-        ${data.conversation.expires_at ? `<br><span class="text-yellow-600">⚠️ Konversationen utgår: ${formatDate(data.conversation.expires_at)}</span>` : ""}
-      </p>
-    `
-
-    // Update messages
-    const messagesDiv = document.getElementById("chatMessages")
-    if (data.messages.length === 0) {
-      messagesDiv.innerHTML = '<p class="text-gray-500 text-center">Inga meddelanden ännu. Skriv något!</p>'
-    } else {
-      messagesDiv.innerHTML = data.messages
-        .map(
-          (msg) => `
-        <div class="mb-3 ${msg.is_own ? "text-right" : "text-left"}">
-          <div class="inline-block max-w-[80%] p-3 rounded-lg ${msg.is_own ? "bg-primary text-white" : "bg-gray-200"}">
-            <p class="text-sm">${escapeHtml(msg.content)}</p>
-          </div>
-          <p class="text-xs text-gray-400 mt-1">${msg.is_own ? "Du" : escapeHtml(msg.sender_username)} • ${formatDateTime(msg.created_at)}</p>
-        </div>
-      `
-        )
-        .join("")
-      
-      // Scroll to bottom
-      messagesDiv.scrollTop = messagesDiv.scrollHeight
-    }
-
-    closeModal("conversationsModal")
-    openModal("chatModal")
-  } catch {
-    showAlert("Kunde inte ladda konversationen", "error")
-  }
-}
-
-async function handleSendMessage(e) {
-  e.preventDefault()
-
-  const input = document.getElementById("chatInput")
-  const content = input.value.trim()
-
-  if (!content) return
-
-  try {
-    const res = await fetch(`/api/conversations/${currentConversationId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      input.value = ""
-      // Reload messages
-      await openChat(currentConversationId)
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Kunde inte skicka meddelande", "error")
-  }
-}
-
 // Modal helpers
 function openModal(id) {
   const modal = document.getElementById(id)
@@ -378,6 +277,14 @@ function closeModal(id) {
 }
 
 // Utility functions
+function sanitizeUrl(url) {
+  if (!url) return null
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
+    return url
+  }
+  return null
+}
+
 function escapeHtml(text) {
   if (!text) return ""
   const div = document.createElement("div")
@@ -429,6 +336,5 @@ function showAlert(message, type) {
 // Make functions available globally for onclick handlers
 window.openModal = openModal
 window.closeModal = closeModal
-window.openChat = openChat
 window.markAsSold = markAsSold
 window.deleteAd = deleteAd
