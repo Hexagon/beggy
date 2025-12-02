@@ -85,18 +85,6 @@ function setupEventListeners() {
     window.location.href = "/ny-annons"
   })
 
-  // Messages - Navigate to messages page
-  const messagesBtn = document.getElementById("messagesBtn")
-  if (messagesBtn) {
-    // It's a link now, so default behavior is fine, but if we want to prevent default and use JS navigation we can.
-    // Actually, since it's an <a> tag with href="/meddelanden", we don't need a listener unless we want to do something special.
-    // The previous listener prevented default and opened modal. We should REMOVE that listener.
-    // But since I'm replacing the file content or editing it, I should just remove the old listener block.
-  }
-
-  // Chat form - REMOVE (handled in messages page)
-  // document.getElementById("chatForm").addEventListener("submit", handleSendMessage)
-
   // Report ad
   document.getElementById("reportForm").addEventListener("submit", handleReportAd)
 

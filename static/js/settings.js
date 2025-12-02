@@ -2,7 +2,6 @@
 
 // State
 let currentUser = null
-let currentConversationId = null
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
@@ -37,22 +36,6 @@ function setupEventListeners() {
 
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", handleLogout)
-
-  // Messages - only add listener if element exists (not present on all pages)
-  const messagesBtn = document.getElementById("messagesBtn")
-  if (messagesBtn) {
-    messagesBtn.addEventListener("click", (e) => {
-      e.preventDefault()
-      loadConversations()
-      openModal("conversationsModal")
-    })
-  }
-
-  // Chat form - only add listener if element exists (not present on all pages)
-  const chatForm = document.getElementById("chatForm")
-  if (chatForm) {
-    chatForm.addEventListener("submit", handleSendMessage)
-  }
 
   // Close modals on outside click
   window.addEventListener("click", (e) => {
@@ -229,116 +212,6 @@ async function deleteMyAccount() {
   }
 }
 
-// Conversation/Chat functions
-async function loadConversations() {
-  try {
-    const res = await fetch("/api/conversations")
-    const data = await res.json()
-
-    const list = document.getElementById("conversationsList")
-
-    if (!data.conversations || data.conversations.length === 0) {
-      list.innerHTML = "<p class='text-gray-500'>Du har inga meddelanden ännu.</p>"
-      return
-    }
-
-    list.innerHTML = data.conversations
-      .map(
-        (conv) => `
-      <div class="flex justify-between items-center p-4 border-b border-gray-300 last:border-b-0 cursor-pointer hover:bg-gray-50" onclick="openChat(${conv.id})">
-        <div class="flex-1">
-          <strong>${escapeHtml(conv.ad_title)}</strong><br>
-          <span class="text-gray-500 text-sm">
-            ${conv.is_buyer ? "Med: " + escapeHtml(conv.seller_username) : "Från: " + escapeHtml(conv.buyer_username)}
-          </span><br>
-          <span class="text-xs text-gray-400">${conv.message_count} meddelande${conv.message_count !== 1 ? "n" : ""}</span>
-          ${conv.expires_at ? `<br><span class="text-xs text-yellow-600">⚠️ Utgår: ${formatDate(conv.expires_at)}</span>` : ""}
-        </div>
-        <span class="text-gray-400">→</span>
-      </div>
-    `
-      )
-      .join("")
-  } catch {
-    showAlert("Kunde inte ladda meddelanden", "error")
-  }
-}
-
-async function openChat(conversationId) {
-  currentConversationId = conversationId
-
-  try {
-    const res = await fetch(`/api/conversations/${conversationId}/messages`)
-    const data = await res.json()
-
-    // Update header
-    const header = document.getElementById("chatHeader")
-    header.innerHTML = `
-      <h2 class="text-xl font-semibold">${escapeHtml(data.conversation.ad_title)}</h2>
-      <p class="text-gray-500 text-sm">
-        ${data.conversation.is_buyer ? "Säljare: " + escapeHtml(data.conversation.seller_username) : "Köpare: " + escapeHtml(data.conversation.buyer_username)}
-        ${data.conversation.expires_at ? `<br><span class="text-yellow-600">⚠️ Konversationen utgår: ${formatDate(data.conversation.expires_at)}</span>` : ""}
-      </p>
-    `
-
-    // Update messages
-    const messagesDiv = document.getElementById("chatMessages")
-    if (data.messages.length === 0) {
-      messagesDiv.innerHTML = '<p class="text-gray-500 text-center">Inga meddelanden ännu. Skriv något!</p>'
-    } else {
-      messagesDiv.innerHTML = data.messages
-        .map(
-          (msg) => `
-        <div class="mb-3 ${msg.is_own ? "text-right" : "text-left"}">
-          <div class="inline-block max-w-[80%] p-3 rounded-lg ${msg.is_own ? "bg-primary text-white" : "bg-gray-200"}">
-            <p class="text-sm">${escapeHtml(msg.content)}</p>
-          </div>
-          <p class="text-xs text-gray-400 mt-1">${msg.is_own ? "Du" : escapeHtml(msg.sender_username)} • ${formatDateTime(msg.created_at)}</p>
-        </div>
-      `
-        )
-        .join("")
-      
-      // Scroll to bottom
-      messagesDiv.scrollTop = messagesDiv.scrollHeight
-    }
-
-    closeModal("conversationsModal")
-    openModal("chatModal")
-  } catch {
-    showAlert("Kunde inte ladda konversationen", "error")
-  }
-}
-
-async function handleSendMessage(e) {
-  e.preventDefault()
-
-  const input = document.getElementById("chatInput")
-  const content = input.value.trim()
-
-  if (!content) return
-
-  try {
-    const res = await fetch(`/api/conversations/${currentConversationId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      input.value = ""
-      // Reload messages
-      await openChat(currentConversationId)
-    } else {
-      showAlert(data.error, "error")
-    }
-  } catch {
-    showAlert("Kunde inte skicka meddelande", "error")
-  }
-}
-
 // Modal helpers
 function openModal(id) {
   const modal = document.getElementById(id)
@@ -350,32 +223,6 @@ function closeModal(id) {
   const modal = document.getElementById(id)
   modal.classList.add("hidden")
   modal.classList.remove("block")
-}
-
-// Utility functions
-function escapeHtml(text) {
-  if (!text) return ""
-  const div = document.createElement("div")
-  div.textContent = text
-  return div.innerHTML
-}
-
-function formatDate(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(dateString))
-}
-
-function formatDateTime(dateString) {
-  return new Intl.DateTimeFormat("sv-SE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateString))
 }
 
 function showAlert(message, type) {
@@ -396,6 +243,5 @@ function showAlert(message, type) {
 // Make functions available globally for onclick handlers
 window.openModal = openModal
 window.closeModal = closeModal
-window.openChat = openChat
 window.exportMyData = exportMyData
 window.deleteMyAccount = deleteMyAccount
