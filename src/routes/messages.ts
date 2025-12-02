@@ -7,8 +7,14 @@ import { getEnv } from "@cross/env"
 
 const router = new Router()
 
-// Server-side encryption secret (should be in environment variable)
-const ENCRYPTION_SECRET = getEnv("ENCRYPTION_SECRET") || "beggy-default-secret-key-change-me"
+// Server-side encryption secret (REQUIRED - must be set in environment)
+const ENCRYPTION_SECRET = getEnv("ENCRYPTION_SECRET")
+if (!ENCRYPTION_SECRET || ENCRYPTION_SECRET === "change-this-to-a-random-secret-key") {
+  throw new Error(
+    "ENCRYPTION_SECRET environment variable must be set to a secure random value. " +
+      "Do not use the default value from .env.template in production.",
+  )
+}
 
 // Get all conversations for current user
 router.get("/api/conversations", async (ctx) => {

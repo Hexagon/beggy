@@ -3,6 +3,8 @@ import { getEnv, setupEnv } from "@cross/env"
 import { router } from "./src/routes/mod.ts"
 import { initDatabase } from "./src/db/database.ts"
 import { errorMiddleware } from "./src/middleware/error.ts"
+import { securityHeadersMiddleware } from "./src/middleware/security.ts"
+import { rateLimitMiddleware } from "./src/middleware/ratelimit.ts"
 
 // Load environment variables from .env file
 await setupEnv({ dotEnv: { enabled: true } })
@@ -15,6 +17,12 @@ initDatabase(
 )
 
 const app = new Application()
+
+// Security headers middleware (first, so they apply to all responses)
+app.use(securityHeadersMiddleware)
+
+// Rate limiting middleware (100 requests per minute per IP)
+app.use(rateLimitMiddleware(100, 60 * 1000))
 
 // Error handling middleware
 app.use(errorMiddleware)
