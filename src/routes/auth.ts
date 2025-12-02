@@ -7,11 +7,17 @@ const router = new Router()
 // Register
 router.post("/api/auth/register", async (ctx) => {
   const body = await ctx.request.body.json()
-  const { email, password, username } = body
+  const { email, password, username, acceptTerms } = body
 
   if (!email || !password || !username) {
     ctx.response.status = 400
     ctx.response.body = { error: "E-post, lösenord och användarnamn krävs" }
+    return
+  }
+
+  if (!acceptTerms) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Du måste godkänna integritetspolicyn och användarvillkoren" }
     return
   }
 
