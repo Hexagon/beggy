@@ -208,9 +208,11 @@ async function loadAdDetail() {
     if (ad.seller_contact_phone) {
       contactInfo += `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>`
     }
-    if (ad.seller_contact_email) {
-      contactInfo += `<p><span class="font-semibold">E-post:</span> ${escapeHtml(ad.seller_contact_email)}</p>`
-    }
+
+    // Build subcategory display
+    const subcategoryDisplay = ad.subcategory 
+      ? `<p><span class="font-semibold">Underkategori:</span> ${escapeHtml(ad.subcategory)}</p>` 
+      : ""
 
     content.innerHTML = `
       <div class="flex items-start justify-between gap-4 mb-6">
@@ -247,6 +249,7 @@ async function loadAdDetail() {
           <div class="text-4xl text-primary font-bold mb-6">${formatPrice(ad.price)}</div>
           <div class="space-y-3 text-stone-600">
             <p><span class="font-semibold">Kategori:</span> ${escapeHtml(ad.category)}</p>
+            ${subcategoryDisplay}
             ${ad.county ? `<p><span class="font-semibold">Län:</span> ${escapeHtml(ad.county)}</p>` : ""}
             <p><span class="font-semibold">Säljare:</span> ${escapeHtml(ad.seller_username)}</p>
             ${contactInfo}

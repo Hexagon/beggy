@@ -5,6 +5,7 @@ let currentUser = null
 let currentAdId = null
 let currentAd = null
 let categories = []
+let categoriesConfig = []
 let counties = []
 let selectedImages = []
 let existingImages = []
@@ -13,6 +14,8 @@ const MAX_IMAGES = 5
 
 // DOM Elements
 const adCategorySelect = document.getElementById("adCategory")
+const adSubcategorySelect = document.getElementById("adSubcategory")
+const subcategoryContainer = document.getElementById("subcategoryContainer")
 const adCountySelect = document.getElementById("adCounty")
 const imageInput = document.getElementById("adImages")
 const imagePreviewContainer = document.getElementById("imagePreviewContainer")
@@ -252,16 +255,22 @@ function populateForm(ad) {
   document.getElementById("adContactPhone").value = ad.seller_contact_phone || ""
   document.getElementById("adContactPhone").disabled = !hasPhone
   
-  const hasEmail = !!ad.seller_contact_email
-  document.getElementById("adUseEmail").checked = hasEmail
-  document.getElementById("adContactEmail").value = ad.seller_contact_email || ""
-  document.getElementById("adContactEmail").disabled = !hasEmail
-  
   // Set category (may need to wait for options to load)
   if (adCategorySelect.options.length > 1) {
     adCategorySelect.value = ad.category || ""
+    handleCategoryChange()
+    // Set subcategory after category change handler
+    if (ad.subcategory && adSubcategorySelect) {
+      adSubcategorySelect.value = ad.subcategory
+    }
   } else {
-    setTimeout(() => { adCategorySelect.value = ad.category || "" }, 200)
+    setTimeout(() => {
+      adCategorySelect.value = ad.category || ""
+      handleCategoryChange()
+      if (ad.subcategory && adSubcategorySelect) {
+        adSubcategorySelect.value = ad.subcategory
+      }
+    }, 200)
   }
   
   // Set county
@@ -331,17 +340,44 @@ async function loadCategories() {
     const res = await fetch("/api/categories")
     const data = await res.json()
     categories = data.categories
+    categoriesConfig = data.categoriesConfig || []
 
     // Populate category select
     const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
     adCategorySelect.innerHTML = '<option value="">Välj kategori</option>' + options
     
+    // Add change handler for category to show subcategories
+    adCategorySelect.addEventListener("change", handleCategoryChange)
+    
     // Set current value if ad is loaded
     if (currentAd) {
       adCategorySelect.value = currentAd.category || ""
+      handleCategoryChange()
+      if (currentAd.subcategory && adSubcategorySelect) {
+        adSubcategorySelect.value = currentAd.subcategory
+      }
     }
   } catch (err) {
     console.error("Failed to load categories:", err)
+  }
+}
+
+// Handle category change to show/hide subcategories
+function handleCategoryChange() {
+  const selectedCategory = adCategorySelect.value
+  const categoryConfig = categoriesConfig.find(c => c.name === selectedCategory)
+  
+  if (categoryConfig && categoryConfig.subcategories && categoryConfig.subcategories.length > 0) {
+    // Show subcategory container and populate options
+    subcategoryContainer.classList.remove("hidden")
+    const options = categoryConfig.subcategories.map(
+      sub => `<option value="${escapeHtml(sub.name)}">${escapeHtml(sub.name)}</option>`
+    ).join("")
+    adSubcategorySelect.innerHTML = '<option value="">Välj underkategori (valfritt)</option>' + options
+  } else {
+    // Hide subcategory container
+    subcategoryContainer.classList.add("hidden")
+    adSubcategorySelect.value = ""
   }
 }
 
@@ -418,30 +454,17 @@ function togglePhoneInput() {
   }
 }
 
-// Toggle email input based on checkbox
-function toggleEmailInput() {
-  const checkbox = document.getElementById("adUseEmail")
-  const input = document.getElementById("adContactEmail")
-  input.disabled = !checkbox.checked
-  if (!checkbox.checked) {
-    input.value = ""
-  }
-}
-
 // Edit Ad
 async function handleEditAd(e) {
   e.preventDefault()
 
   const allowMessages = document.getElementById("adAllowMessages").checked
   const usePhone = document.getElementById("adUsePhone").checked
-  const useEmail = document.getElementById("adUseEmail").checked
   const contactPhoneRaw = usePhone ? document.getElementById("adContactPhone").value.trim() : null
-  const contactEmailRaw = useEmail ? document.getElementById("adContactEmail").value.trim() : null
   const contactPhone = contactPhoneRaw || null
-  const contactEmail = contactEmailRaw || null
 
   // Validate at least one contact method
-  if (!allowMessages && !contactPhone && !contactEmail) {
+  if (!allowMessages && !contactPhone) {
     showAlert("Du måste välja minst ett kontaktsätt", "error")
     return
   }
@@ -452,21 +475,17 @@ async function handleEditAd(e) {
     return
   }
 
-  // Validate email if enabled
-  if (useEmail && !contactEmail) {
-    showAlert("Ange en e-postadress eller avmarkera e-post", "error")
-    return
-  }
+  const subcategory = document.getElementById("adSubcategory")?.value || null
 
   const updates = {
     title: document.getElementById("adTitle").value,
     category: document.getElementById("adCategory").value,
+    subcategory: subcategory,
     price: parseInt(document.getElementById("adPrice").value),
     county: document.getElementById("adCounty").value,
     description: document.getElementById("adDescription").value,
     allow_messages: allowMessages,
     contact_phone: contactPhone,
-    contact_email: contactEmail,
   }
 
   try {
@@ -690,4 +709,3 @@ window.removeNewImage = removeNewImage
 window.deleteExistingImage = deleteExistingImage
 window.openChat = openChat
 window.togglePhoneInput = togglePhoneInput
-window.toggleEmailInput = toggleEmailInput

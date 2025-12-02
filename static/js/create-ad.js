@@ -3,12 +3,15 @@
 // State
 let currentUser = null
 let categories = []
+let categoriesConfig = []
 let counties = []
 let selectedImages = []
 let currentConversationId = null
 
 // DOM Elements
 const adCategorySelect = document.getElementById("adCategory")
+const adSubcategorySelect = document.getElementById("adSubcategory")
+const subcategoryContainer = document.getElementById("subcategoryContainer")
 const adCountySelect = document.getElementById("adCounty")
 const imageInput = document.getElementById("adImages")
 const imagePreviewContainer = document.getElementById("imagePreviewContainer")
@@ -192,12 +195,35 @@ async function loadCategories() {
     const res = await fetch("/api/categories")
     const data = await res.json()
     categories = data.categories
+    categoriesConfig = data.categoriesConfig || []
 
     // Populate category select
     const options = categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")
     adCategorySelect.innerHTML = '<option value="">Välj kategori</option>' + options
+    
+    // Add change handler for category to show subcategories
+    adCategorySelect.addEventListener("change", handleCategoryChange)
   } catch (err) {
     console.error("Failed to load categories:", err)
+  }
+}
+
+// Handle category change to show/hide subcategories
+function handleCategoryChange() {
+  const selectedCategory = adCategorySelect.value
+  const categoryConfig = categoriesConfig.find(c => c.name === selectedCategory)
+  
+  if (categoryConfig && categoryConfig.subcategories && categoryConfig.subcategories.length > 0) {
+    // Show subcategory container and populate options
+    subcategoryContainer.classList.remove("hidden")
+    const options = categoryConfig.subcategories.map(
+      sub => `<option value="${escapeHtml(sub.name)}">${escapeHtml(sub.name)}</option>`
+    ).join("")
+    adSubcategorySelect.innerHTML = '<option value="">Välj underkategori (valfritt)</option>' + options
+  } else {
+    // Hide subcategory container
+    subcategoryContainer.classList.add("hidden")
+    adSubcategorySelect.value = ""
   }
 }
 
@@ -268,30 +294,17 @@ function togglePhoneInput() {
   }
 }
 
-// Toggle email input based on checkbox
-function toggleEmailInput() {
-  const checkbox = document.getElementById("adUseEmail")
-  const input = document.getElementById("adContactEmail")
-  input.disabled = !checkbox.checked
-  if (!checkbox.checked) {
-    input.value = ""
-  }
-}
-
 // Create Ad
 async function handleCreateAd(e) {
   e.preventDefault()
 
   const allowMessages = document.getElementById("adAllowMessages").checked
   const usePhone = document.getElementById("adUsePhone").checked
-  const useEmail = document.getElementById("adUseEmail").checked
   const contactPhoneRaw = usePhone ? document.getElementById("adContactPhone").value.trim() : null
-  const contactEmailRaw = useEmail ? document.getElementById("adContactEmail").value.trim() : null
   const contactPhone = contactPhoneRaw || null
-  const contactEmail = contactEmailRaw || null
 
   // Validate at least one contact method
-  if (!allowMessages && !contactPhone && !contactEmail) {
+  if (!allowMessages && !contactPhone) {
     showAlert("Du måste välja minst ett kontaktsätt", "error")
     return
   }
@@ -302,21 +315,17 @@ async function handleCreateAd(e) {
     return
   }
 
-  // Validate email if enabled
-  if (useEmail && !contactEmail) {
-    showAlert("Ange en e-postadress eller avmarkera e-post", "error")
-    return
-  }
+  const subcategory = document.getElementById("adSubcategory")?.value || null
 
   const ad = {
     title: document.getElementById("adTitle").value,
     category: document.getElementById("adCategory").value,
+    subcategory: subcategory,
     price: parseInt(document.getElementById("adPrice").value),
     county: document.getElementById("adCounty").value,
     description: document.getElementById("adDescription").value,
     allow_messages: allowMessages,
     contact_phone: contactPhone,
-    contact_email: contactEmail,
   }
 
   try {
@@ -540,4 +549,3 @@ window.closeModal = closeModal
 window.removeImage = removeImage
 window.openChat = openChat
 window.togglePhoneInput = togglePhoneInput
-window.toggleEmailInput = toggleEmailInput
