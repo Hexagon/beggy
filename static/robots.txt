@@ -6,3 +6,6 @@ Allow: /
 
 # Disallow API endpoints (not useful for crawlers)
 Disallow: /api/
+
+# Sitemap
+Sitemap: https://beggy.se/sitemap.xml
