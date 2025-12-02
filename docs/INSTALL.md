@@ -86,12 +86,12 @@ variables!
 
 ### Required Variables
 
-| Variable                      | Description                                    | Example                     |
-| ----------------------------- | ---------------------------------------------- | --------------------------- |
-| `SUPABASE_URL`                | Your Supabase project URL                      | `https://xxxxx.supabase.co` |
-| `SUPABASE_ANON_KEY`           | Your Supabase anonymous key                    | `eyJhbGciOiJIUzI1NiIs...`   |
-| `SUPABASE_SERVICE_ROLE_KEY`   | Your Supabase service role key (for deletions) | `eyJhbGciOiJIUzI1NiIs...`   |
-| `ENCRYPTION_SECRET`           | Secret key for message encryption              | Random 32+ character string |
+| Variable                    | Description                                    | Example                     |
+| --------------------------- | ---------------------------------------------- | --------------------------- |
+| `SUPABASE_URL`              | Your Supabase project URL                      | `https://xxxxx.supabase.co` |
+| `SUPABASE_ANON_KEY`         | Your Supabase anonymous key                    | `eyJhbGciOiJIUzI1NiIs...`   |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (for deletions) | `eyJhbGciOiJIUzI1NiIs...`   |
+| `ENCRYPTION_SECRET`         | Secret key for message encryption              | Random 32+ character string |
 
 **Security Note:** The `SUPABASE_SERVICE_ROLE_KEY` bypasses Row Level Security and should be kept
 secure. It's required for the account deletion feature to work properly (deleting both profile and
