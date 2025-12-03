@@ -3,7 +3,10 @@ import { getAuthenticatedSupabase } from "../db/database.ts"
 import { getUserFromRequest } from "./auth.ts"
 import { decryptMessage, deriveConversationKey, encryptMessage } from "../utils/encryption.ts"
 import { containsForbiddenWords } from "../utils/forbidden-words.ts"
-import { getEnv } from "@cross/env"
+import { getEnv, setupEnv } from "@cross/env"
+
+// Load environment variables from .env file
+await setupEnv({ dotEnv: { enabled: true } })
 
 const router = new Router()
 

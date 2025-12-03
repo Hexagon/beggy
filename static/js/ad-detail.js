@@ -194,11 +194,10 @@ async function loadAdDetail() {
       ? `<a href="/annons/${ad.id}/redigera" class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 no-underline inline-block">✏️ Redigera annons</a>`
       : ""
 
-    // Build contact info section - only show enabled contact methods
+    // Build contact info section - avoid showing enabled state; only show if disabled
     let contactInfo = ""
-    if (ad.allow_messages !== false) {
-      // On-site messages are enabled by default (allow_messages is true or undefined)
-      contactInfo += `<p><span class="font-semibold">Meddelanden:</span> Aktiverat</p>`
+    if (ad.allow_messages === false) {
+      contactInfo += `<p><span class="font-semibold">Meddelanden:</span> Avstängt</p>`
     }
     if (ad.seller_contact_phone) {
       contactInfo += `<p><span class="font-semibold">Telefon:</span> ${escapeHtml(ad.seller_contact_phone)}</p>`
