@@ -616,13 +616,13 @@ function renderAds(ads) {
           const categoryDisplay = ad.category_name || ad.category
           const countyDisplay = ad.county_name || ad.county
           return `
-      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-2" onclick="openAdDetail(${ad.id})">
+      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-1" onclick="openAdDetail(${ad.id})">
         ${
           safeImageUrl
             ? `<div class="w-24 h-24 flex-shrink-0 rounded overflow-hidden"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
             : '<div class="w-24 h-24 flex-shrink-0 bg-stone-200 rounded flex items-center justify-center text-stone-400 text-3xl">📦</div>'
         }
-        <div class="p-3 flex-1 min-w-0">
+        <div class="pl-3 py-1 flex-1 min-w-0">
           <div class="text-base font-semibold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${escapeHtml(ad.title)}</div>
           <div class="text-lg text-primary font-bold mb-1">${formatPrice(ad.price)}</div>
           <div class="text-sm text-stone-500">
@@ -853,7 +853,8 @@ function showLandingView() {
 function showBrowseView() {
   isBrowseMode = true
   if (landingSection) landingSection.classList.add("hidden")
-  if (categoriesSection) categoriesSection.classList.remove("hidden")
+  // Keep categories hidden on mobile; rely on Tailwind `sm:block` to show on larger screens
+  // Do NOT remove `hidden` here, as that would make it visible on mobile too
   if (adsSection) adsSection.classList.remove("hidden")
   loadAds()
 }
