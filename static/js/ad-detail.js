@@ -86,15 +86,13 @@ function setupEventListeners() {
   
   // Touch/swipe support for carousel
   document.addEventListener("touchstart", (e) => {
-    const carousel = document.querySelector(".carousel-container")
-    if (carousel && e.target.closest(".image-carousel")) {
+    if (e.target.closest(".image-carousel")) {
       touchStartX = e.changedTouches[0].screenX
     }
   })
   
   document.addEventListener("touchend", (e) => {
-    const carousel = document.querySelector(".carousel-container")
-    if (carousel && e.target.closest(".image-carousel")) {
+    if (e.target.closest(".image-carousel")) {
       touchEndX = e.changedTouches[0].screenX
       handleSwipe()
     }
