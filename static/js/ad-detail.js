@@ -5,6 +5,13 @@ let currentUser = null
 let currentAdId = null
 let currentReportAdId = null
 let currentConversationId = null
+let currentImageIndex = 0
+let totalImages = 0
+let touchStartX = 0
+let touchEndX = 0
+
+// Constants
+const SWIPE_THRESHOLD = 50
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
@@ -62,6 +69,45 @@ function setupEventListeners() {
       e.target.classList.remove("block")
     }
   })
+  
+  // Keyboard navigation for carousel
+  document.addEventListener("keydown", (e) => {
+    const carousel = document.querySelector(".image-carousel")
+    if (carousel && totalImages > 1) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault()
+        navigateImage(-1)
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault()
+        navigateImage(1)
+      }
+    }
+  })
+  
+  // Touch/swipe support for carousel
+  document.addEventListener("touchstart", (e) => {
+    if (e.target.closest(".image-carousel")) {
+      touchStartX = e.changedTouches[0].screenX
+    }
+  })
+  
+  document.addEventListener("touchend", (e) => {
+    if (e.target.closest(".image-carousel")) {
+      touchEndX = e.changedTouches[0].screenX
+      handleSwipe()
+    }
+  })
+  
+  function handleSwipe() {
+    if (touchEndX < touchStartX - SWIPE_THRESHOLD) {
+      // Swipe left - next image
+      navigateImage(1)
+    }
+    if (touchEndX > touchStartX + SWIPE_THRESHOLD) {
+      // Swipe right - previous image
+      navigateImage(-1)
+    }
+  }
 }
 
 // Auth functions
@@ -158,6 +204,93 @@ async function handleLogout(e) {
   }
 }
 
+// Image Carousel Functions
+function createImageCarousel(images) {
+  totalImages = images.length
+  currentImageIndex = 0
+  
+  const imageElements = images.map((img, index) => {
+    const safeUrl = sanitizeUrl(img.url)
+    return safeUrl ? `<img src="${safeUrl}" alt="Bild ${index + 1} av ${totalImages}" class="carousel-image ${index === 0 ? 'active' : ''}" data-index="${index}">` : ""
+  }).join("")
+  
+  if (totalImages === 1) {
+    return `<div class="relative rounded-lg overflow-hidden shadow-sm">${imageElements}</div>`
+  }
+  
+  return `
+    <div class="image-carousel relative rounded-lg overflow-hidden shadow-sm">
+      <div class="carousel-container relative">
+        ${imageElements}
+      </div>
+      <!-- Navigation Buttons -->
+      <button class="carousel-btn carousel-prev" onclick="navigateImage(-1)" aria-label="Föregående bild">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button class="carousel-btn carousel-next" onclick="navigateImage(1)" aria-label="Nästa bild">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      <!-- Image Counter -->
+      <div class="carousel-counter">
+        <span class="current-image">1</span> / <span class="total-images">${totalImages}</span>
+      </div>
+      <!-- Dot Indicators -->
+      <div class="carousel-dots">
+        ${images.map((_, index) => 
+          `<button class="carousel-dot ${index === 0 ? 'active' : ''}" onclick="goToImage(${index})" aria-label="Gå till bild ${index + 1}"></button>`
+        ).join("")}
+      </div>
+    </div>
+  `
+}
+
+function navigateImage(direction) {
+  currentImageIndex += direction
+  
+  if (currentImageIndex < 0) {
+    currentImageIndex = totalImages - 1
+  } else if (currentImageIndex >= totalImages) {
+    currentImageIndex = 0
+  }
+  
+  updateCarouselDisplay()
+}
+
+function goToImage(index) {
+  currentImageIndex = index
+  updateCarouselDisplay()
+}
+
+function updateCarouselDisplay() {
+  // Update active image
+  document.querySelectorAll(".carousel-image").forEach((img, index) => {
+    if (index === currentImageIndex) {
+      img.classList.add("active")
+    } else {
+      img.classList.remove("active")
+    }
+  })
+  
+  // Update active dot
+  document.querySelectorAll(".carousel-dot").forEach((dot, index) => {
+    if (index === currentImageIndex) {
+      dot.classList.add("active")
+    } else {
+      dot.classList.remove("active")
+    }
+  })
+  
+  // Update counter
+  const currentCounter = document.querySelector(".current-image")
+  if (currentCounter) {
+    currentCounter.textContent = currentImageIndex + 1
+  }
+}
+
 // Load Ad Detail
 async function loadAdDetail() {
   try {
@@ -233,12 +366,7 @@ async function loadAdDetail() {
         <div>
           ${
             ad.images && ad.images.length > 0
-              ? `<div class="flex gap-2.5 flex-wrap">
-              ${ad.images.map((img) => {
-                const safeUrl = sanitizeUrl(img.url)
-                return safeUrl ? `<img src="${safeUrl}" alt="Bild" class="max-w-full rounded-lg shadow-sm">` : ""
-              }).join("")}
-            </div>`
+              ? createImageCarousel(ad.images)
               : `<div class="bg-stone-100 rounded-lg h-64 flex items-center justify-center text-stone-400">Ingen bild</div>`
           }
         </div>
@@ -459,3 +587,5 @@ window.startConversation = startConversation
 window.shareToFacebook = shareToFacebook
 window.shareToX = shareToX
 window.copyAdLink = copyAdLink
+window.navigateImage = navigateImage
+window.goToImage = goToImage

@@ -1,6 +1,6 @@
 // Disable (delete) an ad by id and resolve related reports
-import { setupEnv, getEnv } from "jsr:@cross/env"
-import { initDatabase, getAdminSupabase } from "../src/db/database.ts"
+import { getEnv, setupEnv } from "jsr:@cross/env"
+import { getAdminSupabase, initDatabase } from "../src/db/database.ts"
 
 async function main() {
   const idArg = Deno.args[0]

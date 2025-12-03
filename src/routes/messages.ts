@@ -53,24 +53,27 @@ router.get("/api/conversations", async (ctx) => {
 
   ctx.response.body = {
     conversations: (conversations || []).map((conv) => {
-      const lastRead = conv.buyer_id === user.id ? conv.buyer_last_read_at : conv.seller_last_read_at
+      const lastRead = conv.buyer_id === user.id
+        ? conv.buyer_last_read_at
+        : conv.seller_last_read_at
       const lastReadDate = lastRead ? new Date(lastRead) : new Date(0)
-      const unreadCount = (conv.messages || []).filter((m: { created_at: string; sender_id: string }) => {
-        return new Date(m.created_at) > lastReadDate && m.sender_id !== user.id
-      }).length
+      const unreadCount =
+        (conv.messages || []).filter((m: { created_at: string; sender_id: string }) => {
+          return new Date(m.created_at) > lastReadDate && m.sender_id !== user.id
+        }).length
       return {
-      id: conv.id,
-      ad_id: conv.ad_id,
-      ad_title: conv.ads?.title || "Borttagen annons",
-      ad_state: conv.ads?.state || "deleted",
-      buyer_username: conv.buyer?.username || "Okänd",
-      seller_username: conv.seller?.username || "Okänd",
-      is_buyer: conv.buyer_id === user.id,
-      message_count: conv.messages?.length || 0,
+        id: conv.id,
+        ad_id: conv.ad_id,
+        ad_title: conv.ads?.title || "Borttagen annons",
+        ad_state: conv.ads?.state || "deleted",
+        buyer_username: conv.buyer?.username || "Okänd",
+        seller_username: conv.seller?.username || "Okänd",
+        is_buyer: conv.buyer_id === user.id,
+        message_count: conv.messages?.length || 0,
         unread_count: unreadCount,
-      created_at: conv.created_at,
-      updated_at: conv.updated_at,
-      expires_at: conv.expires_at,
+        created_at: conv.created_at,
+        updated_at: conv.updated_at,
+        expires_at: conv.expires_at,
       }
     }),
   }
