@@ -14,7 +14,7 @@ let touchEndX = 0
 const SWIPE_THRESHOLD = 50
 
 // Initialize
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // Get ad ID from URL
   const pathParts = window.location.pathname.split("/")
   currentAdId = parseInt(pathParts[pathParts.length - 1])
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return
   }
 
-  checkAuth()
+  await checkAuth()
   loadAdDetail()
   setupEventListeners()
 })
