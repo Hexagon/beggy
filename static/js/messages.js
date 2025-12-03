@@ -5,14 +5,14 @@ let currentUser = null
 let currentConversationId = null
 
 // Initialize
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuth()
+document.addEventListener("DOMContentLoaded", async () => {
+  await checkAuth()
   setupEventListeners()
   
   // Check for conversation ID in URL
   const urlParams = new URLSearchParams(window.location.search)
   const convId = urlParams.get("id")
-  if (convId) {
+  if (convId && currentUser) {
     openChat(convId)
   }
 })
