@@ -420,13 +420,15 @@ function renderCategoryGrid() {
   const selectedCategory = categoriesConfig.find(c => c.slug === currentCategory)
   const isViewingCategoryWithSubs = selectedCategory && selectedCategory.subcategories && selectedCategory.subcategories.length > 0
   
-  if (isViewingCategoryWithSubs) {
-    // Show "Alla kategorier" button to go back
-    gridHtml += `
+  // Always show a button to clear category filter
+  gridHtml += `
       <div class="category-btn px-3 py-2 rounded text-center cursor-pointer transition-all text-sm text-stone-600 hover:text-primary hover:bg-stone-100" data-category="" data-subcategory="" onclick="clearCategoryFilter()">
         📋 Alla kategorier
       </div>
     `
+
+  if (isViewingCategoryWithSubs) {
+    // Show "Alla kategorier" button to go back
     
     // Show "Alla <category>" button
     gridHtml += `
@@ -924,8 +926,7 @@ function showLandingView() {
 function showBrowseView() {
   isBrowseMode = true
   if (landingSection) landingSection.classList.add("hidden")
-  // Keep categories hidden on mobile; rely on Tailwind `sm:block` to show on larger screens
-  // Do NOT remove `hidden` here, as that would make it visible on mobile too
+  // Let CSS handle category visibility (`hidden md:block` in template)
   if (adsSection) adsSection.classList.remove("hidden")
   loadAds()
 }

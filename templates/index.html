@@ -23,11 +23,11 @@
           >
           <select
             id="countySelect"
-            class="px-4 py-3 border border-stone-300 rounded text-base min-w-[180px] bg-white"
+            class="hidden md:block px-4 py-3 border border-stone-300 rounded text-base min-w-[180px] bg-white"
           >
             <option value="">Alla län</option>
           </select>
-          <label class="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-stone-600">
+          <label class="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-stone-600">
             <input type="checkbox" id="includeAdjacentCheckbox" class="w-4 h-4">
             Angränsande län
           </label>
@@ -38,18 +38,11 @@
           >
             Sök
           </button>
-          <!-- Category select shown on mobile, hidden on desktop -->
-          <select
-            id="categorySelect"
-            class="block sm:hidden px-4 py-3 border border-stone-300 rounded text-base bg-white w-full"
-            aria-label="Välj kategori"
-          >
-            <option value="">Alla kategorier</option>
-          </select>
+          <!-- Category select moved into mobile filter dropdown; desktop handled in categories grid -->
         </div>
 
         <!-- Mobile filters accordion: county + adjacent -->
-        <div class="sm:hidden max-w-6xl mx-auto px-5 mt-2">
+        <div class="md:hidden max-w-6xl mx-auto px-5 mt-2">
           <details id="mobileFilters" class="border border-stone-300 rounded">
             <summary class="px-4 py-3 cursor-pointer select-none" aria-label="Visa filter">
               Filter
@@ -62,6 +55,14 @@
                 aria-label="Välj län"
               >
                 <option value="">Alla län</option>
+              </select>
+              <label class="block text-sm text-stone-700" for="categorySelect">Kategori</label>
+              <select
+                id="categorySelect"
+                class="w-full px-4 py-3 border border-stone-300 rounded text-base bg-white"
+                aria-label="Välj kategori"
+              >
+                <option value="">Alla kategorier</option>
               </select>
               <label class="flex items-center gap-2 text-sm text-stone-700">
                 <input
@@ -142,8 +143,8 @@
           </div>
         </section>
 
-        <!-- Categories (hidden on mobile; shown on sm+ in browse/search view) -->
-        <section class="mb-8 hidden sm:block" id="categoriesSection">
+        <!-- Categories (hidden by default; shown on md+ during browse/search) -->
+        <section class="mb-8 hidden md:block" id="categoriesSection">
           <div
             class="category-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5"
             id="categoryGrid"

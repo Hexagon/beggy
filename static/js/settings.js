@@ -4,8 +4,14 @@
 let currentUser = null
 
 // Initialize
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuth()
+document.addEventListener("DOMContentLoaded", async () => {
+  // Default: keep login prompt hidden to avoid flicker
+  const loginPrompt = document.getElementById("loginPrompt")
+  const settingsContainer = document.getElementById("settingsContainer")
+  if (loginPrompt) loginPrompt.classList.add("hidden")
+  if (settingsContainer) settingsContainer.classList.add("hidden")
+
+  await checkAuth()
   setupEventListeners()
 })
 
@@ -56,9 +62,12 @@ async function checkAuth() {
     if (res.ok) {
       currentUser = await res.json()
       updateAuthUI()
+    } else {
+      currentUser = null
     }
   } catch {
     // Not logged in
+    currentUser = null
   }
   updatePageDisplay()
 }

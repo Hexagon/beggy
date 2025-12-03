@@ -8,14 +8,14 @@
       content="Hantera dina kontoinställningar på Beggy - En enkel svensk begagnatmarknad."
     >
   </head>
-  <body class="bg-white text-dark leading-relaxed user-logged-in">
+  <body class="bg-white text-dark leading-relaxed">
     {{> header }}
 
     <main class="min-h-[calc(100vh-200px)] py-8">
       <div class="max-w-6xl mx-auto px-5">
         <a href="/" class="text-primary no-underline mb-4 inline-block">&larr; Tillbaka</a>
 
-        <div id="loginPrompt" class="p-8 text-center">
+        <div id="loginPrompt" class="p-8 text-center auth-logged-out hidden">
           <h1 class="text-2xl font-bold mb-4">Inställningar</h1>
           <p class="text-stone-500 mb-4">Du måste vara inloggad för att se dina inställningar.</p>
           <button

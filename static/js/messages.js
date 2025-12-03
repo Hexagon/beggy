@@ -296,6 +296,14 @@ async function openChat(conversationId) {
       // Scroll to bottom
       messagesDiv.scrollTop = messagesDiv.scrollHeight
     }
+
+    // Mark all messages as read for this conversation
+    try {
+      const markRes = await fetch(`/api/conversations/${conversationId}/mark-read`, { method: "POST" })
+      if (markRes.ok && window.updateMessagesBadge) window.updateMessagesBadge()
+    } catch {
+      // ignore
+    }
   } catch {
     document.getElementById("chatLoading").classList.add("hidden")
     showAlert("Kunde inte ladda konversationen", "error")
