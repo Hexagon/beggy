@@ -7,6 +7,11 @@ let currentReportAdId = null
 let currentConversationId = null
 let currentImageIndex = 0
 let totalImages = 0
+let touchStartX = 0
+let touchEndX = 0
+
+// Constants
+const SWIPE_THRESHOLD = 50
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
@@ -80,9 +85,6 @@ function setupEventListeners() {
   })
   
   // Touch/swipe support for carousel
-  let touchStartX = 0
-  let touchEndX = 0
-  
   document.addEventListener("touchstart", (e) => {
     const carousel = document.querySelector(".carousel-container")
     if (carousel && e.target.closest(".image-carousel")) {
@@ -99,12 +101,11 @@ function setupEventListeners() {
   })
   
   function handleSwipe() {
-    const swipeThreshold = 50
-    if (touchEndX < touchStartX - swipeThreshold) {
+    if (touchEndX < touchStartX - SWIPE_THRESHOLD) {
       // Swipe left - next image
       navigateImage(1)
     }
-    if (touchEndX > touchStartX + swipeThreshold) {
+    if (touchEndX > touchStartX + SWIPE_THRESHOLD) {
       // Swipe right - previous image
       navigateImage(-1)
     }
