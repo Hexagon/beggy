@@ -1,6 +1,6 @@
 // List reported ads (pending reports) with basic ad info
-import { setupEnv, getEnv } from "jsr:@cross/env"
-import { initDatabase, getAdminSupabase } from "../src/db/database.ts"
+import { getEnv, setupEnv } from "jsr:@cross/env"
+import { getAdminSupabase, initDatabase } from "../src/db/database.ts"
 
 async function main() {
   // Load .env and read required env vars
@@ -48,7 +48,9 @@ async function main() {
       )
     } else {
       console.log(
-        `#${r.id} | ad:${r.ad_id} | title:"${ad?.title ?? "(unknown)"}" | state:${ad?.state ?? "?"} | reason:${r.reason} | created:${r.created_at}`,
+        `#${r.id} | ad:${r.ad_id} | title:"${ad?.title ?? "(unknown)"}" | state:${
+          ad?.state ?? "?"
+        } | reason:${r.reason} | created:${r.created_at}`,
       )
     }
     if (r.details) console.log(`  details: ${r.details}`)
