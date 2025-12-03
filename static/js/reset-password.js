@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Get token from URL hash (Supabase adds it as #access_token=...)
   const hashParams = new URLSearchParams(window.location.hash.substring(1))
   const accessToken = hashParams.get("access_token")
+  const refreshToken = hashParams.get("refresh_token")
   const errorCode = hashParams.get("error_code")
   const errorDescription = hashParams.get("error_description")
 
@@ -46,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken, newPassword }),
+        body: JSON.stringify({ accessToken, refreshToken, newPassword }),
       })
 
       const data = await res.json()

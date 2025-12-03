@@ -205,7 +205,7 @@ router.post("/api/auth/forgot-password", async (ctx) => {
 // Reset password - update password with token
 router.post("/api/auth/reset-password", async (ctx) => {
   const body = await ctx.request.body.json()
-  const { accessToken, newPassword } = body
+  const { accessToken, refreshToken, newPassword } = body
 
   if (!accessToken || !newPassword) {
     ctx.response.status = 400
@@ -220,6 +220,18 @@ router.post("/api/auth/reset-password", async (ctx) => {
   }
 
   const supabase = getAuthenticatedSupabase(accessToken)
+
+  // Establish session context if refresh token is available
+  if (refreshToken) {
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+    if (sessionError) {
+      console.error("Set session error (reset):", sessionError.message)
+      // Continue without session; some setups allow update via access token alone
+    }
+  }
 
   // Verify the user exists and get their ID
   const { data: userData, error: userError } = await supabase.auth.getUser()
