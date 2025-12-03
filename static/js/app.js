@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCounties()
   loadStateFromUrl()
   setupEventListeners()
-  updateMessagesBadge()
+  if (window.updateMessagesBadge) window.updateMessagesBadge()
   
   // Force mute all videos (browser policy often requires this for autoplay)
   document.querySelectorAll("video").forEach(v => v.muted = true)
@@ -229,7 +229,7 @@ function updateAuthUI() {
   }
 
   // Always try to update messages badge after auth state changes
-  updateMessagesBadge()
+    if (window.updateMessagesBadge) window.updateMessagesBadge()
 }
 
 async function updateMessagesBadge() {

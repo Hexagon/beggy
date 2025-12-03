@@ -12,8 +12,7 @@
     "fmt": "deno fmt",
     "check": "deno check main.ts",
     "precommit": "deno task fmt && deno task lint && deno task check",
-    "reports": "deno run --allow-env --allow-net --allow-read scripts/reports.ts",
-    "disable-ad": "deno run --allow-env --allow-net --allow-read scripts/disable-ad.ts"
+    "manage": "deno run --allow-env --allow-net --allow-read --allow-write scripts/manage.ts"
   },
   "fmt": {
     "lineWidth": 100,

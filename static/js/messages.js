@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (convId && currentUser) {
     openChat(convId)
   }
+  if (window.updateMessagesBadge) window.updateMessagesBadge()
 })
 
 // Mobile chat navigation
@@ -104,6 +105,7 @@ function updateAuthUI() {
     document.body.classList.add("user-logged-out")
     document.body.classList.remove("user-logged-in")
   }
+  if (window.updateMessagesBadge) window.updateMessagesBadge()
 }
 
 async function handleLogin(e) {
@@ -235,6 +237,7 @@ async function openChat(conversationId) {
   
   // Refresh list to update active state
   loadConversations()
+  if (window.updateMessagesBadge) window.updateMessagesBadge()
 
   try {
     const res = await fetch(`/api/conversations/${conversationId}/messages`)
@@ -320,6 +323,7 @@ async function handleSendMessage(e) {
       input.value = ""
       // Reload messages (optimized: could just append, but reloading ensures sync)
       await openChat(currentConversationId)
+      if (window.updateMessagesBadge) window.updateMessagesBadge()
     } else {
       showAlert(data.error, "error")
     }

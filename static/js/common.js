@@ -103,10 +103,51 @@ function updateAuthUICommon() {
   // The CSS rules handle showing/hiding elements based on this class
 }
 
+// Messages badge (unread count) shown in header on all pages
+async function updateMessagesBadge() {
+  try {
+    const res = await fetch("/api/conversations")
+    if (!res.ok) {
+      const b = document.getElementById("messagesBadge")
+      const bm = document.getElementById("messagesBadgeMobile")
+      if (b) b.classList.add("hidden")
+      if (bm) bm.classList.add("hidden")
+      return
+    }
+    const data = await res.json()
+    const count = (data.conversations || []).reduce((sum, c) => sum + (c.unread_count || 0), 0)
+    const badge = document.getElementById("messagesBadge")
+    const badgeMobile = document.getElementById("messagesBadgeMobile")
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = String(count)
+        badge.classList.remove("hidden")
+      } else {
+        badge.classList.add("hidden")
+      }
+    }
+    if (badgeMobile) {
+      if (count > 0) {
+        badgeMobile.textContent = String(count)
+        badgeMobile.classList.remove("hidden")
+      } else {
+        badgeMobile.classList.add("hidden")
+      }
+    }
+  } catch {
+    const b = document.getElementById("messagesBadge")
+    const bm = document.getElementById("messagesBadgeMobile")
+    if (b) b.classList.add("hidden")
+    if (bm) bm.classList.add("hidden")
+  }
+}
+
 // Initialize common features
 function initCommon() {
   initTextSizeToggle()
   initMobileMenu()
+  // Always try to update the messages badge on load
+  updateMessagesBadge()
 }
 
 // Auto-initialize if DOM is already loaded
@@ -115,3 +156,6 @@ if (document.readyState === "loading") {
 } else {
   initCommon()
 }
+
+// Expose badge updater for other scripts to call after actions
+window.updateMessagesBadge = updateMessagesBadge

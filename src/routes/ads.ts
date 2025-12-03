@@ -442,6 +442,38 @@ router.put("/api/ads/:id", async (ctx) => {
   ctx.response.body = { message: "Annons uppdaterad!" }
 })
 
+// Mark ad as unsold (set state back to 'ok')
+router.put("/api/ads/:id/unsold", async (ctx) => {
+  const id = parseInt(ctx.params.id)
+  const user = await getUserFromRequest(ctx)
+
+  if (!user) {
+    ctx.response.status = 401
+    ctx.response.body = { error: "Du måste vara inloggad" }
+    return
+  }
+
+  const supabase = getAuthenticatedSupabase(user.accessToken)
+
+  // Check ownership
+  const { data: ad } = await supabase.from("ads").select("user_id").eq("id", id).single()
+  if (!ad || ad.user_id !== user.id) {
+    ctx.response.status = 403
+    ctx.response.body = { error: "Du kan bara uppdatera dina egna annonser" }
+    return
+  }
+
+  const { error } = await supabase.from("ads").update({ state: "ok" }).eq("id", id)
+  if (error) {
+    console.error("Unsold ad error:", error.message, error.code)
+    ctx.response.status = 500
+    ctx.response.body = { error: "Kunde inte markera som osåld" }
+    return
+  }
+
+  ctx.response.body = { message: "Annons markerad som osåld" }
+})
+
 // Delete ad
 router.delete("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
@@ -637,6 +669,7 @@ router.get("/api/my-ads", async (ctx) => {
     .select("*, images(id)")
     .eq("user_id", user.id)
     .neq("state", "deleted")
+    .neq("state", "reported")
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -734,6 +767,9 @@ router.post("/api/ads/:id/report", async (ctx) => {
     // This ensures the API works even without the table
     console.log(`Report received for ad ${id}: ${reason}`)
   }
+
+  // Hide the ad while reported
+  await supabase.from("ads").update({ state: "reported" }).eq("id", id)
 
   ctx.response.status = 201
   ctx.response.body = {

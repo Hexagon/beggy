@@ -42,16 +42,44 @@ fungerade förr i tiden - enkelt och användarvänligt.
 ### Supabase Setup
 
 1. Skapa ett nytt projekt på [supabase.com](https://supabase.com)
-2. Kör SQL från `src/db/migrations/001_initial_schema.sql` i SQL Editor för att skapa tabeller
-3. Kör eventuella efterföljande migrationer (002_xxx.sql, 003_xxx.sql, etc.) i ordning
-4. Skapa en Storage bucket med namnet `ad-images` (public)
-5. Kopiera URL och anon key från Project Settings > API
+## Development
 
-### Databasändringar
+- `deno task dev` — run the server in watch mode
+- `deno task start` — run the server
+- `deno task test` — run tests
+- `deno task lint` — lint
+- `deno task fmt` — format
+- `deno task check` — type-check
+- `deno task precommit` — format + lint + check
+- Management scripts: use unified `manage` task.
 
-Databasschema finns i `src/db/migrations/`:
+### Management scripts (unified)
 
-- **`001_initial_schema.sql`** - Det ursprungliga schemat (ändra INTE denna fil)
+Run all maintenance/admin commands via:
+
+```
+deno task manage <command> [...args]
+```
+
+Commands:
+- `reports` — list pending reports
+- `disable-ad <ad_id>` — set ad state to `deleted` and resolve its pending reports
+- `cleanup [--dry-run]` — permanently delete ads that are `deleted`, `expired`, or `sold` for more than 5 days; also removes associated images; with `--dry-run`, only shows what would be removed
+- `revive-ad <ad_id>` — set ad state back to `ok` and resolve pending reports
+
+### Ad states
+
+Ads use a standardized `state` across the app and scripts:
+- `ok` — visible and active
+- `reported` — hidden after a user report, pending review
+- `sold` — hidden from public listing; still visible to owner
+- `expired` — automatically set when `expires_at` passes; hidden from public listing
+- `deleted` — user or admin soft-delete; removed from public listing and owner views; subject to permanent cleanup via `cleanup-deleted-ads`
+
+Visibility rules:
+- Public listings only show `state = ok`.
+- The owner’s “my ads” view excludes `state = deleted` and `state = reported`.
+- Cleanup removes `deleted` ads and their images from storage and database. Conversations are deleted during cleanup to satisfy constraints.
 - Nya migrationer skapas med sekventiella nummer (002_xxx.sql, 003_xxx.sql, etc.)
 
 **Viktigt:** Gör aldrig ändringar i `001_initial_schema.sql`. Skapa istället en ny migrationsfil för

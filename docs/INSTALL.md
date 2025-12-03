@@ -137,6 +137,20 @@ deno task start
 
 The application will be available at `http://localhost:8000`
 
+### Management scripts
+
+Run maintenance/admin actions via the unified `manage` task:
+
+```
+deno task manage <command> [...args]
+```
+
+Commands:
+- `reports` — list pending reports
+- `disable-ad <ad_id>` — soft-delete an ad and resolve its pending reports
+- `cleanup [--dry-run]` — permanently delete ads that are `deleted`, `expired`, or `sold` for more than 5 days, and associated images; `--dry-run` shows a preview
+- `revive-ad <ad_id>` — set a reported ad back to `ok` and resolve its pending reports
+
 ## 5. Verify Installation
 
 1. Open `http://localhost:8000` in your browser

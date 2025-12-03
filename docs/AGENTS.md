@@ -76,6 +76,20 @@ deno task check
 deno task precommit
 ```
 
+## Management Scripts
+
+Use the unified `manage` task for maintenance operations:
+
+```
+deno task manage <command> [...args]
+```
+
+Commands:
+- `reports` — list pending reports
+- `disable-ad <ad_id>` — mark ad as `deleted` and resolve pending reports
+- `cleanup [--dry-run]` — permanently remove ads that are `deleted`, `expired`, or `sold` for more than 5 days, and images
+- `revive-ad <ad_id>` — set a reported ad back to `ok` and resolve pending reports
+
 ## Pre-commit Workflow
 
 **IMPORTANT**: Always run `deno task precommit` before committing changes.
