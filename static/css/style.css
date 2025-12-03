@@ -1,3 +1,15 @@
+/* Accessibility: visible focus ring for interactive cards */
+.focus-ring,
+.focus-ring:focus,
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 171, 0, 0.5), 0 0 0 6px #fff; /* primary-ish ring with offset */
+}
+
+/* Utility class to apply when needed */
+.ring-primary {
+  box-shadow: 0 0 0 3px rgba(34, 122, 255, 0.5), 0 0 0 6px #fff;
+}
 /*
  * Beggy - CSS Styles
  *

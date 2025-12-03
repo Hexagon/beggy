@@ -217,13 +217,13 @@ async function loadAdDetail() {
         <h1 class="text-3xl font-bold">${escapeHtml(ad.title)}</h1>
         <!-- Share icons in title row -->
         <div class="flex gap-2 flex-shrink-0">
-          <button class="p-2 text-stone-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" onclick="shareToFacebook()" title="Dela på Facebook" aria-label="Dela på Facebook">
+          <button class="p-2 text-stone-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" onclick="shareToFacebook()" aria-label="Dela på Facebook">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
           </button>
-          <button class="p-2 text-stone-500 hover:text-black hover:bg-stone-100 rounded-full transition-colors" onclick="shareToX()" title="Dela på X" aria-label="Dela på X">
+          <button class="p-2 text-stone-500 hover:text-black hover:bg-stone-100 rounded-full transition-colors" onclick="shareToX()" aria-label="Dela på X">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </button>
-          <button class="p-2 text-stone-500 hover:text-primary hover:bg-amber-50 rounded-full transition-colors" onclick="copyAdLink()" title="Kopiera länk" aria-label="Kopiera länk">
+          <button class="p-2 text-stone-500 hover:text-primary hover:bg-amber-50 rounded-full transition-colors" onclick="copyAdLink()" aria-label="Kopiera länk">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </button>
         </div>

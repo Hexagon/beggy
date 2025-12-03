@@ -39,7 +39,7 @@ router.get("/api/conversations", async (ctx) => {
       ads(id, title, state),
       buyer:profiles!conversations_buyer_id_fkey(username),
       seller:profiles!conversations_seller_id_fkey(username),
-      messages(id, created_at)
+      messages(id, created_at, sender_id)
     `)
     .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
     .order("updated_at", { ascending: false })
@@ -52,7 +52,13 @@ router.get("/api/conversations", async (ctx) => {
   }
 
   ctx.response.body = {
-    conversations: (conversations || []).map((conv) => ({
+    conversations: (conversations || []).map((conv) => {
+      const lastRead = conv.buyer_id === user.id ? conv.buyer_last_read_at : conv.seller_last_read_at
+      const lastReadDate = lastRead ? new Date(lastRead) : new Date(0)
+      const unreadCount = (conv.messages || []).filter((m: { created_at: string; sender_id: string }) => {
+        return new Date(m.created_at) > lastReadDate && m.sender_id !== user.id
+      }).length
+      return {
       id: conv.id,
       ad_id: conv.ad_id,
       ad_title: conv.ads?.title || "Borttagen annons",
@@ -61,11 +67,63 @@ router.get("/api/conversations", async (ctx) => {
       seller_username: conv.seller?.username || "Okänd",
       is_buyer: conv.buyer_id === user.id,
       message_count: conv.messages?.length || 0,
+        unread_count: unreadCount,
       created_at: conv.created_at,
       updated_at: conv.updated_at,
       expires_at: conv.expires_at,
-    })),
+      }
+    }),
   }
+})
+// Mark all messages as read in a conversation for current user
+router.post("/api/conversations/:id/mark-read", async (ctx) => {
+  const conversationId = parseInt(ctx.params.id)
+  const user = await getUserFromRequest(ctx)
+
+  if (!user) {
+    ctx.response.status = 401
+    ctx.response.body = { error: "Du måste vara inloggad" }
+    return
+  }
+
+  const supabase = getAuthenticatedSupabase(user.accessToken)
+
+  // Fetch conversation to determine role
+  const { data: conversation, error: convError } = await supabase
+    .from("conversations")
+    .select("id, buyer_id, seller_id")
+    .eq("id", conversationId)
+    .single()
+
+  if (convError || !conversation) {
+    ctx.response.status = 404
+    ctx.response.body = { error: "Konversationen hittades inte" }
+    return
+  }
+
+  if (conversation.buyer_id !== user.id && conversation.seller_id !== user.id) {
+    ctx.response.status = 403
+    ctx.response.body = { error: "Du har inte tillgång till denna konversation" }
+    return
+  }
+
+  const nowIso = new Date().toISOString()
+  const updateFields = conversation.buyer_id === user.id
+    ? { buyer_last_read_at: nowIso }
+    : { seller_last_read_at: nowIso }
+
+  const { error: updateError } = await supabase
+    .from("conversations")
+    .update(updateFields)
+    .eq("id", conversationId)
+
+  if (updateError) {
+    ctx.response.status = 500
+    ctx.response.body = { error: "Kunde inte markera som läst" }
+    return
+  }
+
+  ctx.response.body = { message: "Markerat som läst" }
 })
 
 // Get messages in a conversation

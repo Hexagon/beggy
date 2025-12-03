@@ -26,6 +26,7 @@ const categorySelect = document.getElementById("categorySelect")
 const countySelect = document.getElementById("countySelect")
 const includeAdjacentCheckbox = document.getElementById("includeAdjacentCheckbox")
 const includeAdjacentCheckboxMobile = document.getElementById("includeAdjacentCheckboxMobile")
+const countySelectMobile = document.getElementById("countySelectMobile")
 const searchInput = document.getElementById("searchInput")
 const pagination = document.getElementById("pagination")
 const sortSelect = document.getElementById("sortSelect")
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCounties()
   loadStateFromUrl()
   setupEventListeners()
+  updateMessagesBadge()
   
   // Force mute all videos (browser policy often requires this for autoplay)
   document.querySelectorAll("video").forEach(v => v.muted = true)
@@ -144,8 +146,19 @@ function setupEventListeners() {
   if (includeAdjacentCheckboxMobile) {
     includeAdjacentCheckboxMobile.addEventListener("change", () => {
       includeAdjacent = includeAdjacentCheckboxMobile.checked
-      includeAdjacentCheckbox.checked = includeAdjacent
+      if (includeAdjacentCheckbox) includeAdjacentCheckbox.checked = includeAdjacent
       currentPage = 1
+      loadAdsAndUpdateUrl()
+    })
+  }
+
+  // Mobile county select
+  if (countySelectMobile) {
+    countySelectMobile.addEventListener("change", () => {
+      currentCounty = countySelectMobile.value
+      if (countySelect) countySelect.value = currentCounty
+      currentPage = 1
+      showBrowseView()
       loadAdsAndUpdateUrl()
     })
   }
@@ -213,6 +226,49 @@ function updateAuthUI() {
     // User is logged out - set body class
     document.body.classList.add("user-logged-out")
     document.body.classList.remove("user-logged-in")
+  }
+
+  // Always try to update messages badge after auth state changes
+  updateMessagesBadge()
+}
+
+async function updateMessagesBadge() {
+  try {
+    const res = await fetch("/api/conversations")
+    if (!res.ok) {
+      // Hide badges if not authorized
+      const b = document.getElementById("messagesBadge")
+      const bm = document.getElementById("messagesBadgeMobile")
+      if (b) b.classList.add("hidden")
+      if (bm) bm.classList.add("hidden")
+      return
+    }
+    const data = await res.json()
+    const count = (data.conversations || []).reduce((sum, c) => sum + (c.unread_count || 0), 0)
+    const badge = document.getElementById("messagesBadge")
+    const badgeMobile = document.getElementById("messagesBadgeMobile")
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = String(count)
+        badge.classList.remove("hidden")
+      } else {
+        badge.classList.add("hidden")
+      }
+    }
+    if (badgeMobile) {
+      if (count > 0) {
+        badgeMobile.textContent = String(count)
+        badgeMobile.classList.remove("hidden")
+      } else {
+        badgeMobile.classList.add("hidden")
+      }
+    }
+  } catch {
+    // On error, hide badges
+    const b = document.getElementById("messagesBadge")
+    const bm = document.getElementById("messagesBadgeMobile")
+    if (b) b.classList.add("hidden")
+    if (bm) bm.classList.add("hidden")
   }
 }
 
@@ -431,7 +487,8 @@ async function loadCounties() {
 
     // Populate county filter select (value is slug, display is name)
     const options = countiesConfig.map((county) => `<option value="${escapeHtml(county.slug)}">${escapeHtml(county.name)}</option>`).join("")
-    countySelect.innerHTML = '<option value="">Alla län</option>' + options
+    if (countySelect) countySelect.innerHTML = '<option value="">Alla län</option>' + options
+    if (countySelectMobile) countySelectMobile.innerHTML = '<option value="">Alla län</option>' + options
   } catch (err) {
     console.error("Failed to load counties:", err)
   }
@@ -520,8 +577,10 @@ function loadStateFromUrl() {
   } else {
     categorySelect.value = currentCategory
   }
-  countySelect.value = currentCounty
-  includeAdjacentCheckbox.checked = includeAdjacent
+  if (countySelect) countySelect.value = currentCounty
+  if (countySelectMobile) countySelectMobile.value = currentCounty
+  if (includeAdjacentCheckbox) includeAdjacentCheckbox.checked = includeAdjacent
+  if (includeAdjacentCheckboxMobile) includeAdjacentCheckboxMobile.checked = includeAdjacent
   sortSelect.value = currentSort
   
   updateViewMode()
@@ -601,7 +660,19 @@ async function loadAds() {
 
 function renderAds(ads) {
   if (ads.length === 0) {
-    adsGrid.innerHTML = '<p class="text-stone-500 text-center py-8">Inga annonser hittades</p>'
+    adsGrid.innerHTML = `
+      <div class="text-stone-700 text-center py-8">
+        <p class="mb-3">Inga annonser hittades.</p>
+        <div class="text-sm text-stone-600">
+          <p>Tips:</p>
+          <ul class="list-disc inline-block text-left ml-5">
+            <li>Ta bort eller ändra filter</li>
+            <li>Bredda ditt val av län</li>
+            <li>Rensa sökfältet</li>
+          </ul>
+        </div>
+      </div>
+    `
     return
   }
 
@@ -616,7 +687,7 @@ function renderAds(ads) {
           const categoryDisplay = ad.category_name || ad.category
           const countyDisplay = ad.county_name || ad.county
           return `
-      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-1" onclick="openAdDetail(${ad.id})">
+      <div class="overflow-hidden cursor-pointer transition-all hover:bg-stone-100 flex py-1 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-white" onclick="openAdDetail(${ad.id})" tabindex="0" role="button" aria-label="Öppna annons: ${escapeHtml(ad.title)}" onkeydown="if (event.key === 'Enter' || event.key === ' ') { openAdDetail(${ad.id}); event.preventDefault(); }">
         ${
           safeImageUrl
             ? `<div class="w-24 h-24 flex-shrink-0 rounded overflow-hidden"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`
@@ -645,7 +716,7 @@ function renderAds(ads) {
           const categoryDisplay = ad.category_name || ad.category
           const countyDisplay = ad.county_name || ad.county
           return `
-      <div class="bg-amber-50 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1" onclick="openAdDetail(${ad.id})">
+      <div class="bg-amber-50 rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-white" onclick="openAdDetail(${ad.id})" tabindex="0" role="button" aria-label="Öppna annons: ${escapeHtml(ad.title)}" onkeydown="if (event.key === 'Enter' || event.key === ' ') { openAdDetail(${ad.id}); event.preventDefault(); }">
         ${
           safeImageUrl
             ? `<div class="w-full h-44"><img src="${safeImageUrl}" alt="${escapeHtml(ad.title)}" class="w-full h-full object-cover"></div>`

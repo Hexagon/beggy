@@ -29,8 +29,12 @@
         <!-- Logged-in items (desktop) -->
         <a
           href="/meddelanden"
-          class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
-        >Meddelanden</a>
+          class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary relative"
+          aria-label="Meddelanden"
+        >
+          Meddelanden
+          <span id="messagesBadge" class="hidden absolute -top-1 -right-2 text-xs bg-red-600 text-white rounded-full px-1.5 py-0.5">0</span>
+        </a>
         <a
           href="/mina-annonser"
           class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
@@ -119,8 +123,12 @@
       <!-- Logged-in items (mobile) -->
       <a
         href="/meddelanden"
-        class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
-      >Meddelanden</a>
+        class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary relative"
+        aria-label="Meddelanden"
+      >
+        Meddelanden
+        <span id="messagesBadgeMobile" class="hidden absolute -top-1 -right-2 text-xs bg-red-600 text-white rounded-full px-1.5 py-0.5">0</span>
+      </a>
       <a
         href="/mina-annonser"
         class="auth-logged-in text-dark no-underline px-3 py-2 hover:text-primary"
