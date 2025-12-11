@@ -25,22 +25,19 @@ const MAX_IMAGE_HEIGHT = 1920
 const JPEG_QUALITY = 0.85
 
 // Helper function to resize image if needed
-async function resizeImage(imageData: Uint8Array, mimeType: string): Promise<Uint8Array> {
+async function resizeImage(imageData: Uint8Array): Promise<Uint8Array> {
   try {
     // Decode the image
     const image = await Image.decode(imageData)
 
-    // Calculate new dimensions if needed
-    let newWidth = image.width
-    let newHeight = image.height
-
+    // Resize if needed
     if (image.width > MAX_IMAGE_WIDTH || image.height > MAX_IMAGE_HEIGHT) {
       const widthRatio = MAX_IMAGE_WIDTH / image.width
       const heightRatio = MAX_IMAGE_HEIGHT / image.height
       const ratio = Math.min(widthRatio, heightRatio)
 
-      newWidth = Math.round(image.width * ratio)
-      newHeight = Math.round(image.height * ratio)
+      const newWidth = Math.round(image.width * ratio)
+      const newHeight = Math.round(image.height * ratio)
 
       // Resize the image
       image.resize({ width: newWidth, height: newHeight })
@@ -601,7 +598,7 @@ router.post("/api/ads/:id/images", async (ctx) => {
       // Get image data and resize it
       const arrayBuffer = await value.arrayBuffer()
       const imageData = new Uint8Array(arrayBuffer)
-      const resizedImageData = await resizeImage(imageData, value.type)
+      const resizedImageData = await resizeImage(imageData)
 
       // Generate unique filename (always use .jpg since we convert to JPEG)
       const filename = `${id}_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
