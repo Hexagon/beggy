@@ -1,4 +1,5 @@
 import { Router } from "@oak/oak"
+import { Image } from "@cross/image"
 import { getAuthenticatedSupabase, getSupabase } from "../db/database.ts"
 import {
   ADJACENT_COUNTIES_CONFIG,
@@ -19,6 +20,41 @@ const COUNTY_SLUGS = COUNTIES_CONFIG.map((c) => c.slug)
 const router = new Router()
 const MAX_IMAGES_PER_AD = 5
 const AD_EXPIRY_DAYS = 30
+const MAX_IMAGE_WIDTH = 1920
+const MAX_IMAGE_HEIGHT = 1920
+const JPEG_QUALITY = 0.85
+
+// Helper function to resize image if needed
+async function resizeImage(imageData: Uint8Array, mimeType: string): Promise<Uint8Array> {
+  try {
+    // Decode the image
+    const image = await Image.decode(imageData)
+
+    // Calculate new dimensions if needed
+    let newWidth = image.width
+    let newHeight = image.height
+
+    if (image.width > MAX_IMAGE_WIDTH || image.height > MAX_IMAGE_HEIGHT) {
+      const widthRatio = MAX_IMAGE_WIDTH / image.width
+      const heightRatio = MAX_IMAGE_HEIGHT / image.height
+      const ratio = Math.min(widthRatio, heightRatio)
+
+      newWidth = Math.round(image.width * ratio)
+      newHeight = Math.round(image.height * ratio)
+
+      // Resize the image
+      image.resize({ width: newWidth, height: newHeight })
+    }
+
+    // Always encode as JPEG for consistent format and file size
+    const resizedData = await image.encode("jpeg", { quality: JPEG_QUALITY })
+    return resizedData
+  } catch (error) {
+    console.error("Image resize error:", error)
+    // If resizing fails, return original data
+    return imageData
+  }
+}
 
 // Get all ads (with pagination and filters)
 router.get("/api/ads", async (ctx) => {
@@ -562,17 +598,20 @@ router.post("/api/ads/:id/images", async (ctx) => {
         continue
       }
 
-      // Generate unique filename
-      const ext = value.name.split(".").pop() || "jpg"
-      const filename = `${id}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+      // Get image data and resize it
+      const arrayBuffer = await value.arrayBuffer()
+      const imageData = new Uint8Array(arrayBuffer)
+      const resizedImageData = await resizeImage(imageData, value.type)
+
+      // Generate unique filename (always use .jpg since we convert to JPEG)
+      const filename = `${id}_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
       const storagePath = `${user.id}/${filename}`
 
-      // Upload to Supabase Storage
-      const arrayBuffer = await value.arrayBuffer()
+      // Upload resized image to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("ad-images")
-        .upload(storagePath, new Uint8Array(arrayBuffer), {
-          contentType: value.type,
+        .upload(storagePath, resizedImageData, {
+          contentType: "image/jpeg",
         })
 
       if (uploadError) {
