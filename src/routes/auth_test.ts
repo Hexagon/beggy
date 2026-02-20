@@ -7,6 +7,34 @@
  */
 
 import { assertEquals } from "../utils/test_utils.ts"
+import { containsForbiddenWords } from "../utils/forbidden-words.ts"
+
+// Mirrors the validation logic from auth.ts POST /api/auth/register
+function validateRegistrationInput(input: {
+  email?: string
+  password?: string
+  username?: string
+  acceptTerms?: boolean
+}): { valid: boolean; error?: string } {
+  const { email, password, username, acceptTerms } = input
+
+  if (!email || !password || !username) {
+    return { valid: false, error: "E-post, lösenord och användarnamn krävs" }
+  }
+  if (!acceptTerms) {
+    return { valid: false, error: "Du måste godkänna integritetspolicyn och användarvillkoren" }
+  }
+  if (password.length < 8) {
+    return { valid: false, error: "Lösenordet måste vara minst 8 tecken" }
+  }
+  if (username.length < 3 || username.length > 50) {
+    return { valid: false, error: "Användarnamnet måste vara mellan 3 och 50 tecken" }
+  }
+  if (containsForbiddenWords({ username })) {
+    return { valid: false, error: "Användarnamnet innehåller otillåtna ord." }
+  }
+  return { valid: true }
+}
 
 Deno.test("Login validation - email and password are required", () => {
   // This test documents that both email and password must be provided
@@ -22,16 +50,50 @@ Deno.test("Login validation - email and password are required", () => {
 })
 
 Deno.test("Registration validation - email, password, username, and acceptTerms are required", () => {
-  // This test documents that email, password, username, and acceptTerms must be provided
-  const requiredFields = ["email", "password", "username", "acceptTerms"]
+  // Missing email
+  assertEquals(
+    validateRegistrationInput({
+      password: "password123",
+      username: "validuser",
+      acceptTerms: true,
+    }).valid,
+    false,
+    "Registration should require email",
+  )
 
-  for (const field of requiredFields) {
-    assertEquals(
-      requiredFields.includes(field),
-      true,
-      `Field "${field}" is required for registration`,
-    )
-  }
+  // Missing password
+  assertEquals(
+    validateRegistrationInput({
+      email: "test@example.com",
+      username: "validuser",
+      acceptTerms: true,
+    }).valid,
+    false,
+    "Registration should require password",
+  )
+
+  // Missing username
+  assertEquals(
+    validateRegistrationInput({
+      email: "test@example.com",
+      password: "password123",
+      acceptTerms: true,
+    }).valid,
+    false,
+    "Registration should require username",
+  )
+
+  // Missing acceptTerms
+  assertEquals(
+    validateRegistrationInput({
+      email: "test@example.com",
+      password: "password123",
+      username: "validuser",
+      acceptTerms: false,
+    }).valid,
+    false,
+    "Registration should require acceptTerms",
+  )
 })
 
 Deno.test("Password reset validation - access token and new password are required", () => {
@@ -87,47 +149,102 @@ Deno.test("Password change validation - current password must be verified", () =
 })
 
 Deno.test("Password validation - minimum length is 8 characters", () => {
-  const minPasswordLength = 8
-
+  // Too short
   assertEquals(
-    minPasswordLength >= 8,
+    validateRegistrationInput({
+      email: "test@example.com",
+      password: "short",
+      username: "validuser",
+      acceptTerms: true,
+    }).valid,
+    false,
+    "Registration should reject password shorter than 8 characters",
+  )
+
+  // Exactly 8 characters — should pass the password check (may still fail for other reasons)
+  const result = validateRegistrationInput({
+    email: "test@example.com",
+    password: "exactly8",
+    username: "validuser",
+    acceptTerms: true,
+  })
+  assertEquals(
+    result.error !== "Lösenordet måste vara minst 8 tecken",
     true,
-    "Password must be at least 8 characters",
+    "Password of 8 chars should not trigger password length error",
   )
 })
 
-Deno.test("Username validation - length must be between 3 and 50 characters", () => {
-  const minUsernameLength = 3
-  const maxUsernameLength = 50
-
-  assertEquals(minUsernameLength, 3, "Username minimum length should be 3")
-  assertEquals(maxUsernameLength, 50, "Username maximum length should be 50")
-
-  // Simulate validation logic
-  const tooShort = "ab"
-  const tooLong = "a".repeat(51)
-  const validMin = "abc"
-  const validMax = "a".repeat(50)
-
+Deno.test("Username validation - rejects usernames shorter than 3 characters", () => {
+  const result = validateRegistrationInput({
+    email: "test@example.com",
+    password: "password123",
+    username: "ab",
+    acceptTerms: true,
+  })
+  assertEquals(result.valid, false, "2-char username should be rejected")
   assertEquals(
-    tooShort.length < minUsernameLength,
-    true,
-    "Username shorter than 3 chars should be rejected",
+    result.error,
+    "Användarnamnet måste vara mellan 3 och 50 tecken",
+    "Should return username length error",
   )
+})
+
+Deno.test("Username validation - rejects usernames longer than 50 characters", () => {
+  const result = validateRegistrationInput({
+    email: "test@example.com",
+    password: "password123",
+    username: "a".repeat(51),
+    acceptTerms: true,
+  })
+  assertEquals(result.valid, false, "51-char username should be rejected")
   assertEquals(
-    tooLong.length > maxUsernameLength,
-    true,
-    "Username longer than 50 chars should be rejected",
+    result.error,
+    "Användarnamnet måste vara mellan 3 och 50 tecken",
+    "Should return username length error",
   )
+})
+
+Deno.test("Username validation - accepts usernames of exactly 3 characters", () => {
+  const result = validateRegistrationInput({
+    email: "test@example.com",
+    password: "password123",
+    username: "abc",
+    acceptTerms: true,
+  })
   assertEquals(
-    validMin.length >= minUsernameLength && validMin.length <= maxUsernameLength,
+    result.error !== "Användarnamnet måste vara mellan 3 och 50 tecken",
     true,
-    "Username of 3 chars should be accepted",
+    "3-char username should not trigger length error",
   )
+})
+
+Deno.test("Username validation - accepts usernames of exactly 50 characters", () => {
+  const result = validateRegistrationInput({
+    email: "test@example.com",
+    password: "password123",
+    username: "a".repeat(50),
+    acceptTerms: true,
+  })
   assertEquals(
-    validMax.length >= minUsernameLength && validMax.length <= maxUsernameLength,
+    result.error !== "Användarnamnet måste vara mellan 3 och 50 tecken",
     true,
-    "Username of 50 chars should be accepted",
+    "50-char username should not trigger length error",
+  )
+})
+
+Deno.test("Username validation - rejects usernames with forbidden words", () => {
+  const result = validateRegistrationInput({
+    email: "test@example.com",
+    password: "password123",
+    username: "fuck",
+    acceptTerms: true,
+  })
+  assertEquals(result.valid, false, "Username with forbidden word should be rejected")
+  assertEquals(
+    result.error,
+    "Användarnamnet innehåller otillåtna ord.",
+    "Should return forbidden word error",
   )
 })
 
