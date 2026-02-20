@@ -27,6 +27,13 @@ router.post("/api/auth/register", async (ctx) => {
     return
   }
 
+  // Validate username length
+  if (username.length < 3 || username.length > 50) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Användarnamnet måste vara mellan 3 och 50 tecken" }
+    return
+  }
+
   // Check username for forbidden words
   if (containsForbiddenWords({ username })) {
     ctx.response.status = 400

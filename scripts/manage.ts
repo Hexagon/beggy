@@ -1,6 +1,6 @@
 // Unified task runner: deno task manage <command> [...args]
 // Commands: reports, disable-ad <id>, cleanup-deleted-ads [--dry-run], revive-ad <id>
-import { setupEnv, getEnv } from "jsr:@cross/env"
+import { setupEnv, getEnv } from "@cross/env"
 import { initDatabase, getAdminSupabase } from "../src/db/database.ts"
 
 async function main() {
@@ -66,6 +66,14 @@ function printHelp() {
 }
 
 async function listReports(admin: ReturnType<typeof getAdminSupabase>) {
+  interface ReportRow {
+    id: number
+    ad_id: number
+    reason: string
+    details: string | null
+    status: string
+    created_at: string
+  }
   const { data, error } = await admin
     .from("reports")
     .select("id, ad_id, reason, details, status, created_at")
@@ -76,7 +84,7 @@ async function listReports(admin: ReturnType<typeof getAdminSupabase>) {
     console.log("No pending reports.")
     return
   }
-  for (const r of data as Array<any>) {
+  for (const r of data as ReportRow[]) {
     const { data: ad } = await admin
       .from("ads")
       .select("id, title, state, user_id")
