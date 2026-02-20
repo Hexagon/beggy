@@ -270,3 +270,85 @@ Deno.test("Ad ID validation - NaN IDs should be rejected", () => {
   assertEquals(isNaN(invalidId), true, "Non-numeric string 'abc' should produce NaN")
   assertEquals(isNaN(emptyId), true, "Empty string should produce NaN")
 })
+
+Deno.test("Ad creation endpoint - rejects invalid payload", async () => {
+  const BASE_URL = "http://localhost:8000"
+
+  // Intentionally invalid: title too long and invalid category slug
+  const invalidPayload = {
+    title: "a".repeat(101),
+    description: "Fin cykel, lite använd.",
+    categorySlug: "non-existent-category",
+    countySlug: COUNTY_SLUGS[0],
+  }
+
+  const response = await fetch(`${BASE_URL}/ads`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(invalidPayload),
+  })
+
+  // Expect a client error status code when validation fails
+  const isClientError = response.status >= 400 && response.status < 500
+  assertEquals(
+    isClientError,
+    true,
+    `Ad creation should reject invalid payload, got status ${response.status}`,
+  )
+})
+
+Deno.test("Ad creation endpoint - accepts minimally valid payload", async () => {
+  const BASE_URL = "http://localhost:8000"
+
+  const validPayload = {
+    title: "En begagnad cykel i gott skick",
+    description: "Fin cykel, lite använd.",
+    categorySlug: CATEGORY_SLUGS[0],
+    countySlug: COUNTY_SLUGS[0],
+  }
+
+  const response = await fetch(`${BASE_URL}/ads`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(validPayload),
+  })
+
+  const isSuccess = response.status >= 200 && response.status < 300
+  assertEquals(
+    isSuccess,
+    true,
+    `Ad creation should accept valid payload, got status ${response.status}`,
+  )
+})
+
+Deno.test("Ad update endpoint - rejects invalid ad ID and payload", async () => {
+  const BASE_URL = "http://localhost:8000"
+
+  // Invalid ID (non-numeric) and invalid payload (description too long)
+  const invalidId = "abc"
+  const invalidPayload = {
+    title: "En begagnad cykel i gott skick",
+    description: "a".repeat(5001),
+    categorySlug: CATEGORY_SLUGS[0],
+    countySlug: COUNTY_SLUGS[0],
+  }
+
+  const response = await fetch(`${BASE_URL}/ads/${invalidId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(invalidPayload),
+  })
+
+  const isClientError = response.status >= 400 && response.status < 500
+  assertEquals(
+    isClientError,
+    true,
+    `Ad update should reject invalid ID or payload, got status ${response.status}`,
+  )
+})
