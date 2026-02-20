@@ -81,6 +81,11 @@ router.get("/api/conversations", async (ctx) => {
 // Mark all messages as read in a conversation for current user
 router.post("/api/conversations/:id/mark-read", async (ctx) => {
   const conversationId = parseInt(ctx.params.id)
+  if (isNaN(conversationId)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt konversations-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -132,6 +137,11 @@ router.post("/api/conversations/:id/mark-read", async (ctx) => {
 // Get messages in a conversation
 router.get("/api/conversations/:id/messages", async (ctx) => {
   const conversationId = parseInt(ctx.params.id)
+  if (isNaN(conversationId)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt konversations-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -216,6 +226,11 @@ router.get("/api/conversations/:id/messages", async (ctx) => {
 // Start a conversation or get existing one for an ad
 router.post("/api/ads/:id/conversation", async (ctx) => {
   const adId = parseInt(ctx.params.id)
+  if (isNaN(adId)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -296,6 +311,11 @@ router.post("/api/ads/:id/conversation", async (ctx) => {
 // Send a message in a conversation
 router.post("/api/conversations/:id/messages", async (ctx) => {
   const conversationId = parseInt(ctx.params.id)
+  if (isNaN(conversationId)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt konversations-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {

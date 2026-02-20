@@ -41,4 +41,10 @@ export async function securityHeadersMiddleware(ctx: Context, next: Next): Promi
     "Permissions-Policy",
     "geolocation=(), microphone=(), camera=(), payment=()",
   )
+
+  // HTTP Strict Transport Security - force HTTPS for 1 year
+  ctx.response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains",
+  )
 }

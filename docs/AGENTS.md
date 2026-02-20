@@ -85,9 +85,11 @@ deno task manage <command> [...args]
 ```
 
 Commands:
+
 - `reports` — list pending reports
 - `disable-ad <ad_id>` — mark ad as `deleted` and resolve pending reports
-- `cleanup [--dry-run]` — permanently remove ads that are `deleted`, `expired`, or `sold` for more than 5 days, and images
+- `cleanup [--dry-run]` — permanently remove ads that are `deleted`, `expired`, or `sold` for more
+  than 5 days, and images
 - `revive-ad <ad_id>` — set a reported ad back to `ok` and resolve pending reports
 
 ## Pre-commit Workflow

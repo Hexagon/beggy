@@ -6,6 +6,9 @@ import { errorMiddleware } from "./src/middleware/error.ts"
 import { securityHeadersMiddleware } from "./src/middleware/security.ts"
 import { rateLimitMiddleware } from "./src/middleware/ratelimit.ts"
 
+// Load environment variables from .env file (must happen before any getEnv() calls)
+await setupEnv({ dotEnv: { enabled: true } })
+
 // Settings
 const RATE_LIMIT_REQUESTS = 300
 const RATE_LIMIT_DURATION_MS = 60 * 1000
@@ -13,9 +16,6 @@ const SUPABASE_URL = getEnv("SUPABASE_URL")
 const SUPABASE_ANON_KEY = getEnv("SUPABASE_ANON_KEY")
 const SUPABASE_SERVICE_ROLE_KEY = getEnv("SUPABASE_SERVICE_ROLE_KEY")
 const PORT = parseInt(getEnv("PORT") || "8000", 10)
-
-// Load environment variables from .env file
-await setupEnv({ dotEnv: { enabled: true } })
 
 // Initialize Supabase
 initDatabase(

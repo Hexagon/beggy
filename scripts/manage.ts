@@ -1,7 +1,16 @@
 // Unified task runner: deno task manage <command> [...args]
 // Commands: reports, disable-ad <id>, cleanup-deleted-ads [--dry-run], revive-ad <id>
-import { setupEnv, getEnv } from "jsr:@cross/env"
-import { initDatabase, getAdminSupabase } from "../src/db/database.ts"
+import { getEnv, setupEnv } from "@cross/env"
+import { getAdminSupabase, initDatabase } from "../src/db/database.ts"
+
+interface ReportRow {
+  id: number
+  ad_id: number
+  reason: string
+  details: string | null
+  status: string
+  created_at: string
+}
 
 async function main() {
   const [cmd, ...args] = Deno.args
@@ -61,7 +70,9 @@ function printHelp() {
   console.log("Commands:")
   console.log("  reports                      List pending reports")
   console.log("  disable-ad <ad_id>           Disable an ad and resolve reports")
-  console.log("  cleanup [--dry-run]             Purge old ads (deleted, expired, sold>5d) + images")
+  console.log(
+    "  cleanup [--dry-run]             Purge old ads (deleted, expired, sold>5d) + images",
+  )
   console.log("  revive-ad <ad_id>            Revive reported ad to ok and resolve reports")
 }
 
@@ -76,14 +87,16 @@ async function listReports(admin: ReturnType<typeof getAdminSupabase>) {
     console.log("No pending reports.")
     return
   }
-  for (const r of data as Array<any>) {
+  for (const r of data as Array<ReportRow>) {
     const { data: ad } = await admin
       .from("ads")
       .select("id, title, state, user_id")
       .eq("id", r.ad_id)
       .maybeSingle()
     console.log(
-      `#${r.id} | ad:${r.ad_id} | title:"${ad?.title ?? "(unknown)"}" | state:${ad?.state ?? "?"} | reason:${r.reason} | created:${r.created_at}`,
+      `#${r.id} | ad:${r.ad_id} | title:"${ad?.title ?? "(unknown)"}" | state:${
+        ad?.state ?? "?"
+      } | reason:${r.reason} | created:${r.created_at}`,
     )
     if (r.details) console.log(`  details: ${r.details}`)
   }
@@ -112,7 +125,7 @@ async function cleanup(admin: ReturnType<typeof getAdminSupabase>, dryRun: boole
     .from("ads")
     .select("id, title, state, updated_at, expires_at")
     .or(
-      `state.eq.deleted,state.eq.expired,state.eq.sold.and(updated_at.lt.${fiveDaysAgo})`
+      `state.eq.deleted,state.eq.expired,state.eq.sold.and(updated_at.lt.${fiveDaysAgo})`,
     )
     .order("updated_at", { ascending: false })
   if (listErr) throw new Error(`Failed to list ads to purge: ${listErr.message}`)
@@ -126,7 +139,11 @@ async function cleanup(admin: ReturnType<typeof getAdminSupabase>, dryRun: boole
     const { data: images } = await admin
       .from("images").select("id, storage_path").eq("ad_id", ad.id)
     const imagePaths = (images || []).map((i: { storage_path: string }) => i.storage_path)
-    console.log(`${dryRun ? "[DRY-RUN] " : ""}Cleaning ad #${ad.id} (${ad.title}) with ${imagePaths.length} image(s)`)    
+    console.log(
+      `${
+        dryRun ? "[DRY-RUN] " : ""
+      }Cleaning ad #${ad.id} (${ad.title}) with ${imagePaths.length} image(s)`,
+    )
     if (!dryRun && imagePaths.length > 0) {
       await admin.storage.from("ad-images").remove(imagePaths)
     }
