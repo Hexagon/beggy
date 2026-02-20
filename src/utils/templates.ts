@@ -24,7 +24,7 @@ async function processIncludes(content: string): Promise<string> {
   while ((match = includeRegex.exec(content)) !== null) {
     const partialName = match[1]
     const partialContent = await loadPartial(`${partialName}.html`)
-    result = result.replaceAll(match[0], partialContent)
+    result = result.replace(match[0], partialContent)
   }
 
   return result
