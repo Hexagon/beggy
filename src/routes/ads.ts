@@ -435,17 +435,34 @@ router.put("/api/ads/:id", async (ctx) => {
     return
   }
 
-  // Validate input lengths if provided
-  if (title !== undefined && title.length > MAX_TITLE_LENGTH) {
-    ctx.response.status = 400
-    ctx.response.body = { error: `Titeln får vara max ${MAX_TITLE_LENGTH} tecken` }
-    return
+  // Validate input lengths and non-empty values if provided
+  const trimmedTitle = typeof title === "string" ? title.trim() : title
+  const trimmedDescription = typeof description === "string" ? description.trim() : description
+
+  if (trimmedTitle !== undefined) {
+    if (trimmedTitle.length === 0) {
+      ctx.response.status = 400
+      ctx.response.body = { error: "Titeln får inte vara tom" }
+      return
+    }
+    if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+      ctx.response.status = 400
+      ctx.response.body = { error: `Titeln får vara max ${MAX_TITLE_LENGTH} tecken` }
+      return
+    }
   }
 
-  if (description !== undefined && description.length > MAX_DESCRIPTION_LENGTH) {
-    ctx.response.status = 400
-    ctx.response.body = { error: `Beskrivningen får vara max ${MAX_DESCRIPTION_LENGTH} tecken` }
-    return
+  if (trimmedDescription !== undefined) {
+    if (trimmedDescription.length === 0) {
+      ctx.response.status = 400
+      ctx.response.body = { error: "Beskrivningen får inte vara tom" }
+      return
+    }
+    if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
+      ctx.response.status = 400
+      ctx.response.body = { error: `Beskrivningen får vara max ${MAX_DESCRIPTION_LENGTH} tecken` }
+      return
+    }
   }
 
   // Validate subcategory slug if provided (requires category context)
