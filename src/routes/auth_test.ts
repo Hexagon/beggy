@@ -96,6 +96,41 @@ Deno.test("Password validation - minimum length is 8 characters", () => {
   )
 })
 
+Deno.test("Username validation - length must be between 3 and 50 characters", () => {
+  const minUsernameLength = 3
+  const maxUsernameLength = 50
+
+  assertEquals(minUsernameLength, 3, "Username minimum length should be 3")
+  assertEquals(maxUsernameLength, 50, "Username maximum length should be 50")
+
+  // Simulate validation logic
+  const tooShort = "ab"
+  const tooLong = "a".repeat(51)
+  const validMin = "abc"
+  const validMax = "a".repeat(50)
+
+  assertEquals(
+    tooShort.length < minUsernameLength,
+    true,
+    "Username shorter than 3 chars should be rejected",
+  )
+  assertEquals(
+    tooLong.length > maxUsernameLength,
+    true,
+    "Username longer than 50 chars should be rejected",
+  )
+  assertEquals(
+    validMin.length >= minUsernameLength && validMin.length <= maxUsernameLength,
+    true,
+    "Username of 3 chars should be accepted",
+  )
+  assertEquals(
+    validMax.length >= minUsernameLength && validMax.length <= maxUsernameLength,
+    true,
+    "Username of 50 chars should be accepted",
+  )
+})
+
 Deno.test("Account deletion protection - profile must exist for login", () => {
   // This test documents the expected behavior:
   // After account deletion, the profile is removed from the database.

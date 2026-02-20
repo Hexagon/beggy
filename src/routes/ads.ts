@@ -23,6 +23,8 @@ const AD_EXPIRY_DAYS = 30
 const MAX_IMAGE_WIDTH = 1920
 const MAX_IMAGE_HEIGHT = 1920
 const JPEG_QUALITY = 0.85
+const MAX_TITLE_LENGTH = 100
+const MAX_DESCRIPTION_LENGTH = 5000
 
 // Helper function to resize image if needed
 async function resizeImage(imageData: Uint8Array): Promise<Uint8Array> {
@@ -181,6 +183,11 @@ router.get("/api/ads", async (ctx) => {
 // Get single ad
 router.get("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  if (isNaN(id)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   const supabase = getSupabase()
@@ -268,6 +275,19 @@ router.post("/api/ads", async (ctx) => {
   if (!title || !description || price === undefined || !category || !county) {
     ctx.response.status = 400
     ctx.response.body = { error: "Titel, beskrivning, pris, kategori och län krävs" }
+    return
+  }
+
+  // Validate input lengths
+  if (title.length > MAX_TITLE_LENGTH) {
+    ctx.response.status = 400
+    ctx.response.body = { error: `Titeln får vara max ${MAX_TITLE_LENGTH} tecken` }
+    return
+  }
+
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    ctx.response.status = 400
+    ctx.response.body = { error: `Beskrivningen får vara max ${MAX_DESCRIPTION_LENGTH} tecken` }
     return
   }
 
@@ -364,6 +384,11 @@ router.post("/api/ads", async (ctx) => {
 // Update ad
 router.put("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  if (isNaN(id)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -407,6 +432,19 @@ router.put("/api/ads/:id", async (ctx) => {
   if (county && !COUNTY_SLUGS.includes(county)) {
     ctx.response.status = 400
     ctx.response.body = { error: "Ogiltigt län" }
+    return
+  }
+
+  // Validate input lengths if provided
+  if (title !== undefined && title.length > MAX_TITLE_LENGTH) {
+    ctx.response.status = 400
+    ctx.response.body = { error: `Titeln får vara max ${MAX_TITLE_LENGTH} tecken` }
+    return
+  }
+
+  if (description !== undefined && description.length > MAX_DESCRIPTION_LENGTH) {
+    ctx.response.status = 400
+    ctx.response.body = { error: `Beskrivningen får vara max ${MAX_DESCRIPTION_LENGTH} tecken` }
     return
   }
 
@@ -478,6 +516,11 @@ router.put("/api/ads/:id", async (ctx) => {
 // Mark ad as unsold (set state back to 'ok')
 router.put("/api/ads/:id/unsold", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  if (isNaN(id)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -510,6 +553,11 @@ router.put("/api/ads/:id/unsold", async (ctx) => {
 // Delete ad
 router.delete("/api/ads/:id", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  if (isNaN(id)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -549,6 +597,11 @@ router.delete("/api/ads/:id", async (ctx) => {
 // Upload images
 router.post("/api/ads/:id/images", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  if (isNaN(id)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -636,6 +689,11 @@ router.post("/api/ads/:id/images", async (ctx) => {
 // Delete image
 router.delete("/api/images/:id", async (ctx) => {
   const imageId = parseInt(ctx.params.id)
+  if (isNaN(imageId)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt bild-ID" }
+    return
+  }
   const user = await getUserFromRequest(ctx)
 
   if (!user) {
@@ -750,6 +808,11 @@ router.get("/api/my-ads", async (ctx) => {
 // Note: IP is no longer stored as it's not necessary for the report function
 router.post("/api/ads/:id/report", async (ctx) => {
   const id = parseInt(ctx.params.id)
+  if (isNaN(id)) {
+    ctx.response.status = 400
+    ctx.response.body = { error: "Ogiltigt annons-ID" }
+    return
+  }
   const body = await ctx.request.body.json()
   const { reason, details } = body
 

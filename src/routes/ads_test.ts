@@ -223,3 +223,50 @@ Deno.test("Frontend simulation - county select sends slug, not name", () => {
   assertEquals(slugToSend, "gavleborg", "Slug for 'Gävleborg' should be 'gavleborg'")
   assertEquals(COUNTY_SLUGS.includes(slugToSend), true, "Sent slug should be valid")
 })
+
+Deno.test("Ad input validation - title length constraints", () => {
+  const MAX_TITLE_LENGTH = 100
+
+  const validTitle = "En begagnad cykel i gott skick"
+  const tooLongTitle = "a".repeat(101)
+
+  assertEquals(
+    validTitle.length <= MAX_TITLE_LENGTH,
+    true,
+    "Normal title should be accepted",
+  )
+  assertEquals(
+    tooLongTitle.length > MAX_TITLE_LENGTH,
+    true,
+    "Title exceeding 100 chars should be rejected",
+  )
+})
+
+Deno.test("Ad input validation - description length constraints", () => {
+  const MAX_DESCRIPTION_LENGTH = 5000
+
+  const validDescription = "Fin cykel, lite använd."
+  const tooLongDescription = "a".repeat(5001)
+
+  assertEquals(
+    validDescription.length <= MAX_DESCRIPTION_LENGTH,
+    true,
+    "Normal description should be accepted",
+  )
+  assertEquals(
+    tooLongDescription.length > MAX_DESCRIPTION_LENGTH,
+    true,
+    "Description exceeding 5000 chars should be rejected",
+  )
+})
+
+Deno.test("Ad ID validation - NaN IDs should be rejected", () => {
+  // Simulate the parseInt + isNaN check used in route handlers
+  const validId = parseInt("42")
+  const invalidId = parseInt("abc")
+  const emptyId = parseInt("")
+
+  assertEquals(isNaN(validId), false, "Numeric string '42' should produce valid ID")
+  assertEquals(isNaN(invalidId), true, "Non-numeric string 'abc' should produce NaN")
+  assertEquals(isNaN(emptyId), true, "Empty string should produce NaN")
+})

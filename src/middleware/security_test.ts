@@ -70,3 +70,15 @@ Deno.test("Security headers - Permissions-Policy restricts sensitive features", 
   assertEquals(policy?.includes("geolocation=()"), true)
   assertEquals(policy?.includes("microphone=()"), true)
 })
+
+Deno.test("Security headers - Strict-Transport-Security is set", async () => {
+  const ctx = createMockContext()
+  const next = () => Promise.resolve()
+
+  await securityHeadersMiddleware(ctx, next)
+
+  const hsts = ctx.response.headers.get("Strict-Transport-Security")
+  assertExists(hsts)
+  assertEquals(hsts?.includes("max-age=31536000"), true)
+  assertEquals(hsts?.includes("includeSubDomains"), true)
+})
